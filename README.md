@@ -14,7 +14,7 @@
 ## 👥 멤버
 | 장주리 | 김도연 | 김지민 | 한정현 |
 |:------:|:------:|:------:|:------:|
-| <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/78351a95-f120-4540-88aa-2827580fed45" />| <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/d375f81a-de7e-4851-8b0f-79e29cbf7fde" /> | <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/5332ba37-a6ae-4a03-beb7-ad586b69b172" /> | 사진4 |
+| <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/78351a95-f120-4540-88aa-2827580fed45" />| <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/d375f81a-de7e-4851-8b0f-79e29cbf7fde" /> | <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/5332ba37-a6ae-4a03-beb7-ad586b69b172" /> | <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/77d5eded-8365-45ac-bcf2-7bb49f62d22d" /> |
 | PL | FE | FE | FE |
 | [GitHub](https://github.com/Juri-Jang) | [GitHub](https://github.com/ddodle) | [GitHub](https://github.com/J1miin) | [GitHub](https://github.com/JungHyunHann) |
 

@@ -1,42 +1,62 @@
 # 🚀 프로젝트 이름
 
-![배너 이미지 또는 로고](링크)
+![배너 이미지 또는 로고](https://github.com/user-attachments/assets/36cbaf91-75c9-4712-bf7f-261676bdf43c)
 
-> 간단한 한 줄 소개 – 프로젝트의 핵심 가치 또는 기능
+> 커스터마이징을 통해 일정 관리의 효율을 높이는 통합 생산성 어플리케이션
 
 [![Swift](https://img.shields.io/badge/Swift-6.0-orange.svg)]()
 [![Xcode](https://img.shields.io/badge/Xcode-16.0-blue.svg)]()
 [![License](https://img.shields.io/badge/license-MIT-green.svg)]()
 
----
 
 <br>
 
 ## 👥 멤버
-| 팀원 1 | 팀원 2 | 팀원 3 | 팀원 4 |
+| 장주리 | 김도연 | 김지민 | 한정현 |
 |:------:|:------:|:------:|:------:|
-| 사진1 | 사진2 | 사진3 | 사진4 |
+| <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/78351a95-f120-4540-88aa-2827580fed45" />| <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/d375f81a-de7e-4851-8b0f-79e29cbf7fde" /> | <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/5332ba37-a6ae-4a03-beb7-ad586b69b172" /> | 사진4 |
 | PL | FE | FE | FE |
-| [GitHub](깃허브 링크) | [GitHub](깃허브 링크) | [GitHub](깃허브 링크) | [GitHub](깃허브 링크) |
+| [GitHub](https://github.com/Juri-Jang) | [GitHub](https://github.com/ddodle) | [GitHub](https://github.com/J1miin) | [GitHub](https://github.com/JungHyunHann) |
 
 <br>
 
 
 ## 📱 소개
 
-> 프로젝트의 주요 목적과 사용자가 얻게 될 경험을 설명해주세요.
+
+> **Indayvidual**은 사용자의 라이프스타일에 맞춰  
+> **일정 관리를 커스터마이징**할 수 있는 통합 생산성 어플리케이션입니다.
+
+
+### ✨ 1. 생산성 기능 통합
+- **캘린더, 투두 리스트, 시간표**를 하나의 앱에서 통합 관리  
+- **기대 효과:**  
+  ✅ 여러 앱을 오가는 번거로움 감소  
+  ✅ 일정 관리의 효율성 극대화
+
+
+### 🛠️ 2. 기능 커스터마이징
+- **메모장, 해빗 트래커** 등 필요한 기능만 선택 가능  
+- **기대 효과:**  
+  ✅ 라이프스타일에 맞춘 맞춤형 사용 경험 제공  
+  ✅ 불필요한 기능 배제로 집중도 향상
+
+
+### 📆 3. 편리한 위젯 제공
+- **월간 이동 및 일정 확인이 가능한 위젯** 지원  
+- **기대 효과:**  
+  ✅ 앱을 열지 않아도 일정 확인 가능  
+  ✅ 빠르고 직관적인 일정 접근으로 스트레스 감소
+
 
 <br>
 
 ## 📆 프로젝트 기간
-- 전체 기간: `YYYY.MM.DD - YYYY.MM.DD`
-- 개발 기간: `YYYY.MM.DD - YYYY.MM.DD`
+`2025.06.23 - 2025.08.21`
 
 <br>
 
 ## 🤔 요구사항
-For building and running the application you need:
-
 iOS 18.2 <br>
 Xcode 16.2 <br>
 Swift 6.0
@@ -47,7 +67,6 @@ Swift 6.0
 * Front : SwiftUI
 * 버전 및 이슈 관리 : Github, Github Issues
 * 협업 툴 : Discord, Notion
-
 <br>
 
 ## 🔎 기술 스택
@@ -55,24 +74,19 @@ Swift 6.0
 <div align="left">
 <img src="https://img.shields.io/badge/git-%23F05033.svg?style=for-the-badge&logo=git&logoColor=white" />
 <img src="https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white" />
-<img src="https://img.shields.io/badge/SPM-FA7343?style=for-the-badge&logo=swift&logoColor=white" />
-<img src="https://img.shields.io/badge/Fastlane-n?style=for-the-badge&logo=fastlane&logoColor=black" />
 </div>
 
 ### Development
 <div align="left">
 <img src="https://img.shields.io/badge/Xcode-007ACC?style=for-the-badge&logo=Xcode&logoColor=white" />
-<img src="https://img.shields.io/badge/Firebase-DD2C00?style=for-the-badge&logo=Firebase&logoColor=white" />
 <img src="https://img.shields.io/badge/SwiftUI-42A5F5?style=for-the-badge&logo=swift&logoColor=white" />
 <img src="https://img.shields.io/badge/Alamofire-FF5722?style=for-the-badge&logo=swift&logoColor=white" />
 <img src="https://img.shields.io/badge/Moya-8A4182?style=for-the-badge&logo=swift&logoColor=white" />
-<img src="https://img.shields.io/badge/Kingfisher-0F92F3?style=for-the-badge&logo=swift&logoColor=white" />
-<img src="https://img.shields.io/badge/Combine-FF2D55?style=for-the-badge&logo=apple&logoColor=white" />
 </div>
 
 ### Communication
 <div align="left">
-<img src="https://img.shields.io/badge/Miro-FFFC00.svg?style=for-the-badge&logo=Miro&logoColor=050038" />
+
 <img src="https://img.shields.io/badge/Notion-white.svg?style=for-the-badge&logo=Notion&logoColor=000000" />
 <img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=Discord&logoColor=white" />
 <img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white" />
@@ -81,13 +95,14 @@ Swift 6.0
 <br>
 
 ## 📱 화면 구성
+- 디자인 확정이후 첨부 예정
 <table>
   <tr>
     <td>
-      사진 넣어주세요
+      사진
     </td>
     <td>
-      사진 넣어주세요
+      사진
     </td>
    
   </tr>
@@ -102,7 +117,6 @@ Swift 6.0
 * `chore/xx` - 빌드 작업, 패키지 매니저 설정 등
 * `design/xx` - 디자인 변경
 * `bugfix/xx` - 디자인 변경
-
 
 
 <br>
@@ -157,13 +171,6 @@ if let user = self.veryLongFunctionNameWhichReturnsOptionalUser(),
 | [Hotfix]    | 운영 중 긴급 수정                                      |
 | [CI/CD]     | 배포 및 워크플로우 관련 작업                          |
 
-### ✅ PR 예시 모음
-> 🎉 [Chore] 프로젝트 초기 세팅 <br>
-> ✨ [Feat] 프로필 화면 UI 구현 <br>
-> 🐛 [Fix] iOS 17에서 버튼 클릭 오류 수정 <br>
-> 💄 [Design] 로그인 화면 레이아웃 조정 <br>
-> 📝 [Docs] README에 프로젝트 소개 추가 <br>
-
 <br>
 
 ## 📑 커밋 컨벤션
@@ -208,15 +215,17 @@ if let user = self.veryLongFunctionNameWhichReturnsOptionalUser(),
 | [Hotfix]    | 운영 중 긴급 수정이 필요한 버그 대응                 |
 | [CI/CD]     | 배포 관련 설정, 워크플로우 구성 등                    |
 
-### ✅ 커밋 예시 모음
-> 🎉 [Chore] 프로젝트 초기 세팅 <br>
-> ✨ [Feat] 프로필 화면 UI 구현 <br>
-> 🐛 [Fix] iOS 17에서 버튼 클릭 오류 수정 <br>
-> 💄 [Design] 로그인 화면 레이아웃 조정 <br>
-> 📝 [Docs] README에 프로젝트 소개 추가 <br>
-
 <br>
 
-## 🗂️ 폴더 컨벤션
+## 🗂️ 폴더 구조
 ```
+📦Indayvidual
+┣ 📂Indayvidual
+┃ ┣ 📂Assets.xcassets         # 앱 리소스 (아이콘, 컬러 등)
+┃ ┣ 📂Models                  # 데이터 모델 정의
+┃ ┣ 📂ViewModels              # 비즈니스 로직 처리
+┃ ┣ 📂Views                   # UI 화면 구성
+┃ ┣ 📜ContentView.swift
+┃ ┗ 📜IndayvidualApp.swift
+┗ 📂Indayvidual.xcodeproj     # Xcode 프로젝트 파일
 ```

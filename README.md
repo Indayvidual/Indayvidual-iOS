@@ -1,4 +1,4 @@
-# 🚀 프로젝트 이름
+# 🚀 Indayvidual (인데이비주얼)
 
 ![배너 이미지 또는 로고](https://github.com/user-attachments/assets/36cbaf91-75c9-4712-bf7f-261676bdf43c)
 

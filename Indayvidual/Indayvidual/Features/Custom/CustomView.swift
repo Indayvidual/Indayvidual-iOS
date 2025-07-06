@@ -9,16 +9,14 @@ import SwiftUI
 
 struct CustomView: View{
     var body: some View{
-        NavigationStack{
-            VStack{
-                Topbar()
-                
-                Spacer()
-                
-                Text("CustomView")
-                
-                Spacer()
-            }
+        VStack{
+            Topbar()
+            
+            Spacer()
+            
+            Text("CustomView")
+            
+            Spacer()
         }
     }
 }

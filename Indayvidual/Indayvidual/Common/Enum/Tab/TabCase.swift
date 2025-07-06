@@ -8,15 +8,15 @@
 import Foundation
 import SwiftUI
 
-enum TabCase: String, CaseIterable{
+enum TabCase: String, CaseIterable {
     case home = "홈"
     case todo = "투두"
     case timetable = "시간표"
     case custom = "커스텀"
     case settings = "설정"
     
-    var icon: Image{
-        switch self{
+    var icon: Image {
+        switch self {
         case .home :
             return .init(.home)
         case .todo :

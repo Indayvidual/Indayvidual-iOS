@@ -10,9 +10,27 @@
 		CB09CFC12E14D2BA0095ECDC /* Indayvidual.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Indayvidual.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0776DB0E2E196C1D00488C4B /* Exceptions for "Indayvidual" folder in "Indayvidual" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = CB09CFC02E14D2BA0095ECDC /* Indayvidual */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		0776DB112E19E20A00488C4B /* Resouces */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Resouces;
+			sourceTree = "<group>";
+		};
 		CB09CFC32E14D2BA0095ECDC /* Indayvidual */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0776DB0E2E196C1D00488C4B /* Exceptions for "Indayvidual" folder in "Indayvidual" target */,
+			);
 			path = Indayvidual;
 			sourceTree = "<group>";
 		};
@@ -32,6 +50,7 @@
 		CB09CFB82E14D2BA0095ECDC = {
 			isa = PBXGroup;
 			children = (
+				0776DB112E19E20A00488C4B /* Resouces */,
 				CB09CFC32E14D2BA0095ECDC /* Indayvidual */,
 				CB09CFC22E14D2BA0095ECDC /* Products */,
 			);
@@ -61,6 +80,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				0776DB112E19E20A00488C4B /* Resouces */,
 				CB09CFC32E14D2BA0095ECDC /* Indayvidual */,
 			);
 			name = Indayvidual;
@@ -253,6 +273,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Indayvidual/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -280,6 +301,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Indayvidual/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

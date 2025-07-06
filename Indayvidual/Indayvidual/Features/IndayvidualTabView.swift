@@ -10,6 +10,16 @@ import SwiftUI
 struct IndayvidualTabView: View{
     //기본 선택된 탭
     @State var tabcase: TabCase = .home
+
+    init() {
+        if let customFont = UIFont(name: "Pretendard-Regular", size: 12) {
+            UITabBarItem.appearance().setTitleTextAttributes([.font: customFont], for: .normal)
+            UITabBarItem.appearance().setTitleTextAttributes([.font: customFont], for: .selected)
+        }
+        UITabBar.appearance().tintColor = .black              // 선택된 아이콘·텍스트 색
+        UITabBar.appearance().unselectedItemTintColor = .gray // 선택 안 된 텍스트 색
+    }
+
     
     // MARK: - Body
     var body: some View{
@@ -36,10 +46,7 @@ struct IndayvidualTabView: View{
             tab.icon
                 .renderingMode(.template)
             
-            //폰트 합친 이후 수정 예정
             Text(tab.rawValue)
-                .font(.caption)
-                .foregroundStyle(Color.gray)
         })
     }
     
@@ -64,5 +71,5 @@ struct IndayvidualTabView: View{
 }
 
 #Preview{
-    IndayvidualTabView(tabcase: .home)
+    IndayvidualTabView()
 }

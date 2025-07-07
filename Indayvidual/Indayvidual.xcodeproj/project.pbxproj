@@ -21,11 +21,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		0776DB112E19E20A00488C4B /* Resouces */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = Resouces;
-			sourceTree = "<group>";
-		};
 		CB09CFC32E14D2BA0095ECDC /* Indayvidual */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -50,7 +45,6 @@
 		CB09CFB82E14D2BA0095ECDC = {
 			isa = PBXGroup;
 			children = (
-				0776DB112E19E20A00488C4B /* Resouces */,
 				CB09CFC32E14D2BA0095ECDC /* Indayvidual */,
 				CB09CFC22E14D2BA0095ECDC /* Products */,
 			);
@@ -80,7 +74,6 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				0776DB112E19E20A00488C4B /* Resouces */,
 				CB09CFC32E14D2BA0095ECDC /* Indayvidual */,
 			);
 			name = Indayvidual;

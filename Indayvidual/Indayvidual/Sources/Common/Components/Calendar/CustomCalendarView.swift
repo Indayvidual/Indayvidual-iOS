@@ -1,5 +1,5 @@
 //
-//  CustomCaledarView.swift
+//  CustomCalendarView.swift
 //  Indayvidual
 //
 //  Created by 장주리 on 7/8/25.
@@ -7,13 +7,13 @@
 
 import SwiftUI
 
-struct CustomCaledarView: View {
-    @ObservedObject var mainCalendarViewModel: CustomCalendarViewModel
+struct CustomCalendarView: View {
+    @ObservedObject var calendarViewModel: CustomCalendarViewModel
 
     var body: some View {
         ZStack {
             VStack(spacing: 0) {
-                CalendarHeaderView(mainCalendarViewModel: mainCalendarViewModel)
+                CalendarHeaderView(calendarViewModel: calendarViewModel)
                 WeekdayHeaderView()
                 calendarContentView
             }
@@ -33,20 +33,20 @@ struct CustomCaledarView: View {
 
     @ViewBuilder
     private var calendarContentView: some View {
-        if mainCalendarViewModel.calendarMode == .month {
-            MonthlyCalendarView(calendarViewModel: mainCalendarViewModel)
+        if calendarViewModel.calendarMode == .month {
+            MonthlyCalendarView(calendarViewModel: calendarViewModel)
         } else {
-            WeeklyCalendarView(calendarViewModel: mainCalendarViewModel)
+            WeeklyCalendarView(calendarViewModel: calendarViewModel)
         }
     }
 }
 
 // 캘린더 헤더
 struct CalendarHeaderView: View {
-    @ObservedObject var mainCalendarViewModel: CustomCalendarViewModel
+    @ObservedObject var calendarViewModel: CustomCalendarViewModel
 
     private var yearAndMonth: (year: String, month: String) {
-        let ym = mainCalendarViewModel.getYearAndMonthString(currentDate: mainCalendarViewModel.displayedMonthDate)
+        let ym = calendarViewModel.getYearAndMonthString(currentDate: calendarViewModel.displayedMonthDate)
         return (year: ym[0], month: ym[1])
     }
 
@@ -74,9 +74,9 @@ struct CalendarHeaderView: View {
 
     private var toggleButton: some View {
         Button {
-            mainCalendarViewModel.toggleCalendarMode()
+            calendarViewModel.toggleCalendarMode()
         } label: {
-            Text(mainCalendarViewModel.calendarMode == .month ? "월" : "주")
+            Text(calendarViewModel.calendarMode == .month ? "월" : "주")
                 .font(.pretendSemiBold15)
                 .frame(width: 29, height: 27)
                 .foregroundStyle(Color(red: 28/255, green: 30/255, blue: 32/255)) // gray900 → #1C1E20
@@ -87,7 +87,7 @@ struct CalendarHeaderView: View {
 
     private var previousButton: some View {
         Button(action: {
-            mainCalendarViewModel.moveCalendar(by: -1)
+            calendarViewModel.moveCalendar(by: -1)
         }) {
             Image(.mingcuteLeftFill)
         }
@@ -95,7 +95,7 @@ struct CalendarHeaderView: View {
 
     private var nextButton: some View {
         Button(action: {
-            mainCalendarViewModel.moveCalendar(by: 1)
+            calendarViewModel.moveCalendar(by: 1)
         }) {
             Image(.mingcuteRightFill)
         }
@@ -218,5 +218,5 @@ struct DateButton: View {
 }
 
 #Preview {
-    CustomCaledarView(mainCalendarViewModel: CustomCalendarViewModel())
+    CustomCalendarView(calendarViewModel: CustomCalendarViewModel())
 }

@@ -1,5 +1,5 @@
 //
-//  CustomCaledarViewModel.swift
+//  CustomCalendarViewModel.swift
 //  Indayvidual
 //
 //  Created by 장주리 on 7/8/25.

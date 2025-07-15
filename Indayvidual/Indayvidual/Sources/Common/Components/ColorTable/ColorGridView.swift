@@ -10,10 +10,10 @@ import SwiftUI
 struct ColorGridView: View {
     @ObservedObject var viewModel: ColorViewModel
 
-    let columns = Array(repeating: GridItem(.flexible(), spacing: 31.51), count: 5)
+    let columns = Array(repeating: GridItem(.flexible(), spacing: 31), count: 5)
 
     var body: some View {
-        LazyVGrid(columns: columns) {
+        LazyVGrid(columns: columns, spacing: 24) {
             ForEach(viewModel.colors) { colorItem in
                 Color(colorItem.name)
                     .frame(width: 39.39, height: 39.39)
@@ -33,11 +33,10 @@ struct ColorGridView: View {
                     }
             }
         }
-        .padding(.horizontal, 20)
         .padding(.vertical, 30)
+        .frame(width: 323, height: 488)
     }
    
-
 }
 
 #Preview {

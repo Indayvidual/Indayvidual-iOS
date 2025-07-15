@@ -8,52 +8,56 @@
 import SwiftUI
 
 class ColorViewModel: ObservableObject {
-    @Published var colors: [ColorModel] = [
-        ColorModel(name: "purple04"),
-        ColorModel(name: "purple03"),
-        ColorModel(name: "purple02"),
-        ColorModel(name: "purple01"),
-        ColorModel(name: "purple00"),
-        ColorModel(name: "pink04"),
-        ColorModel(name: "pink03"),
-        ColorModel(name: "pink02"),
-        ColorModel(name: "pink01"),
-        ColorModel(name: "pink00"),
-        ColorModel(name: "red04"),
-        ColorModel(name: "red03"),
-        ColorModel(name: "red02"),
-        ColorModel(name: "red01"),
-        ColorModel(name: "red00"),
-        ColorModel(name: "yellow04"),
-        ColorModel(name: "yellow03"),
-        ColorModel(name: "yellow02"),
-        ColorModel(name: "yellow01"),
-        ColorModel(name: "yellow00"),
-        ColorModel(name: "green04"),
-        ColorModel(name: "green03"),
-        ColorModel(name: "green02"),
-        ColorModel(name: "green01"),
-        ColorModel(name: "green00"),
-        ColorModel(name: "turquoise04"),
-        ColorModel(name: "turquoise03"),
-        ColorModel(name: "turquoise02"),
-        ColorModel(name: "turquoise01"),
-        ColorModel(name: "turquoise00"),
-        ColorModel(name: "blue04"),
-        ColorModel(name: "blue03"),
-        ColorModel(name: "blue02"),
-        ColorModel(name: "blue01"),
-        ColorModel(name: "blue00"),
-        ColorModel(name: "gray04"),
-        ColorModel(name: "gray03"),
-        ColorModel(name: "gray02"),
-        ColorModel(name: "gray01"),
-        ColorModel(name: "gray00"),
-    ]
+    @Published var colors: [ColorModel]
+
+    init() {
+        self.colors = [
+            ColorModel(name: "purple-05"),
+            ColorModel(name: "purple-04"),
+            ColorModel(name: "purple-03"),
+            ColorModel(name: "purple-02"),
+            ColorModel(name: "purple-01"),
+            ColorModel(name: "pink-05"),
+            ColorModel(name: "pink-04"),
+            ColorModel(name: "pink-03"),
+            ColorModel(name: "pink-02"),
+            ColorModel(name: "pink-01"),
+            ColorModel(name: "peach-05"),
+            ColorModel(name: "peach-04"),
+            ColorModel(name: "peach-03"),
+            ColorModel(name: "peach-02"),
+            ColorModel(name: "peach-01"),
+            ColorModel(name: "yellow-05"),
+            ColorModel(name: "yellow-04"),
+            ColorModel(name: "yellow-03"),
+            ColorModel(name: "yellow-02"),
+            ColorModel(name: "yellow-01"),
+            ColorModel(name: "green-05"),
+            ColorModel(name: "green-04"),
+            ColorModel(name: "green-03"),
+            ColorModel(name: "green-02"),
+            ColorModel(name: "green-01"),
+            ColorModel(name: "teal-05"),
+            ColorModel(name: "teal-04"),
+            ColorModel(name: "teal-03"),
+            ColorModel(name: "teal-02"),
+            ColorModel(name: "teal-01"),
+            ColorModel(name: "ocean-05"),
+            ColorModel(name: "ocean-04"),
+            ColorModel(name: "ocean-03"),
+            ColorModel(name: "ocean-02"),
+            ColorModel(name: "ocean-01"),
+            ColorModel(name: "gray-700"),
+            ColorModel(name: "gray-500"),
+            ColorModel(name: "gray-400"),
+            ColorModel(name: "gray-200"),
+            ColorModel(name: "gray-50"),
+        ]
+    }
 
     func colorSelection(for id: UUID) {
         for i in colors.indices {
-                colors[i].isSelected = (colors[i].id == id)
-            }
+            colors[i].isSelected = (colors[i].id == id)
+        }
     }
 }

@@ -11,10 +11,10 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		0776DB0E2E196C1D00488C4B /* Exceptions for "Indayvidual" folder in "Indayvidual" target */ = {
+		CBD28F9E2E267DA900FA3262 /* Exceptions for "Indayvidual" folder in "Indayvidual" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Info.plist,
+				SupportingFiles/Info.plist,
 			);
 			target = CB09CFC02E14D2BA0095ECDC /* Indayvidual */;
 		};
@@ -29,7 +29,7 @@
 		CB09CFC32E14D2BA0095ECDC /* Indayvidual */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				0776DB0E2E196C1D00488C4B /* Exceptions for "Indayvidual" folder in "Indayvidual" target */,
+				CBD28F9E2E267DA900FA3262 /* Exceptions for "Indayvidual" folder in "Indayvidual" target */,
 			);
 			path = Indayvidual;
 			sourceTree = "<group>";
@@ -273,7 +273,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Indayvidual/Info.plist;
+				INFOPLIST_FILE = Indayvidual/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -301,7 +301,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = Indayvidual/Info.plist;
+				INFOPLIST_FILE = Indayvidual/SupportingFiles/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

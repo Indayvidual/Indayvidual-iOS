@@ -21,7 +21,7 @@ struct ColorGridView: View {
                     .overlay(
                             Group {
                                 if colorItem.isSelected {
-                                    Image("color-check-icon")
+                                    Image("check-icon")
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 20, height: 13)

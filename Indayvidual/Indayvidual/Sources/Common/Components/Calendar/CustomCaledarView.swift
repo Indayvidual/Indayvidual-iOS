@@ -153,11 +153,10 @@ struct MonthlyCalendarView: View {
 // 주 캘린더
 struct WeeklyCalendarView: View {
     @ObservedObject var calendarViewModel: CustomCalendarViewModel
-
+    
     var body: some View {
         HStack(spacing: 15) {
-            ForEach(getThisWeekDates(), id: \.self) { date in
-                let dateValue = DateValue(day: Calendar.current.component(.day, from: date), date: date)
+            ForEach(getThisWeekDateValues()) { dateValue in
                 DateButton(
                     value: dateValue,
                     calendarViewModel: calendarViewModel,
@@ -167,14 +166,19 @@ struct WeeklyCalendarView: View {
             }
         }
     }
-
-    private func getThisWeekDates() -> [Date] {
+    
+    private func getThisWeekDateValues() -> [DateValue] {
         let calendar = Calendar.current
         let selectedDate = calendarViewModel.selectDate
         let weekday = calendar.component(.weekday, from: selectedDate)
         let startOfWeek = calendar.date(byAdding: .day, value: -(weekday - 1), to: selectedDate)!
+        
         return (0..<7).compactMap { offset in
-            calendar.date(byAdding: .day, value: offset, to: startOfWeek)
+            if let date = calendar.date(byAdding: .day, value: offset, to: startOfWeek) {
+                let day = calendar.component(.day, from: date)
+                return DateValue(day: day, date: date)
+            }
+            return nil
         }
     }
 }
@@ -185,15 +189,15 @@ struct DateButton: View {
     @ObservedObject var calendarViewModel: CustomCalendarViewModel
     var selectDate: Date
     var onSelectDate: (Date) -> Void
-
+        
     private var isToday: Bool {
         Calendar.current.isDateInToday(value.date)
     }
-
+        
     private var isSelected: Bool {
         calendarViewModel.isSameDay(date1: value.date, date2: selectDate)
     }
-
+        
     var body: some View {
         Button {
             onSelectDate(value.date)
@@ -206,9 +210,9 @@ struct DateButton: View {
                     Circle()
                         .fill(
                             isSelected ? .black :
-                            (isToday ? Color(red: 215/255, green: 217/255, blue: 219/255) : Color.clear)
-                        )
+                                (isToday ? Color(red: 215/255, green: 217/255, blue: 219/255) : Color.clear)
                 )
+            )
         }
     }
 }

@@ -120,7 +120,7 @@ final class CustomCalendarViewModel: ObservableObject {
         let firstWeekday = calendar.component(.weekday, from: firstOfMonth)
 
         for _ in 0..<firstWeekday - 1 {
-            days.append(DateValue(day: -1, date: Date()))
+            days.append(DateValue(day: -1, date: .distantPast))
         }
 
         let range = calendar.range(of: .day, in: .month, for: monthDate)!

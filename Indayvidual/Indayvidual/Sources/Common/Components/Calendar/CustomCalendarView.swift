@@ -135,7 +135,7 @@ struct MonthlyCalendarView: View {
                         value: value,
                         calendarViewModel: calendarViewModel,
                         selectDate: calendarViewModel.selectDate,
-                        onSelectDate: calendarViewModel.selectDate(_:)
+                        onSelectDate: calendarViewModel.updateSelectedDate(_:)
                     )
                 } else {
                     Color.clear
@@ -162,7 +162,7 @@ struct WeeklyCalendarView: View {
                     value: dateValue,
                     calendarViewModel: calendarViewModel,
                     selectDate: calendarViewModel.selectDate,
-                    onSelectDate: calendarViewModel.selectDate(_:)
+                    onSelectDate: calendarViewModel.updateSelectedDate(_:)
                 )
             }
         }
@@ -197,8 +197,9 @@ struct DateButton: View {
         
     private var isSelected: Bool {
         calendarViewModel.isSameDay(date1: value.date, date2: selectDate)
-    }
         
+    }
+ 
     var body: some View {
         Button {
             onSelectDate(value.date)

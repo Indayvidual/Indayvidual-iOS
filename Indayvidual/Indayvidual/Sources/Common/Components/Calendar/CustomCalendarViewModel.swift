@@ -15,10 +15,14 @@ final class CustomCalendarViewModel: ObservableObject {
     @Published var popupDate: Bool = false
     @Published var calendarMode: CalendarMode = .month
 
-    // 월 이동 계산 대신, 직접 월 정보를 담는 변수로 변경
-    @Published var displayedMonthDate: Date = Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: Date()))!
+    // 월 기준 날짜 (year, month 만 있는 Date, 시간은 00:00:00)
+    @Published var displayedMonthDate: Date = {
+        let calendar = Calendar.current
+        let components = calendar.dateComponents([.year, .month], from: Date())
+        return calendar.date(from: components) ?? Date()
+    }()
 
-    // 연, 월 String 반환
+    // 연, 월 문자열 반환
     func getYearAndMonthString(currentDate: Date) -> [String] {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
@@ -27,35 +31,9 @@ final class CustomCalendarViewModel: ObservableObject {
         return components.map { String($0) }
     }
 
-    // 현재 월 기준으로 달력 날짜 데이터 생성
-    func extractDate(currentMonth: Int) -> [DateValue] {
-        let calendar = Calendar.current
-        guard let monthDate = calendar.date(byAdding: .month, value: currentMonth, to: currentDate) else { return [] }
-
-        var days: [DateValue] = []
-
-        let firstOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: monthDate))!
-        let firstWeekday = calendar.component(.weekday, from: firstOfMonth)
-
-        // 앞쪽 공백 (-1)
-        for _ in 0..<firstWeekday - 1 {
-            days.append(DateValue(day: -1, date: Date()))
-        }
-
-        // 실제 날짜
-        let range = calendar.range(of: .day, in: .month, for: monthDate)!
-        for day in range {
-            if let date = calendar.date(byAdding: .day, value: day - 1, to: firstOfMonth) {
-                days.append(DateValue(day: day, date: date))
-            }
-        }
-
-        return days
-    }
-
-    // 날짜 비교
+    // 날짜 비교 (년,월,일만 비교)
     func isSameDay(date1: Date, date2: Date) -> Bool {
-        Calendar.current.isDate(date1, inSameDayAs: date2)
+        Calendar.current.isDate(date1, equalTo: date2, toGranularity: .day)
     }
 
     // 월 이동
@@ -63,22 +41,22 @@ final class CustomCalendarViewModel: ObservableObject {
         let calendar = Calendar.current
 
         if let newMonthDate = calendar.date(byAdding: .month, value: value, to: displayedMonthDate) {
-            displayedMonthDate = newMonthDate
+            displayedMonthDate = calendar.startOfDay(for: newMonthDate)
         }
 
         if let newSelectedDate = calendar.date(byAdding: .month, value: value, to: selectDate) {
-            selectDate = newSelectedDate
+            selectDate = calendar.startOfDay(for: newSelectedDate)
         }
     }
 
-    // 주 단위 날짜 이동 (selectDate만 변경)
+    // 주 단위 이동 (selectDate만)
     func moveWeek(byWeeks value: Int) {
         if let newDate = Calendar.current.date(byAdding: .day, value: value * 7, to: selectDate) {
-            selectDate(newDate)
+            updateSelectedDate(newDate)
         }
     }
 
-    // 캘린더 모드에 따른 이동 함수
+    // 캘린더 모드에 따라 이동
     func moveCalendar(by value: Int) {
         switch calendarMode {
         case .month:
@@ -93,43 +71,62 @@ final class CustomCalendarViewModel: ObservableObject {
         calendarMode = (calendarMode == .month) ? .week : .month
     }
 
-    // 날짜 선택 함수 (날짜 및 월 동기화)
-    func selectDate(_ date: Date) {
-        selectDate = date
-        checkingDate = date
+    // 날짜 선택 및 월 동기화
+    func updateSelectedDate(_ date: Date) {
+        let calendar = Calendar.current
+
+        let startOfDay = calendar.startOfDay(for: date)
+
+        selectDate = startOfDay
+        checkingDate = startOfDay
         popupDate = true
 
-        let calendar = Calendar.current
-        let selectedMonth = calendar.component(.month, from: date)
+        let selectedMonth = calendar.component(.month, from: startOfDay)
         let displayedMonth = calendar.component(.month, from: displayedMonthDate)
-        let selectedYear = calendar.component(.year, from: date)
+        let selectedYear = calendar.component(.year, from: startOfDay)
         let displayedYear = calendar.component(.year, from: displayedMonthDate)
 
         if selectedMonth != displayedMonth || selectedYear != displayedYear {
-            displayedMonthDate = calendar.date(from: calendar.dateComponents([.year, .month], from: date))!
+            if let newDisplayedDate = calendar.date(from: calendar.dateComponents([.year, .month], from: startOfDay)) {
+                displayedMonthDate = newDisplayedDate
+            }
         }
     }
-    
+
+    // 월 기준 날짜 배열 생성
     func extractDate(baseDate: Date) -> [DateValue] {
         let calendar = Calendar.current
-        let monthDate = calendar.date(from: calendar.dateComponents([.year, .month], from: baseDate)) ?? Date()
-
+        
+        // baseDate에서 연,월 정보만 가져와 1일 0시 기준 날짜 생성
+        guard let firstOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: baseDate)) else {
+            return []
+        }
+        
+        // 첫날 자정으로 보정 (시간까지 00:00:00)
+        let startOfFirstDay = calendar.startOfDay(for: firstOfMonth)
+        
         var days: [DateValue] = []
-
-        let firstOfMonth = monthDate
-        let firstWeekday = calendar.component(.weekday, from: firstOfMonth)
-
-        for _ in 0..<firstWeekday - 1 {
+        
+        // 첫날의 요일 (1=일요일, 7=토요일)
+        let firstWeekday = calendar.component(.weekday, from: startOfFirstDay)
+        
+        // 월 달력 앞 공백 처리 (첫 요일 전까지)
+        for _ in 1..<firstWeekday {
             days.append(DateValue(day: -1, date: .distantPast))
         }
-
-        let range = calendar.range(of: .day, in: .month, for: monthDate)!
+        
+        // 해당 월의 전체 일 수 (예: 31일)
+        guard let range = calendar.range(of: .day, in: .month, for: startOfFirstDay) else {
+            return []
+        }
+        
+        // 날짜 데이터 생성
         for day in range {
-            if let date = calendar.date(byAdding: .day, value: day - 1, to: firstOfMonth) {
+            // day-1일을 더해서 해당 날짜 생성
+            if let date = calendar.date(byAdding: .day, value: day - 1, to: startOfFirstDay) {
                 days.append(DateValue(day: day, date: date))
             }
         }
-
         return days
     }
 

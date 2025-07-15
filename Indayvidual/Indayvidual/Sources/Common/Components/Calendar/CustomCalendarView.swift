@@ -47,6 +47,7 @@ struct CalendarHeaderView: View {
 
     private var yearAndMonth: (year: String, month: String) {
         let ym = calendarViewModel.getYearAndMonthString(currentDate: calendarViewModel.displayedMonthDate)
+        guard ym.count >= 2 else {return (year: "", month: "")}
         return (year: ym[0], month: ym[1])
     }
 

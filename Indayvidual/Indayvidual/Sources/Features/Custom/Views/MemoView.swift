@@ -8,34 +8,38 @@
 import SwiftUI
 
 struct MemoView: View {
-    @Bindable var vm: MemoViewModel
-    
-    init() {
-        self.vm = .init()
-    }
+    var memo = MemoModel(
+        title: "메모1",
+        content: "테스트 내용입니다",
+        date: "250719",
+        time: "12:34"
+    )
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: 12) {
             Image(.custom)
                 .renderingMode(.template)
                 .tint(.black)
-            Text("메모\(vm.number)")
+            Text(memo.title)
                 .font(.pretendSemiBold22)
-            Text(vm.memoContent)
+            Text(memo.content)
                 .font(.pretendSemiBold17)
                 .foregroundStyle(.gray500)
+                .lineLimit(2)
+                .frame(width: 132, height: 42, alignment: .leading)
             
-            HStack {
-                Text(vm.date)
+            HStack(spacing: 20) {
+                Text(memo.date)
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .frame(width: 52, height: 20)
+                            .frame(width: 60, height: 20)
                             .foregroundStyle(.gray50)
                     )
-                Text(vm.time)
+                
+                Text(memo.time)
                     .background(
                         RoundedRectangle(cornerRadius: 20)
-                            .frame(width: 40, height: 20)
+                            .frame(width: 48, height: 20)
                             .foregroundStyle(.gray50)
                     )
             }
@@ -44,12 +48,20 @@ struct MemoView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .frame(width: 172, height: 200)
+                .frame(width: 160, height: 180)
                 .foregroundStyle(.white)
         )
     }
 }
 
 #Preview {
-    MemoView()
+    ZStack {
+        Color.gray
+        MemoView(memo: MemoModel(
+                title: "메모1",
+                content: "이건 매우 길어질 수 있는 테스트용 메모 내용입니다. 아마도 줄바꿈 없이 계속 길어질 수 있어요. 그러니까 잘라줘야 해요!",
+                date: "250719",
+                time: "12:34"
+            ))
+    }
 }

@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CustomView: View{
-    @Bindable var vm : CustomViewModel
+    @State private var vm : CustomViewModel
     
     init() {
         self.vm = .init()
@@ -20,7 +20,6 @@ struct CustomView: View{
                 LinearGradient(gradient: Gradient(colors: [.gray500, .white]),
                                startPoint: .top, endPoint: .bottom)
                             .edgesIgnoringSafeArea(.all)
-
                 VStack{
                     Topbar()
                     
@@ -37,7 +36,7 @@ struct CustomView: View{
     
     var userRecord: some View {
         NavigationLink {
-            
+            RecordView(sharedVM: vm)
         } label: {
             HStack {
                 Text("\(vm.name)님의 기록")
@@ -59,9 +58,9 @@ struct CustomView: View{
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
-                    ForEach(0...10, id: \.self) { n in
-                        MemoView()
-                            .padding(32)
+                    ForEach(vm.memos) { memo in
+                        MemoView(memo: memo)
+                            .padding(16)
                     }
                 }
                 .padding(.horizontal)
@@ -77,7 +76,7 @@ struct CustomView: View{
             
             VStack {
                 NavigationLink {
-                    
+                    MyHabitView()
                 } label: {
                     HStack {
                         Text("나의 습관")

@@ -11,7 +11,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		CBD28F9E2E267DA900FA3262 /* Exceptions for "Indayvidual" folder in "Indayvidual" target */ = {
+		0BB6300D2E2D00B5000F739A /* Exceptions for "Indayvidual" folder in "Indayvidual" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				SupportingFiles/Info.plist,
@@ -24,7 +24,7 @@
 		CB09CFC32E14D2BA0095ECDC /* Indayvidual */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				CBD28F9E2E267DA900FA3262 /* Exceptions for "Indayvidual" folder in "Indayvidual" target */,
+				0BB6300D2E2D00B5000F739A /* Exceptions for "Indayvidual" folder in "Indayvidual" target */,
 			);
 			path = Indayvidual;
 			sourceTree = "<group>";

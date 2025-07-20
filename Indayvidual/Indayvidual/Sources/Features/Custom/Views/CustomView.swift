@@ -58,9 +58,20 @@ struct CustomView: View{
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack {
-                    ForEach(vm.memos) { memo in
-                        MemoView(memo: memo)
-                            .padding(16)
+                    ForEach(Array(vm.memos.enumerated()), id: \.element.id) { index, memo in
+                        NavigationLink {
+                            AddMemoView(
+                                vm: MemoViewModel(
+                                    sharedVM: vm,
+                                    memo: memo,
+                                    index: index
+                                )
+                            )
+                        } label: {
+                            MemoView(memo: memo)
+                                .padding(16)
+                                .padding(.vertical, 8)
+                        }
                     }
                 }
                 .padding(.horizontal)

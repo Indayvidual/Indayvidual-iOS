@@ -9,48 +9,53 @@ import SwiftUI
 
 struct RecordView: View {
     @Environment(\.dismiss) private var dismiss
-    var sharedVM: CustomViewModel
+    var sharedVM: CustomViewModel //CustomViewModel을 상위에서 뷰에서 불러와서 사용
     
     var body: some View {
-        ZStack {
-            Color.gray50
-                .ignoresSafeArea()
-            
-            VStack(alignment: .leading, spacing: 20) {
-                nameAndnum
+        NavigationStack {
+            ZStack {
+                Color.gray50
+                    .ignoresSafeArea()
                 
+                VStack(alignment: .leading, spacing: 20) {
+                    nameAndnum
+                    
+                }
             }
-        }
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
+            .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                        }
                     }
                 }
             }
+            .tint(.black)
         }
-        .tint(.black)
     }
     
+    //사용자 이름 및 총 메모 갯수 출력
     var nameAndnum: some View {
         Group {
             HStack {
                 Text("\(sharedVM.name)님의 기록")
                     .font(.pretendBold24)
+                    .foregroundStyle(.black)
                 Spacer()
             }
             
             Text("총 \(sharedVM.num)개")
                 .font(.pretendSemiBold18)
+                .foregroundStyle(.black)
             
+            //메모가 하나도 없을 경우
             if sharedVM.num == 0 {
-                Spacer()
                 Image(.noData)
-                Spacer()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
             } else {
                 memos
             }
@@ -58,6 +63,7 @@ struct RecordView: View {
         .padding(.horizontal)
     }
     
+    // 모든 메모를 리스트 형식으로 출력 뷰모델 추가 이후 네비게이션으로 내용 확인 및 수정할 수 있도록 변경 예정
     var memos: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 20)
@@ -66,22 +72,33 @@ struct RecordView: View {
             
             List {
                 ForEach(Array(sharedVM.memos.enumerated()), id: \.element.id) { index, memo in
-                    VStack(spacing: 12) {
-                        HStack {
-                            Text(memo.title)
-                                .font(.pretendSemiBold22)
-                            Spacer()
-                            Text(memo.date)
-                                .font(.pretendMedium14)
-                                .foregroundStyle(.gray400)
-                                .padding(.horizontal, 8)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .foregroundStyle(.gray50)
-                                )
+                    NavigationLink {
+                        AddMemoView(
+                            vm: MemoViewModel(
+                                sharedVM: sharedVM,
+                                memo: memo,
+                                index: index
+                            )
+                        )
+                    } label: {
+                        VStack(spacing: 12) {
+                            HStack {
+                                Text(memo.title)
+                                    .font(.pretendSemiBold22)
+                                    .foregroundStyle(.black)
+                                Spacer()
+                                Text(memo.date)
+                                    .font(.pretendMedium14)
+                                    .foregroundStyle(.gray400)
+                                    .padding(.horizontal, 8)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 20)
+                                            .foregroundStyle(.gray50)
+                                    )
+                            }
                         }
+                        .padding(.vertical, 8)
                     }
-                    .padding(.vertical, 8)
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
                             sharedVM.deleteMemo(at: index)
@@ -91,7 +108,7 @@ struct RecordView: View {
                         }
                     }
                 }
-                .listRowBackground(Color.white) // ✅ 배경 흰색
+                .listRowBackground(Color.white)
             }
             .listStyle(.plain)
             .frame(height: 512)

@@ -16,7 +16,7 @@ struct MemoView: View {
     )
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             Image(.custom)
                 .renderingMode(.template)
                 .foregroundStyle(.black)
@@ -24,13 +24,13 @@ struct MemoView: View {
                 .font(.pretendSemiBold22)
                 .foregroundStyle(.black)
                 .lineLimit(1)
-                .frame(width: 132, height: 32, alignment: .leading)
+                .frame(width: 132, height: 28, alignment: .leading)
             Text(memo.content)
                 .font(.pretendSemiBold17)
                 .foregroundStyle(.gray500)
                 .lineLimit(2)
                 .multilineTextAlignment(.leading)
-                .frame(width: 132, height: 42, alignment: .leading)
+                .frame(width: 132, height: 48, alignment: .leading)
             
             HStack(spacing: 20) {
                 Text(memo.date)

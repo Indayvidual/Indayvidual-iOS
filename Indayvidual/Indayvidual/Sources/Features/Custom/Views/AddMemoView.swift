@@ -50,7 +50,6 @@ struct AddMemoView: View {
                 vm.save()
                 dismiss()
             }
-            .disabled(vm.title.isEmpty)
         }
         .font(.pretendSemiBold18)
         .tint(.black)

@@ -9,33 +9,40 @@ import SwiftUI
 
 struct RecordView: View {
     @Environment(\.dismiss) private var dismiss
-    var sharedVM: CustomViewModel //CustomViewModel을 상위에서 뷰에서 불러와서 사용
+    @State private var Add : Bool = false
+    var sharedVM: CustomViewModel // 공유된 ViewModel로 상위 뷰에서 가져와 사용
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                Color.gray50
-                    .ignoresSafeArea()
+        ZStack {
+            Color.gray50
+                .ignoresSafeArea()
+            
+            VStack(alignment: .leading, spacing: 20) {
+                nameAndnum
                 
-                VStack(alignment: .leading, spacing: 20) {
-                    nameAndnum
-                    
-                }
             }
-            .navigationBarBackButtonHidden(true)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "chevron.left")
-                        }
+        }
+        .floatingBtn {
+            Add = true
+        }
+        .navigationDestination(isPresented: $Add) {
+            AddMemoView(
+                vm: MemoViewModel(sharedVM: sharedVM)
+            )
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
                     }
                 }
             }
-            .tint(.black)
         }
+        .tint(.black)
     }
     
     //사용자 이름 및 총 메모 갯수 출력
@@ -63,7 +70,7 @@ struct RecordView: View {
         .padding(.horizontal)
     }
     
-    // 모든 메모를 리스트 형식으로 출력 뷰모델 추가 이후 네비게이션으로 내용 확인 및 수정할 수 있도록 변경 예정
+    // 모든 메모 리스트 형식으로 출력
     var memos: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 20)

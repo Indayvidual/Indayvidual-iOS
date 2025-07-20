@@ -9,25 +9,23 @@ import SwiftUI
 
 struct CustomView: View{
     @State private var vm : CustomViewModel
+    @State private var showAdd : Bool = false
     
     init() {
         self.vm = .init()
     }
     
     var body: some View{
-        NavigationStack{
+        NavigationStack {
             ZStack {
                 LinearGradient(gradient: Gradient(colors: [.gray500, .white]),
                                startPoint: .top, endPoint: .bottom)
                             .edgesIgnoringSafeArea(.all)
                 VStack{
                     Topbar()
-                    
                     recordView
                         .padding(.bottom, 40)
-                    
                     Spacer()
-                    
                     myHabits
                 }
             }

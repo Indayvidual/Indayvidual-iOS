@@ -38,6 +38,7 @@ class MemoViewModel {
     }
     
     func save() {
+        let newTitle = title.isEmpty ? "새로운 메모" : title
         // 현재 시간으로 날짜, 시간 생성
         let now = Date()
         let df = DateFormatter()
@@ -63,7 +64,7 @@ class MemoViewModel {
         } else {
             // 신규 모드: 배열 맨 앞에 삽입
             let newMemo = MemoModel(
-                title: title,
+                title: newTitle,
                 content: content,
                 date: dateString,
                 time: timeString

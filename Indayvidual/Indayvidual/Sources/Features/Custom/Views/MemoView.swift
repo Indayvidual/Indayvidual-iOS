@@ -16,16 +16,20 @@ struct MemoView: View {
     )
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 6) {
             Image(.custom)
                 .renderingMode(.template)
-                .tint(.black)
+                .foregroundStyle(.black)
             Text(memo.title)
                 .font(.pretendSemiBold22)
+                .foregroundStyle(.black)
+                .lineLimit(1)
+                .frame(width: 132, height: 32, alignment: .leading)
             Text(memo.content)
                 .font(.pretendSemiBold17)
                 .foregroundStyle(.gray500)
                 .lineLimit(2)
+                .multilineTextAlignment(.leading)
                 .frame(width: 132, height: 42, alignment: .leading)
             
             HStack(spacing: 20) {
@@ -58,7 +62,7 @@ struct MemoView: View {
     ZStack {
         Color.gray
         MemoView(memo: MemoModel(
-                title: "메모1",
+                title: "새로운 메모",
                 content: "이건 매우 길어질 수 있는 테스트용 메모 내용입니다. 아마도 줄바꿈 없이 계속 길어질 수 있어요. 그러니까 잘라줘야 해요!",
                 date: "250719",
                 time: "12:34"

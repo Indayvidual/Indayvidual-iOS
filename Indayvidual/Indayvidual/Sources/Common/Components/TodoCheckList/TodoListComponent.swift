@@ -1,0 +1,156 @@
+import SwiftUI
+
+struct ChecklistRow: View {
+    @Binding var isChecked: Bool
+    @Binding var text: String
+    @State private var showActionSheet = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(alignment: .center) {
+                checkboxButton
+                Spacer().frame(width: 12)
+                textFieldSection
+                Spacer()
+                moreButton
+            }
+            .padding(.horizontal, 11)
+            .padding(.vertical, 5)
+            .frame(maxWidth: .infinity, minHeight: 27.06483, maxHeight: 27.06483, alignment: .center)
+            
+            underLine
+        }
+        .sheet(isPresented: $showActionSheet) {
+            todoActionSheet
+        }
+    }
+    
+    private var checkboxButton: some View {
+        Button(action: {
+            isChecked.toggle()
+        }) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isChecked ? Color.black : Color.clear)
+                    .frame(width: 17, height: 17)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(isChecked ? Color.clear : Color.gray400, lineWidth: 1)
+                    )
+                
+                if isChecked {
+                    Image(systemName: "checkmark")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 8, height: 8)
+                        .foregroundColor(.white)
+                }
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+    
+    private var textFieldSection: some View {
+        ZStack(alignment: .leading) {
+            if text.isEmpty {
+                Text("할 일 입력")
+                    .font(Font.custom("Pretendard", size: 12).weight(.semibold))
+                    .foregroundColor(.gray400)
+            }
+            
+            TextField("", text: $text)
+                .font(Font.custom("Pretendard", size: 12).weight(.semibold))
+                .foregroundColor(.black)
+                .disabled(isChecked)
+                .onChange(of: text) { oldValue, newValue in
+                    if newValue.count > 50 {
+                        text = String(newValue.prefix(50))
+                    }
+                }
+        }
+    }
+    
+    private var moreButton: some View {
+        Button {
+            showActionSheet = true
+        } label: {
+            Image("more-btn")
+        }
+    }
+    
+    private var underLine: some View {
+        Rectangle()
+            .foregroundColor(.black)
+            .frame(width: 280, height: 1)
+            .padding(.leading, 40)
+    }
+    
+    private var todoActionSheet: some View {
+        CustomActionSheet(
+            title: "일정 옵션",
+            primaryButtonTitle: "삭제하기",
+            secondaryButtonTitle: "수정하기",
+            primaryAction: {
+                print("수정 선택됨")
+                showActionSheet = false
+            },
+            secondaryAction: {
+                print("삭제 선택됨")
+                showActionSheet = false
+            }
+        ) {
+            TodoActionOptionsView()
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+// MARK: - Todo Action Options View
+
+struct TodoActionOptionsView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 25) {
+            ForEach(TodoActionOption.allCases, id: \.self) { option in
+                TodoActionOptionRow(option: option)
+            }
+        }
+        .padding(.horizontal, 15)
+    }
+}
+
+struct TodoActionOptionRow: View {
+    let option: TodoActionOption
+    
+    var body: some View {
+        Button(action: option.action) {
+            HStack(spacing: 12) {
+                Image(option.iconName)
+                    .frame(width: 20, height: 20)
+                
+                Text(option.title)
+                    .font(Font.custom("Pretendard", size: 17.30769).weight(.semibold))
+                    .foregroundStyle(.black)
+                
+                Spacer()
+            }
+            .frame(height: 24)
+        }
+    }
+}
+
+// MARK: - 사용 예시
+
+struct TestView: View {
+    @State private var todoText = ""
+    @State private var isChecked = false
+
+    var body: some View {
+        ChecklistRow(isChecked: $isChecked, text: $todoText)
+            .padding()
+    }
+}
+
+#Preview {
+    TestView()
+}

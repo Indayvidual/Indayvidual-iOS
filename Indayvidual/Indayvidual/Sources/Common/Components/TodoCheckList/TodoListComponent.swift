@@ -13,13 +13,14 @@ struct ChecklistRow: View {
                 textFieldSection
                 Spacer()
                 moreButton
+                
             }
             .padding(.horizontal, 11)
             .padding(.vertical, 5)
-            .frame(maxWidth: .infinity, minHeight: 27.06483, maxHeight: 27.06483, alignment: .center)
-            
+            .frame(maxWidth: .infinity, alignment: .leading)
             underLine
         }
+        .padding()
         .sheet(isPresented: $showActionSheet) {
             todoActionSheet
         }
@@ -97,7 +98,13 @@ struct ChecklistRow: View {
             secondaryAction: {
                 print("수정 선택됨")
                 showActionSheet = false
-            }
+            },
+            primaryButtonColor: .systemError,
+            primaryButtonTextColor: .grayWhite,
+            secondaryButtonColor: .gray100,
+            secondaryButtonTextColor: .black,
+            secondaryButtonBorderColor: .gray100,
+            secondaryButtonWidth: 175
         ) {
             TodoActionOptionsView()
         }
@@ -115,7 +122,6 @@ struct TodoActionOptionsView: View {
                 TodoActionOptionRow(option: option)
             }
         }
-        .padding(.horizontal, 15)
     }
 }
 
@@ -147,7 +153,7 @@ struct TestView: View {
 
     var body: some View {
         ChecklistRow(isChecked: $isChecked, text: $todoText)
-            .padding()
+          
     }
 }
 

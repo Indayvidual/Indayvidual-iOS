@@ -91,11 +91,11 @@ struct ChecklistRow: View {
             primaryButtonTitle: "삭제하기",
             secondaryButtonTitle: "수정하기",
             primaryAction: {
-                print("수정 선택됨")
+                print("삭제 선택됨")
                 showActionSheet = false
             },
             secondaryAction: {
-                print("삭제 선택됨")
+                print("수정 선택됨")
                 showActionSheet = false
             }
         ) {

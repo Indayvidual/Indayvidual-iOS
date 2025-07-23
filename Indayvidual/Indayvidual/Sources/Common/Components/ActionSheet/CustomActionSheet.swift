@@ -59,12 +59,10 @@ struct CustomActionSheet<Content: View>: View {
                 HStack(spacing: 8) {
                     if let titleIcon = titleIcon {
                         Image(systemName: titleIcon)
-                            .font(.headline)
                             .foregroundColor(.black)
                     }
                     Text(title)
-                        .font(.headline)
-                        .fontWeight(.semibold)
+                        .font(.pretendSemiBold17)
                 }
                 Spacer()
             }
@@ -84,7 +82,7 @@ struct CustomActionSheet<Content: View>: View {
                    let secondaryAction = secondaryAction {
                     Button(action: secondaryAction) {
                         Text(secondaryButtonTitle)
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.pretendSemiBold15)
                             .foregroundColor(secondaryButtonTextColor)
                             .frame(width: secondaryButtonWidth)
                             .frame(height: buttonHeight)
@@ -99,7 +97,7 @@ struct CustomActionSheet<Content: View>: View {
                 
                 Button(action: primaryAction) {
                     Text(primaryButtonTitle)
-                        .font(.system(size: 16, weight: .medium))
+                        .font(.pretendSemiBold15)
                         .foregroundColor(primaryButtonTextColor)
                         .frame(width: primaryButtonWidth)
                         .frame(maxWidth: primaryButtonWidth == nil ? .infinity : nil)

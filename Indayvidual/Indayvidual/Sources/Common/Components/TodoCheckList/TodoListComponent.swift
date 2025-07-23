@@ -55,12 +55,12 @@ struct ChecklistRow: View {
         ZStack(alignment: .leading) {
             if text.isEmpty {
                 Text("할 일 입력")
-                    .font(Font.custom("Pretendard", size: 12).weight(.semibold))
+                    .font(.pretendSemiBold12)
                     .foregroundColor(.gray400)
             }
             
             TextField("", text: $text)
-                .font(Font.custom("Pretendard", size: 12).weight(.semibold))
+                .font(.pretendSemiBold12)
                 .foregroundColor(.black)
                 .disabled(isChecked)
                 .onChange(of: text) { oldValue, newValue in
@@ -135,7 +135,7 @@ struct TodoActionOptionRow: View {
                     .frame(width: 20, height: 20)
                 
                 Text(option.title)
-                    .font(Font.custom("Pretendard", size: 17.30769).weight(.semibold))
+                    .font(.pretendSemiBold17)
                     .foregroundStyle(.black)
                 
                 Spacer()

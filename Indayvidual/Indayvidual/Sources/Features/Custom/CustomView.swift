@@ -43,6 +43,7 @@ struct CustomView: View{
                 
                 Spacer()
                 Image(systemName: "chevron.right")
+                    .bold()
             }
         }
         .tint(.white)
@@ -53,26 +54,31 @@ struct CustomView: View{
         VStack {
             userRecord
                 .padding(.vertical, 24)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack {
-                    ForEach(Array(vm.memos.enumerated()), id: \.element.id) { index, memo in
-                        NavigationLink {
-                            AddMemoView(
-                                vm: MemoViewModel(
-                                    sharedVM: vm,
-                                    memo: memo,
-                                    index: index
+            if vm.num == 0 {
+                Image("NoMemo")
+                    .padding(.vertical)
+            }
+            else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack {
+                        ForEach(Array(vm.memos.enumerated()), id: \.element.id) { index, memo in
+                            NavigationLink {
+                                AddMemoView(
+                                    vm: MemoViewModel(
+                                        sharedVM: vm,
+                                        memo: memo,
+                                        index: index
+                                    )
                                 )
-                            )
-                        } label: {
-                            MemoView(memo: memo)
-                                .padding(16)
-                                .padding(.vertical, 8)
+                            } label: {
+                                MemoView(memo: memo)
+                                    .padding(16)
+                                    .padding(.vertical, 8)
+                            }
                         }
                     }
+                    .padding(.horizontal)
                 }
-                .padding(.horizontal)
             }
         }
     }
@@ -85,12 +91,14 @@ struct CustomView: View{
             
             VStack {
                 NavigationLink {
-                    MyHabitView()
+                    MyHabitView(sharedVM: CustomViewModel())
                 } label: {
                     HStack {
                         Text("나의 습관")
+                            .font(.pretendSemiBold22)
                         Spacer()
                         Image(systemName: "chevron.right")
+                            .bold()
                     }
                 }
                 .tint(.black)

@@ -254,7 +254,7 @@ struct DateButton: View {
          var body: some View {
             CustomCalendarView(calendarViewModel: calendarViewModel)
         }
- 
+    }
  2. 날짜 선택 콜백 처리
    - onDateSelected 클로저를 통해 사용자가 캘린더에서 날짜를 선택했을 때의 이벤트 처리가 가능합니다.
    - 예시:

@@ -77,11 +77,6 @@ struct CustomActionSheet<Content: View>: View {
                     .padding(.horizontal, 15.4)
                     .padding(.bottom, 20)
             }
-            content
-            
-            Divider()
-                .padding(.horizontal, 15.4)
-                .padding(.bottom, 20)
 
             content.padding(.horizontal, 15)
 

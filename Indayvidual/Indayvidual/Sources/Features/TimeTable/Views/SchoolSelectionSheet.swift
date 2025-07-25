@@ -58,8 +58,12 @@ public struct SchoolSelectionSheet: View {
                 .foregroundColor(.black)
                 .disableAutocorrection(true)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .onChange(of: searchText) { newValue in
-                    viewModel.search(with: newValue)
+                .onChange(of: searchText) { oldvalue, newValue in
+                    if newValue.isEmpty {
+                        viewModel.loadAllSchools(searchTxt: "")
+                    } else {
+                        viewModel.search(with: newValue)
+                    }
                 }
 
             Image("Group")

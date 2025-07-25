@@ -60,7 +60,7 @@ struct IndayvidualTabView: View{
             case .todo :
                 Color.black
             case .timetable :
-                Color.blue
+                TimeTableView()
             case .custom :
                 CustomView()
             case .settings :

@@ -9,6 +9,8 @@ struct CustomActionSheet<Content: View>: View {
     let secondaryAction: (() -> Void)?
     let content: Content
     let showDivider: Bool
+    let showPrimaryButton: Bool
+    let showSecondaryButton: Bool
     
     //버튼 관련
     let primaryButtonColor: Color
@@ -36,6 +38,8 @@ struct CustomActionSheet<Content: View>: View {
         buttonHeight: CGFloat = 50,
         primaryButtonWidth: CGFloat? = nil,
         secondaryButtonWidth: CGFloat? = 150,
+        showPrimaryButton: Bool = true,
+        showSecondaryButton: Bool = true,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
@@ -54,6 +58,8 @@ struct CustomActionSheet<Content: View>: View {
         self.primaryButtonWidth = primaryButtonWidth
         self.secondaryButtonWidth = secondaryButtonWidth
         self.content = content()
+        self.showPrimaryButton = showPrimaryButton
+        self.showSecondaryButton = showSecondaryButton
     }
     
     var body: some View {
@@ -61,12 +67,24 @@ struct CustomActionSheet<Content: View>: View {
             HStack {
                 HStack(spacing: 8) {
                     if let titleIcon = titleIcon {
-                        Image(systemName: titleIcon)
-                            .foregroundColor(.black)
+                        if UIImage(systemName: titleIcon) != nil {
+                            // 시스템 아이콘인 경우
+                            Image(systemName: titleIcon)
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                                .foregroundColor(.black)
+                        } else {
+                            // Assets 이미지인 경우
+                            Image(titleIcon)
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 20, height: 20)
+                        }
                     }
                     Text(title)
                         .font(.pretendSemiBold17)
                 }
+
                 Spacer()
             }
             .padding(.top, 33.65)
@@ -83,7 +101,8 @@ struct CustomActionSheet<Content: View>: View {
             Spacer()
             
             HStack(spacing: 12) {
-                if let secondaryButtonTitle = secondaryButtonTitle,
+                if showSecondaryButton,
+                   let secondaryButtonTitle = secondaryButtonTitle,
                    let secondaryAction = secondaryAction {
                     Button(action: secondaryAction) {
                         Text(secondaryButtonTitle)
@@ -99,16 +118,18 @@ struct CustomActionSheet<Content: View>: View {
                             )
                     }
                 }
-                
-                Button(action: primaryAction) {
-                    Text(primaryButtonTitle)
-                        .font(.pretendSemiBold15)
-                        .foregroundColor(primaryButtonTextColor)
-                        .frame(width: primaryButtonWidth)
-                        .frame(maxWidth: primaryButtonWidth == nil ? .infinity : nil)
-                        .frame(height: buttonHeight)
-                        .background(primaryButtonColor)
-                        .cornerRadius(8)
+
+                if showPrimaryButton {
+                    Button(action: primaryAction) {
+                        Text(primaryButtonTitle)
+                            .font(.pretendSemiBold15)
+                            .foregroundColor(primaryButtonTextColor)
+                            .frame(width: primaryButtonWidth)
+                            .frame(maxWidth: primaryButtonWidth == nil ? .infinity : nil)
+                            .frame(height: buttonHeight)
+                            .background(primaryButtonColor)
+                            .cornerRadius(8)
+                    }
                 }
             }
             .padding(.bottom, 40)

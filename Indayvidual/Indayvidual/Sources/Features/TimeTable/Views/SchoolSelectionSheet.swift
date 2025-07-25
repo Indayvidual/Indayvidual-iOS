@@ -85,10 +85,20 @@ public struct SchoolSelectionSheet: View {
     @ViewBuilder
     private var schoolList: some View {
         if viewModel.isLoading {
-            ProgressView("학교를 검색하는 중...")
+            VStack {
+                Spacer()
+                ProgressView("학교를 검색하는 중...")
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else if let errorMessage = viewModel.errorMessage {
-            Text(errorMessage)
-                .foregroundColor(viewModel.schoolNames.isEmpty ? .gray : .red)
+            VStack {
+                Spacer()
+                Text(errorMessage)  /// 검색 키워드 없을 경우 메세지 띄움               
+                    .foregroundColor(viewModel.schoolNames.isEmpty ? .gray : .red)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         } else {
             List(viewModel.schoolNames) { school in
                 SchoolRow(school: school, selectedSchool: $selectedSchool)

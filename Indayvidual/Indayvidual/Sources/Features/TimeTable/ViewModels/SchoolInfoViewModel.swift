@@ -28,25 +28,20 @@ class SchoolInfoViewModel: ObservableObject {
 
     /// 사용자 입력 시 호출되는 실시간 검색 함수 (디바운싱 적용)
     func search(with searchText: String) {
-        // 이전 검색 작업 취소
         searchWorkItem?.cancel()
         
-        guard searchText.count >= 2 else {
-            // 입력이 비어 있으면 리스트 초기화
-            if searchText.isEmpty {
-                self.schoolNames = []
-                self.errorMessage = nil
-            }
+        guard !searchText.isEmpty else {
+            self.schoolNames = []
+            self.errorMessage = nil
             return
         }
 
-        // 0.5초 뒤 실행될 검색 작업 생성
         let newWorkItem = DispatchWorkItem {
             self.fetchSchools(searchTxt: searchText, showEmptyMessage: true, sort: false)
         }
 
         searchWorkItem = newWorkItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: newWorkItem)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3, execute: newWorkItem) // 디바운싱 시간 0.3초로 단축
     }
 
     /// 전체 학교 불러올 때 사용 (정렬 적용)

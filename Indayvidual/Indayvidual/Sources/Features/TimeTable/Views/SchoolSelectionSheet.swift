@@ -14,6 +14,7 @@ public struct SchoolSelectionSheet: View {
     @StateObject private var viewModel = SchoolInfoViewModel()
     @State private var selectedSchool: SchoolInfo? = nil
     @State private var searchText: String = ""
+    @State private var showAlert = false
     @Environment(\.dismiss) private var dismiss
 
     public init(showSemesterSheet: Binding<Bool>, selectedSchoolName: Binding<String?>) {
@@ -26,11 +27,14 @@ public struct SchoolSelectionSheet: View {
             title: "학교 설정",
             primaryButtonTitle: "학교 설정 완료",
             primaryAction: {
-                guard let school = selectedSchool else { return }
-                selectedSchoolName = school.name
-                dismiss()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    showSemesterSheet = true
+                if selectedSchool == nil {
+                    showAlert = true // 학교가 선택되지 않았으면 알림 표시
+                } else {
+                    selectedSchoolName = selectedSchool?.name
+                    dismiss()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        showSemesterSheet = true
+                    }
                 }
             },
             secondaryAction: {
@@ -40,7 +44,7 @@ public struct SchoolSelectionSheet: View {
         ) {
             VStack(alignment: .leading, spacing: 0) {
                 searchBar
-                Spacer().frame(height: 24)
+                    .padding(.vertical, 24)
                 Divider().foregroundStyle(Color(.gray200))
                 schoolList
             }
@@ -48,6 +52,9 @@ public struct SchoolSelectionSheet: View {
             .task {
                 viewModel.loadAllSchools(searchTxt: "")
             }
+        }
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("알림"), message: Text("학교를 선택해주세요."), dismissButton: .default(Text("확인")))
         }
     }
 
@@ -71,7 +78,7 @@ public struct SchoolSelectionSheet: View {
                 .frame(width: 15, height: 15)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 13)
+        .padding(.vertical, 20)
         .frame(height: 48)
         .background(Color.white)
         .cornerRadius(8)
@@ -102,6 +109,7 @@ public struct SchoolSelectionSheet: View {
         } else {
             List(viewModel.schoolNames) { school in
                 SchoolRow(school: school, selectedSchool: $selectedSchool)
+                    .listRowSeparator(.hidden)
             }
             .listStyle(.plain)
         }
@@ -126,7 +134,7 @@ private struct SchoolRow: View {
                 .font(.pretendMedium14)
                 .foregroundStyle(Color(.gray900))
         }
-        .padding(.vertical, 8)
+        .padding(.vertical, 20)
         .contentShape(Rectangle())
         .onTapGesture {
             selectedSchool = school

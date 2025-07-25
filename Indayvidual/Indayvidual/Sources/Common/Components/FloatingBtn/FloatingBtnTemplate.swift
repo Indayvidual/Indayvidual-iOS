@@ -40,7 +40,7 @@ struct FloatingButtonModifier: ViewModifier {
 extension View {
     func floatingBtn(
         trailing: CGFloat = 13,
-        bottom: CGFloat = 98,
+        bottom: CGFloat = 17,
         ignoreTabBar: Bool = false,
         action: @escaping () -> Void
     ) -> some View {

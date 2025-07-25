@@ -63,6 +63,7 @@ struct HabitFormView: View {
             }
             .disabled(habitName.isEmpty)
         }
+        .padding(.top, 24)
     }
     
     var mainView: some View {

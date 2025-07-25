@@ -21,9 +21,12 @@ struct MyHabitView: View {
                     topbar
                     // TODO: CalendarView 
                     if viewModel.habits.isEmpty {
+                        Spacer()
                         Image("NoHabit")
+                        Spacer()
                     } else {
                         MemoListView
+                        Spacer()
                     }
                 }
             }
@@ -52,6 +55,7 @@ struct MyHabitView: View {
         .font(.pretendSemiBold18)
         .tint(.black)
         .padding(.horizontal)
+        .padding(.top, 24)
     }
     
     var MemoListView: some View {

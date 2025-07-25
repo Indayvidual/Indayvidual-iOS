@@ -1,22 +1,10 @@
-//
-//  TimeTableView.swift
-//  Indayvidual
-//
-//  Created by 장주리 on 7/23/25.
-//
-
 import SwiftUI
+import PhotosUI
 
 struct TimeTableView: View {
-    @State private var selection: String?
-    @State private var showSchoolSheet = false
-    @State private var showSemesterSheet = false
-
-    @State private var selectedSchoolName: String?
-    @State private var selectedSemester: String?
     
-    @State private var dropdownOptions: [String] = []
-
+    @StateObject private var viewModel = TimeTableViewModel()
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Topbar()
@@ -24,45 +12,53 @@ struct TimeTableView: View {
             
             DropdownBar(
                 hint: "미정",
-                options: dropdownOptions,
-                selection: $selection
+                options: viewModel.dropdownOptions,
+                selection: $viewModel.selection
             )
             .padding(.horizontal, 15)
+            .zIndex(1)
             
-            if dropdownOptions.isEmpty {
-                        EmptyTimeTableView()
+            Spacer().frame(height: 22)
+            
+            if let image = viewModel.selectedImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .padding()
+            } else if viewModel.dropdownOptions.isEmpty {
+                EmptyTimeTableView()
             }
-                    
             
             Spacer()
         }
         .floatingBtn {
-            showSchoolSheet = true
+            viewModel.showSchoolSheet = true
         }
-        .sheet(isPresented: $showSchoolSheet) {
+        .sheet(isPresented: $viewModel.showSchoolSheet) {
             SchoolSelectionSheet(
-                showSemesterSheet: $showSemesterSheet,
-                selectedSchoolName: $selectedSchoolName
+                showSemesterSheet: $viewModel.showSemesterSheet,
+                selectedSchoolName: Binding(
+                    get: { viewModel.selectedSchoolName ?? "" },
+                    set: { viewModel.selectedSchoolName = $0 }
+                )
             )
         }
-        .sheet(isPresented: $showSemesterSheet, onDismiss: {
-            if let school = selectedSchoolName, let semester = selectedSemester {
-                let newEntry = "\(school) \(semester)"
-                if !dropdownOptions.contains(newEntry) {
-                    dropdownOptions.append(newEntry)
-                    if selection == nil {
-                        selection = newEntry
-                        }
-                }
-            }
-        }) {
+        .sheet(isPresented: $viewModel.showSemesterSheet, onDismiss: viewModel.handleSemesterSheetDismiss) {
             SemesterSelectionSheet(
-                isPresented: $showSemesterSheet,
-                selectedSemester: $selectedSemester
+                isPresented: $viewModel.showSemesterSheet,
+                selectedSemester: Binding(
+                    get: { viewModel.selectedSemester ?? "" },
+                    set: { viewModel.selectedSemester = $0 }
+                )
             )
             .presentationDragIndicator(.visible)
             .presentationDetents([.height(350)])
         }
+        .photosPicker(
+            isPresented: $viewModel.showImagePicker,
+            selection: $viewModel.selectedPhotoItem,
+            matching: .images
+        )
         .background(Color(.gray50))
     }
 }

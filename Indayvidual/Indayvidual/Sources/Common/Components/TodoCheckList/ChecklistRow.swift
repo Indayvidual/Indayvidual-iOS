@@ -15,12 +15,10 @@ struct ChecklistRow: View {
                 moreButton
                 
             }
-            .padding(.horizontal, 11)
-            .padding(.vertical, 5)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 3)
             underLine
         }
-        .padding()
+
         .sheet(isPresented: $showActionSheet) {
             todoActionSheet
         }
@@ -32,11 +30,11 @@ struct ChecklistRow: View {
         }) {
             ZStack {
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(isChecked ? Color.black : Color.clear)
+                    .fill(isChecked ? Color.black : Color.grayWhite)
                     .frame(width: 17, height: 17)
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
-                            .stroke(isChecked ? Color.clear : Color.gray400, lineWidth: 1)
+                            .stroke(isChecked ? Color.grayWhite : Color.gray400, lineWidth: 1)
                     )
                 
                 if isChecked {
@@ -82,8 +80,9 @@ struct ChecklistRow: View {
     private var underLine: some View {
         Rectangle()
             .foregroundColor(.black)
-            .frame(width: 280, height: 1)
-            .padding(.leading, 40)
+            .frame(height: 1)
+            .padding(.leading, 27)
+            .padding(.trailing, 20)
     }
     
     private var todoActionSheet: some View {
@@ -140,7 +139,6 @@ struct TodoActionOptionRow: View {
                 
                 Spacer()
             }
-            .frame(height: 24)
         }
     }
 }

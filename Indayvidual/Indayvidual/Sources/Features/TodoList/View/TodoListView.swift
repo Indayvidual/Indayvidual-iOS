@@ -40,7 +40,8 @@ struct TodoListView: View {
                                 CategoryRowView(category: category)
                             }
                         }.padding(.horizontal,27)
-                    }
+                            
+                    }.scrollBounceBehavior(.basedOnSize)
                 }
                 
                 Spacer()

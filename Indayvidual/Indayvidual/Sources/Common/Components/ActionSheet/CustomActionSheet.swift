@@ -8,6 +8,7 @@ struct CustomActionSheet<Content: View>: View {
     let primaryAction: () -> Void
     let secondaryAction: (() -> Void)?
     let content: Content
+    let showDivider: Bool
     
     //버튼 관련
     let primaryButtonColor: Color
@@ -26,6 +27,7 @@ struct CustomActionSheet<Content: View>: View {
         secondaryButtonTitle: String? = "취소",
         primaryAction: @escaping () -> Void = { print("기본 액션") },
         secondaryAction: (() -> Void)? = { print("취소 액션") },
+        showDivider: Bool = true,
         primaryButtonColor: Color = .black,
         primaryButtonTextColor: Color = .white,
         secondaryButtonColor: Color = .white,
@@ -42,6 +44,7 @@ struct CustomActionSheet<Content: View>: View {
         self.secondaryButtonTitle = secondaryButtonTitle
         self.primaryAction = primaryAction
         self.secondaryAction = secondaryAction
+        self.showDivider = showDivider
         self.primaryButtonColor = primaryButtonColor
         self.primaryButtonTextColor = primaryButtonTextColor
         self.secondaryButtonColor = secondaryButtonColor
@@ -69,9 +72,11 @@ struct CustomActionSheet<Content: View>: View {
             .padding(.top, 33.65)
             .padding(.bottom, 15)
             .padding(.horizontal, 15.4)
-            Divider()
-                .padding(.horizontal, 15.4)
-                .padding(.bottom, 20)
+            if showDivider {
+                Divider()
+                    .padding(.horizontal, 15.4)
+                    .padding(.bottom, 20)
+            }
 
             content.padding(.horizontal, 15)
 

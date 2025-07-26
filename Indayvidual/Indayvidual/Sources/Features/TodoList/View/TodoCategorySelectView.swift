@@ -16,6 +16,8 @@ struct TodoCategorySelectView: View {
             SelectColorField(selectedColor: $selectedColor, showColorPicker: $showColorPicker)
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity) // 화면 전체 채우기!
+        .background(Color.gray50)       
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {

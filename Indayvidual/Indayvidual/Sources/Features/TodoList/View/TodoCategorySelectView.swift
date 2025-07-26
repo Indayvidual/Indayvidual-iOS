@@ -27,7 +27,7 @@ struct TodoCategorySelectView: View {
                     HStack {
                         Image("back")
                     }
-                }.padding(.leading, 20)
+                }.padding(.leading, 15)
             }
 
             ToolbarItem(placement: .principal) {

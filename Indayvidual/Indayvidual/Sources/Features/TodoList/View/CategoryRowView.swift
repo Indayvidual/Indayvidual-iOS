@@ -7,7 +7,7 @@ struct CategoryRowView: View {
     @State private var isExpanded: Bool = true
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: 5) {
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.grayWhite)
@@ -49,6 +49,9 @@ struct CategoryRowView: View {
                                 }
                             )
                         )
+                        .listRowInsets(EdgeInsets())
+                        .padding(.horizontal,10)
+                        .padding(.vertical, 0)
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     }

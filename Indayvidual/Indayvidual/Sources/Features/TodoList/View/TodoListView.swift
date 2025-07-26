@@ -35,9 +35,14 @@ struct TodoListView: View {
                         
                 } else {
                     ScrollView {
-                        LazyVStack{
-                            ForEach(categories, id: \.id) { category in
-                                CategoryRowView(category: category)
+                        LazyVStack(spacing: 0) {
+                            ForEach(categories.indices, id: \.self) { index in
+                                CategoryRowView(category: categories[index])
+                                if index < categories.count - 1 {
+                                    Divider()
+                                        .background(.gray200)
+                                        .padding(.vertical,16)       
+                                }
                             }
                         }.padding(.horizontal,27)
                             

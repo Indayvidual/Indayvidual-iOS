@@ -55,7 +55,7 @@ struct TodoCategorySelectView: View {
         .sheet(isPresented: $showColorPicker) {
             CustomActionSheet(
                 title: "색상 선택",
-                titleIcon: "bell.fill",
+                titleIcon: "ic_color_lens_48px",
                 primaryButtonTitle: "선택 완료",
                 secondaryButtonTitle: "초기화",
                 primaryAction: {

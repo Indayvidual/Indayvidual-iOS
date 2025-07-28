@@ -28,11 +28,11 @@ struct CustomActionSheet<Content: View>: View {
         primaryAction: @escaping () -> Void = { print("기본 액션") },
         secondaryAction: (() -> Void)? = { print("취소 액션") },
         showDivider: Bool = true,
-        primaryButtonColor: Color = .black,
-        primaryButtonTextColor: Color = .white,
-        secondaryButtonColor: Color = .white,
-        secondaryButtonTextColor: Color = .black,
-        secondaryButtonBorderColor: Color = Color.gray.opacity(0.3),
+        primaryButtonColor: Color = .gray900,
+        primaryButtonTextColor: Color = .grayWhite,
+        secondaryButtonColor: Color = .grayWhite,
+        secondaryButtonTextColor: Color = .gray900,
+        secondaryButtonBorderColor: Color = .gray200,
         buttonHeight: CGFloat = 50,
         primaryButtonWidth: CGFloat? = nil,
         secondaryButtonWidth: CGFloat? = 150,
@@ -61,8 +61,9 @@ struct CustomActionSheet<Content: View>: View {
             HStack {
                 HStack(spacing: 8) {
                     if let titleIcon = titleIcon {
-                        Image(systemName: titleIcon)
-                            .foregroundColor(.black)
+                        Image(titleIcon)
+                            .resizable()
+                            .frame(width: 22.62, height: 22.62)
                     }
                     Text(title)
                         .font(.pretendSemiBold17)
@@ -155,7 +156,7 @@ struct CustomButtonActionSheet: View {
     var body: some View {
         CustomActionSheet(
             title: "커스텀 버튼 색상과 크기",
-            titleIcon: "paintbrush.fill",
+            titleIcon: "home",
             primaryButtonTitle: "저장",
             secondaryButtonTitle: "취소",
             primaryButtonColor: .blue,

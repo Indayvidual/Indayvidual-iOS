@@ -29,11 +29,11 @@ extension HabitAPITarget: APITargetType {
         case .patchHabitsCheck(let habitId, _, _):
             return "/api/custom/habits/\(habitId)/check"
         case .getHabitsCheckDaily(let startDate):
-            return "/api/custom/habits/checks/daily/"
+            return "/api/custom/habits/checks/daily"
         case .getHabitsCheckWeekly(let startDate):
-            return "/api/custom/habits/checks/weekly/"
+            return "/api/custom/habits/checks/weekly"
         case .getHabitsCheckMonthly(let startDate):
-            return "/api/custom/habits/checks/monthly/"
+            return "/api/custom/habits/checks/monthly"
         }
     }
     

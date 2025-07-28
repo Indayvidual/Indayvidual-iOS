@@ -1,9 +1,9 @@
 import SwiftUI
 import PhotosUI
 
-struct TimeTableView: View {
+struct TimetableView: View {
     
-    @StateObject private var viewModel = TimeTableViewModel()
+    @StateObject private var viewModel = TimetableViewModel()
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -64,5 +64,5 @@ struct TimeTableView: View {
 }
 
 #Preview {
-    TimeTableView()
+    TimetableView()
 }

@@ -8,5 +8,5 @@
 import Foundation
 
 struct TaskUpdateOrderRequestDTO : Encodable {
-    let title : [Int]
+    let taskOrder : [Int]
 }

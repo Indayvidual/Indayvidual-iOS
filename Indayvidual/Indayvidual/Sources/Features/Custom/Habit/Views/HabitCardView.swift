@@ -34,13 +34,14 @@ struct HabitCardView: View {
                 Button("삭제하기", role: .destructive, action: onDelete)
             } label: {
                 Image(systemName: "ellipsis")
+                    .frame(width: 24, height: 20)
                     .padding(.trailing, 8)
             }
         }
         .foregroundStyle(.gray700)
         .padding()
         .background(Color(habit.colorName))
-        .cornerRadius(12, corners: .allCorners)
+        .cornerRadius(16, corners: .allCorners)
     }
 }
 

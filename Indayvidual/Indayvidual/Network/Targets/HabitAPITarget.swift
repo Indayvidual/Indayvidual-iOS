@@ -28,11 +28,11 @@ extension HabitAPITarget: APITargetType {
             return "/api/custom/habits/\(habitId)"
         case .patchHabitsCheck(let habitId, _, _):
             return "/api/custom/habits/\(habitId)/check"
-        case .getHabitsCheckDaily(let startDate):
+        case .getHabitsCheckDaily(_):
             return "/api/custom/habits/checks/daily"
-        case .getHabitsCheckWeekly(let startDate):
+        case .getHabitsCheckWeekly(_):
             return "/api/custom/habits/checks/weekly"
-        case .getHabitsCheckMonthly(let startDate):
+        case .getHabitsCheckMonthly(_):
             return "/api/custom/habits/checks/monthly"
         }
     }
@@ -69,7 +69,7 @@ extension HabitAPITarget: APITargetType {
             ]
             return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
             
-        case .patchHabitsCheck(habitId: let habitId, let date, let checked):
+        case .patchHabitsCheck(_, let date, let checked):
             let parameters: [String: Any] = [
                 "date": date,
                 "checked": checked

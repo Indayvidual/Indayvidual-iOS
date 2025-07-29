@@ -8,7 +8,7 @@
 import SwiftUI
 struct MyHabitView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject var viewModel = HabitViewModel()
+    @State private var viewModel = HabitViewModel()
     @StateObject var colorViewModel = ColorViewModel()
     var sharedVM: CustomViewModel
 

@@ -8,11 +8,12 @@
 import Foundation
 import SwiftUI
 
-class HabitViewModel: ObservableObject {
-    @Published var habits: [MyHabitModel] = []
+@Observable
+class HabitViewModel {
+    var habits: [MyHabitModel] = []
     
     func addHabit(name: String, colorName: String) {
-        let newHabit = MyHabitModel(id: UUID(), name: name, colorName: colorName)
+        let newHabit = MyHabitModel(id: UUID(), name: name, colorName: colorName, checkedAt: "", isSelected: false)
         habits.append(newHabit)
     }
 

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HabitFormView: View {
     @Environment(\.dismiss) var dismiss
-    @ObservedObject var viewModel: HabitViewModel
+    @State var viewModel: HabitViewModel
     @ObservedObject var colorViewModel: ColorViewModel
     @State private var showColorTable = false
     @State private var habitName: String = ""

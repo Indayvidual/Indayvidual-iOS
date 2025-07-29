@@ -11,7 +11,7 @@ import Observation
 
 @Observable
 class CustomViewModel {
-    var name: String = "홍길동"
+    var name: String = "인데비"
     
     var memos: [MemoModel] = [
         MemoModel(title: "메모1", content: "긴 내용1\n내용1내용1내용1내용1내용1내용1내용1내용1내용1", date: "250718", time: "12:00"),

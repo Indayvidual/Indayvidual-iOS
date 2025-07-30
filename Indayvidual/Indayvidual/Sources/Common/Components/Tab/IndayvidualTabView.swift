@@ -61,7 +61,7 @@ struct IndayvidualTabView: View{
             case .home :
                 HomeView(calendarVm: calendarVm)
             case .todo :
-                Color.black
+                TodoListView()
             case .timetable :
                 TimetableView()
             case .custom :

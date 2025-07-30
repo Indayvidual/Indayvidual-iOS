@@ -43,6 +43,7 @@ struct HabitFormView: View {
         }
     }
     
+    //TopBar를 .toolbarItem으로 수정하면 충돌 발생..
     var topBarView: some View {
         HStack {
             Button {

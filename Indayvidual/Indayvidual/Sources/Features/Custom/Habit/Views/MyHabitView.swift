@@ -8,6 +8,7 @@
 import SwiftUI
 struct MyHabitView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var calendarViewModel = CustomCalendarViewModel()
     @State private var selectedMode: HabitMode.Mode = .daily
     @State private var Add : Bool = false
     @State private var habit: MyHabitModel?
@@ -27,11 +28,11 @@ struct MyHabitView: View {
                     } else {
                         switch selectedMode {
                         case .daily:
-                            MemoListView
+                            dailyView
                         case .weekly:
-                            Text("주간 습관 뷰")
+                            weeklyView
                         case .monthly:
-                            Text("월간 습관 뷰")
+                            monthlyView
                         }
                     }
                     Spacer()
@@ -68,29 +69,31 @@ struct MyHabitView: View {
         }
     }
     
-    var MemoListView: some View {
-        VStack {
-            ForEach(Array(sharedVM.habits.enumerated()), id: \.element.id) { index, habit in
-                HabitCardView(
-                    habit: habit,
-                    onToggle: {
-                        sharedVM.habits[index].isSelected.toggle()
-                    },
-                    onEdit: {
-                        self.habit = habit
-                        self.index = index
-                        Add = true
-                    },
-                    onDelete: {
-                        sharedVM.habits.remove(at: index)
-                    }
-                )
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
+    var habitsListView: some View {
+        ScrollView {
+            VStack {
+                ForEach(Array(sharedVM.habits.enumerated()), id: \.element.id) { index, habit in
+                    HabitCardView(
+                        habit: habit,
+                        onToggle: {
+                            sharedVM.habits[index].isSelected.toggle()
+                        },
+                        onEdit: {
+                            self.habit = habit
+                            self.index = index
+                            Add = true
+                        },
+                        onDelete: {
+                            sharedVM.habits.remove(at: index)
+                        }
+                    )
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                }
             }
+            .listStyle(.plain)
+            .padding()
         }
-        .listStyle(.plain)
-        .padding()
     }
     
     var selectMode: some View {
@@ -119,6 +122,55 @@ struct MyHabitView: View {
         )
         .padding(.horizontal, 44)
         .padding(.vertical, 20)
+    }
+    
+    var dailyView: some View {
+        VStack {
+            CustomCalendarView(
+                        calendarViewModel: calendarViewModel,
+                        showToggleButton: false,
+                        initialMode: .week
+                    )
+            .padding(.top)
+            completeView
+            habitsListView
+        }
+    }
+    
+    var weeklyView: some View {
+        VStack {
+            WeeklyHabitView(sharedVM: sharedVM)
+        }
+    }
+    
+    var monthlyView: some View {
+        VStack {
+            CustomCalendarView(
+                        calendarViewModel: calendarViewModel,
+                        showToggleButton: false,
+                    )
+            .padding(.top)
+            completeView
+            habitsListView
+        }
+    }
+    
+    var completeView: some View {
+        VStack(alignment: .leading) {
+            Text("\(7)월 \(30)일 수요일")
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .font(.pretendMedium15)
+            Text("\(1)개의 활동을 달성했어요!")
+                .font(.pretendMedium12)
+                .tint(.gray700)
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+        )
+        .padding(.horizontal, 16)
+        .padding(.top, 16)
     }
 }
 

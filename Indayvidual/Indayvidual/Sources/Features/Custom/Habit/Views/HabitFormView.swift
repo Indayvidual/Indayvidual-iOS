@@ -9,10 +9,9 @@ import SwiftUI
 
 struct HabitFormView: View {
     @Environment(\.dismiss) var dismiss
-    @State var viewModel: HabitViewModel
-    @ObservedObject var colorViewModel: ColorViewModel
+    @State var viewModel: MyHabitViewModel
+    @State var colorViewModel: ColorViewModel
     @State private var showColorTable = false
-    @State private var habitName: String = ""
 
     var body: some View {
         ZStack {
@@ -31,6 +30,17 @@ struct HabitFormView: View {
             }.menuIndicator(.visible)
         }
         .navigationBarBackButtonHidden(true)
+        //.task사용 시 뷰가 그려진 후 아래 코드가 동작하여 UI가 한 박자 늦게 바뀜 -> .onAppear사용 : 뷰가 그려짐과 동시에 작동하여 UI가 어색하지 않음
+        .onAppear {
+            let currentColor = viewModel.colorName
+            for i in colorViewModel.colors.indices {
+                colorViewModel.colors[i].isSelected = (colorViewModel.colors[i].name == currentColor)
+            }
+        }
+        .onDisappear {
+            //단순 for문 동작이기 때문에 onDisappear는 필수적이진 않지만 있어서 나쁠 건 없다
+            print("HabitFormView 닫힘")
+        }
     }
     
     var topBarView: some View {
@@ -45,7 +55,7 @@ struct HabitFormView: View {
 
             Spacer()
 
-            Text("새로운 습관")
+            Text(viewModel.isEditing ? "습관 수정" :"새로운 습관")
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundColor(.black)
 
@@ -53,7 +63,8 @@ struct HabitFormView: View {
 
             Button {
                 if let selectedColor = colorViewModel.colors.first(where: { $0.isSelected })?.name {
-                    viewModel.addHabit(name: habitName, colorName: selectedColor)
+                    viewModel.colorName = selectedColor
+                    viewModel.save()
                     dismiss()
                 }
             } label: {
@@ -61,14 +72,13 @@ struct HabitFormView: View {
                     .font(.system(size: 16, weight: .medium))
                     .tint(.black)
             }
-            .disabled(habitName.isEmpty)
         }
         .padding(.top, 24)
     }
     
     var mainView: some View {
         VStack(spacing: 20) {
-            TextField("습관 이름", text: $habitName)
+            TextField("습관 이름", text: $viewModel.title)
                 .font(.pretendMedium14)
                 .padding()
                 .frame(height: 52)
@@ -90,9 +100,9 @@ struct HabitFormView: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .tint(.black)
                     Spacer()
-                    if let selectedColor = colorViewModel.colors.first(where: { $0.isSelected }) {
+                    if let selectedColor = colorViewModel.colors.first(where: { $0.isSelected })?.name {
                         Circle()
-                            .fill(Color(selectedColor.name))
+                            .fill(Color(selectedColor))
                             .frame(width: 24, height: 24)
                     }
                     Image(systemName: "chevron.down")
@@ -138,5 +148,5 @@ struct HabitFormView: View {
 }
 
 #Preview {
-    HabitFormView(viewModel: HabitViewModel(), colorViewModel: ColorViewModel())
+    HabitFormView(viewModel: MyHabitViewModel(sharedVM: CustomViewModel()), colorViewModel: ColorViewModel())
 }

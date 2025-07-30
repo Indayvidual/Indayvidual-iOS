@@ -22,7 +22,7 @@ struct HabitCardView: View {
                     .foregroundColor(.black)
             }
 
-            Text(habit.name)
+            Text(habit.title)
                 .font(.pretendRegular15)
                 .foregroundColor(.black)
                 .padding(.leading, 8)

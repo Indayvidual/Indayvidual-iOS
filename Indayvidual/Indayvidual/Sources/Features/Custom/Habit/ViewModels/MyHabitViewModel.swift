@@ -9,28 +9,62 @@ import Foundation
 import SwiftUI
 
 @Observable
-class HabitViewModel {
-    var habits: [MyHabitModel] = []
+class MyHabitViewModel {
+    // MARK: - 입력 필드
+    var title: String
+    var colorName: String
     
-    func addHabit(name: String, colorName: String) {
-        let newHabit = MyHabitModel(id: UUID(), name: name, colorName: colorName, checkedAt: "", isSelected: false)
-        habits.append(newHabit)
+    // MARK: - 모드 구분
+    let isEditing: Bool
+    let editIndex: Int?   // 수정 시, sharedVM.habits 에서의 인덱스
+    
+    // MARK: - 공유 뷰모델 참조
+    private let sharedVM: CustomViewModel
+    
+    init(sharedVM: CustomViewModel, habit: MyHabitModel? = nil, index: Int? = nil) {
+        self.sharedVM = sharedVM
+        if let habit = habit, let idx = index {
+            // 수정 모드
+            self.title = habit.title
+            self.colorName = habit.colorName
+            self.editIndex = idx
+            self.isEditing = true
+        } else {
+            // 신규 작성 모드
+            self.title = ""
+            self.colorName = "purple-05"
+            self.editIndex = nil
+            self.isEditing = false
+        }
     }
-
-    func deleteHabit(_ habit: MyHabitModel) {
-        habits.removeAll { $0.id == habit.id }
-    }
-
-    func updateHabit(_ habit: MyHabitModel, name: String, colorName: String) {
-        if let index = habits.firstIndex(where: { $0.id == habit.id }) {
-            habits[index].name = name
-            habits[index].colorName = colorName
+    
+    func save() {
+        let nowTitle = title.isEmpty ? "습관 이름" : title
+        
+        if let idx = editIndex {
+            // 수정 모드: 해당 인덱스 항목 업데이트 후 맨 앞 이동
+            var updated = sharedVM.habits[idx]
+            updated.title = title
+            updated.colorName = colorName
+            sharedVM.habits.remove(at: idx)
+            sharedVM.habits.insert(updated, at: 0)
+        } else {
+            // 신규 모드: 새로운 Habit 생성 후 맨 앞 삽입
+            let newHabit = MyHabitModel(
+                title: nowTitle,
+                colorName: colorName,
+                checkedAt: "",
+                isSelected: false
+            )
+            sharedVM.habits.insert(newHabit, at: 0)
         }
     }
 
-    func toggleCompletion(for habit: MyHabitModel) {
-        if let index = habits.firstIndex(where: { $0.id == habit.id }) {
-            habits[index].isSelected.toggle()
-        }
+    func delete(at index: Int) {
+        sharedVM.habits.remove(at: index)
+    }
+
+    func toggleSelection(at index: Int) {
+        sharedVM.habits[index].isSelected.toggle()
     }
 }

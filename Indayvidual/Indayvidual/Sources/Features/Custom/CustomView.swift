@@ -54,7 +54,7 @@ struct CustomView: View{
         VStack {
             userRecord
                 .padding(.vertical, 24)
-            if vm.num == 0 {
+            if vm.memosCount == 0 {
                 Image("NoMemo")
                     .padding(.vertical)
             }
@@ -91,7 +91,7 @@ struct CustomView: View{
             
             VStack {
                 NavigationLink {
-                    MyHabitView(sharedVM: CustomViewModel())
+                    MyHabitView(sharedVM: vm)
                 } label: {
                     HStack {
                         Text("나의 습관")

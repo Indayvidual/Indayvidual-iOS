@@ -64,6 +64,7 @@ class MemoViewModel {
         } else {
             // 신규 모드: 배열 맨 앞에 삽입
             let newMemo = MemoModel(
+                id: UUID(),
                 title: newTitle,
                 content: content,
                 date: dateString,
@@ -71,5 +72,9 @@ class MemoViewModel {
             )
             sharedVM.memos.insert(newMemo, at: 0)
         }
+    }
+    
+    func delete(at index: Int) {
+        sharedVM.memos.remove(at: index)
     }
 }

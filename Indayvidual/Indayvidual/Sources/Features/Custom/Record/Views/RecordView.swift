@@ -47,7 +47,7 @@ struct RecordView: View {
     
     //사용자 이름 및 총 메모 갯수 출력
     var nameAndnum: some View {
-        Group {
+        VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("\(sharedVM.name)님의 기록")
                     .font(.pretendBold24)
@@ -55,14 +55,15 @@ struct RecordView: View {
                 Spacer()
             }
             
-            Text("총 \(sharedVM.num)개")
+            Text("총 \(sharedVM.memosCount)개")
                 .font(.pretendSemiBold18)
                 .foregroundStyle(.black)
             
             //메모가 하나도 없을 경우
-            if sharedVM.num == 0 {
+            if sharedVM.memos.isEmpty {
                 Image(.noData)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                    .frame(height: 512)
             } else {
                 memos
             }
@@ -74,9 +75,8 @@ struct RecordView: View {
     var memos: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 20)
-                        .fill(Color.white)
-                        .frame(height: 512)
-            
+                .fill(Color.white)
+                .frame(height: 512)
             List {
                 ForEach(Array(sharedVM.memos.enumerated()), id: \.element.id) { index, memo in
                     NavigationLink {

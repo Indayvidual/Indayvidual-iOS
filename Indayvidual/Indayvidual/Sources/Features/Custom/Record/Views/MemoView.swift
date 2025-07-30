@@ -62,10 +62,10 @@ struct MemoView: View {
     ZStack {
         Color.gray
         MemoView(memo: MemoModel(
-                title: "새로운 메모",
-                content: "이건 매우 길어질 수 있는 테스트용 메모 내용입니다. 아마도 줄바꿈 없이 계속 길어질 수 있어요. 그러니까 잘라줘야 해요!",
-                date: "250719",
-                time: "12:34"
-            ))
+            title: "새로운 메모",
+            content: "이건 매우 길어질 수 있는 테스트용 메모 내용입니다. 아마도 줄바꿈 없이 계속 길어질 수 있어요. 그러니까 잘라줘야 해요!",
+            date: "250719",
+            time: "12:34"
+        ))
     }
 }

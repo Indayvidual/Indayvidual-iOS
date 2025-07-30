@@ -7,9 +7,18 @@
 
 import Foundation
 
-struct MyHabitModel: Identifiable {
-    let id: UUID
-    var name: String
+struct MyHabitModel: Codable, Identifiable {
+    var id = UUID()
+    var title: String
     var colorName: String
-    var isSelected: Bool = false
+    var checkedAt: String
+    var isSelected: Bool
+
+//    enum CodingKeys: String, CodingKey {
+//        case id           = "habitId" 
+//        case title         = "title"
+//        case colorName    = "colorCode"
+//        case checkedAt
+//        case isSelected   = "checked"
+//    }
 }

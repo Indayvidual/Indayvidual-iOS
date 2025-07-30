@@ -8,8 +8,9 @@
 import SwiftUI
 struct MyHabitView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var viewModel = HabitViewModel()
-    @StateObject var colorViewModel = ColorViewModel()
+    @State private var Add : Bool = false
+    @State private var habit: MyHabitModel?
+    @State private var index: Int?
     var sharedVM: CustomViewModel
 
     var body: some View {
@@ -20,7 +21,7 @@ struct MyHabitView: View {
                 VStack {
                     topbar
                     // TODO: CalendarView 
-                    if viewModel.habits.isEmpty {
+                    if sharedVM.habits.isEmpty {
                         Spacer()
                         Image("NoHabit")
                         Spacer()
@@ -30,6 +31,9 @@ struct MyHabitView: View {
                     }
                 }
             }
+        }
+        .navigationDestination(isPresented: $Add) {
+            HabitFormView(viewModel: MyHabitViewModel(sharedVM: sharedVM, habit: habit, index: index), colorViewModel: ColorViewModel())
         }
         .navigationBarBackButtonHidden(true)
     }
@@ -45,7 +49,7 @@ struct MyHabitView: View {
                 .font(.pretendBold24)
             Spacer()
             NavigationLink {
-                HabitFormView(viewModel: viewModel, colorViewModel: ColorViewModel())
+                HabitFormView(viewModel: MyHabitViewModel(sharedVM: sharedVM), colorViewModel: ColorViewModel())
             } label: {
                 Image("plusBTN")
                     .resizable()
@@ -60,19 +64,23 @@ struct MyHabitView: View {
     
     var MemoListView: some View {
         VStack {
-            ForEach(viewModel.habits) { habit in
+            ForEach(Array(sharedVM.habits.enumerated()), id: \.element.id) { index, habit in
                 HabitCardView(
                     habit: habit,
-                    onToggle: { viewModel.toggleCompletion(for: habit) },
+                    onToggle: {
+                        sharedVM.habits[index].isSelected.toggle() // ✅ 직접 토글
+                    },
                     onEdit: {
-                        // TODO: 습관 수정 화면 연결
+                        self.habit = habit
+                        self.index = index
+                        Add = true
                     },
                     onDelete: {
-                        viewModel.deleteHabit(habit)
+                        sharedVM.habits.remove(at: index) // ✅ 삭제
                     }
                 )
                 .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear) 
+                .listRowBackground(Color.clear)
             }
         }
         .listStyle(.plain)

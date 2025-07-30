@@ -1,4 +1,3 @@
-
 //
 //  CreateScheduleSheetView.swift
 //  Indayvidual
@@ -19,10 +18,8 @@ struct CreateScheduleSheetView: View {
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var sheetCalendarVm = CustomCalendarViewModel() // 시트 전용 ViewModel
-    
-    @State private var title: String = ""
 
-    // 시작 시간과 종료 시간
+    @State private var title: String = ""
     @State private var startTime: Date = Date()
     @State private var endTime: Date = Date()
 
@@ -30,26 +27,29 @@ struct CreateScheduleSheetView: View {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    let scheduleToEdit: ScheduleItem? // 등록이면 nil
+
     var body: some View {
         CustomActionSheet(
-            title: "일정 등록",
+            title: scheduleToEdit == nil ? "일정 등록" : "일정 수정",
             titleIcon: "calendar_icon",
-            primaryButtonTitle: "일정 등록하기",
+            primaryButtonTitle: scheduleToEdit == nil ? "일정 등록하기" : "일정 수정하기",
             secondaryButtonTitle: "취소",
             primaryAction: {
                 guard isPrimaryButtonEnabled else { return }
-                // isAllDay이면 endTime nil, showEndSection이 true면 endTime, 아니면 nil
                 let finalEndTime: Date? = {
-                    if isAllDay { return nil }
-                    else if showEndSection { return endTime }
-                    else { return nil }
+                    if isAllDay { return nil } // 하루 종일이면 종료 시간 없음
+                    return showEndSection ? endTime : nil // "종료"가 활성화된 경우에만 값 전달
                 }()
-                
-                scheduleVm.addNewSchedule(
+
+                // 일정 등록/수정 처리
+                scheduleVm.submitSchedule(
+                    existingSchedule: scheduleToEdit,
                     title: title,
                     startTime: startTime,
                     endTime: finalEndTime,
                     color: selectedColor,
+                    isAllDay: isAllDay,
                     calendarViewModel: calendarVm
                 )
                 dismiss()
@@ -74,7 +74,6 @@ struct CreateScheduleSheetView: View {
         ) { // CustomActionSheet의 content 클로저 시작
             ScrollView {
                 VStack(alignment: .center, spacing: 0) {
-                    // 시트 전용 ViewModel 사용
                     CustomCalendarView(calendarViewModel: sheetCalendarVm,
                                        showToggleButton: false,
                                        showShadow: false,
@@ -115,19 +114,21 @@ struct CreateScheduleSheetView: View {
                 }
             }
         }
-        .task {
-            // 시트 캘린더 날짜 동기화
+
+        .onAppear {
+            // 뷰가 나타날 때 상태 초기화 (등록/수정 모두)
+            let (initialTitle, initialStart, initialEnd, initialAllDay, initialShowEnd, initialColor) =
+                scheduleVm.initializeInput(for: scheduleToEdit, on: calendarVm.selectDate)
+
+            title = initialTitle
+            startTime = initialStart
+            endTime = initialEnd
+            isAllDay = initialAllDay
+            showEndSection = initialShowEnd
+            selectedColor = initialColor
+            
+            // 시트 캘린더의 날짜를 동기화
             sheetCalendarVm.selectDate = calendarVm.selectDate
-
-            // 선택된 날짜 기준으로 오전 9시 시작 시간 세팅
-            startTime = Calendar.current.date(
-                bySettingHour: 9, minute: 0, second: 0, of: calendarVm.selectDate
-            ) ?? Date()
-
-            // 선택된 날짜 기준으로 오후 9시 종료 시간 세팅
-            endTime = Calendar.current.date(
-                bySettingHour: 21, minute: 0, second: 0, of: calendarVm.selectDate
-            ) ?? startTime
         }
 
         .onReceive(sheetCalendarVm.$selectDate) { newDate in
@@ -138,12 +139,13 @@ struct CreateScheduleSheetView: View {
             dateComponents.hour = timeComponents.hour
             dateComponents.minute = timeComponents.minute
             dateComponents.second = timeComponents.second
-            
+
             if let updatedStartTime = calendar.date(from: dateComponents) {
                 startTime = updatedStartTime
                 endTime = Calendar.current.date(byAdding: .hour, value: 1, to: updatedStartTime) ?? updatedStartTime
             }
         }
+
         // ColorPickerSheet 띄우기
         .sheet(isPresented: $showColorPickerSheet) {
             ColorPickerSheetView(
@@ -162,7 +164,8 @@ struct CreateScheduleSheetView: View {
         selectedColor: .constant(.button),
         isAllDay: .constant(false),
         showEndSection: .constant(true),
-        calendarVm: CustomCalendarViewModel()
+        calendarVm: CustomCalendarViewModel(),
+        scheduleToEdit: nil // 미리보기는 등록 모드
     )
     .environmentObject(ScheduleViewModel())
 }

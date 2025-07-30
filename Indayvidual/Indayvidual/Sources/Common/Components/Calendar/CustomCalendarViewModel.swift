@@ -64,6 +64,25 @@ final class CustomCalendarViewModel: ObservableObject {
         dateMarkers[dayKey] = markers
     }
 
+    /// 특정 날짜의 특정 색상 마커를 제거
+    func removeMarker(for date: Date, color: Color) {
+        let dayKey = Calendar.current.startOfDay(for: date)
+
+        if var markers = dateMarkers[dayKey] {
+            // 주어진 색상과 일치하는 첫 번째 마커를 찾아 제거
+            if let index = markers.firstIndex(where: { $0.color == color }) {
+                markers.remove(at: index)
+                
+                // 마커 배열이 비어있으면 딕셔너리에서 키를 제거
+                if markers.isEmpty {
+                    dateMarkers.removeValue(forKey: dayKey)
+                } else {
+                    dateMarkers[dayKey] = markers
+                }
+            }
+        }
+    }
+
     /// 연, 월 문자열 반환
     func getYearAndMonthString(currentDate: Date) -> [String] {
         let formatter = DateFormatter()

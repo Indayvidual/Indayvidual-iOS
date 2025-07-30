@@ -9,11 +9,15 @@ import SwiftUI
 
 struct ScheduleMenu: View {
     let schedule: ScheduleItem
-    @ObservedObject var scheduleVm: ScheduleViewModel
+    var scheduleVm: ScheduleViewModel
+    var onEdit: (() -> Void)? = nil
+    
     
     var body: some View {
         Menu {
-            Button("수정하기", action: editAction)
+            Button("수정하기") {
+                onEdit?()
+            }
             Button(role: .destructive, action: deleteAction) {
                 Text("삭제하기")
             }
@@ -24,11 +28,7 @@ struct ScheduleMenu: View {
                 .padding(.vertical, 4)
         }
     }
-    
-    private func editAction() {
-        // TODO: 수정 로직 구현
-    }
-    
+
     private func deleteAction() {
         scheduleVm.deleteSchedule(schedule)
     }

@@ -8,9 +8,16 @@
 import SwiftUI
 
 struct ScheduleListView: View {
+    @State private var scheduleToEdit: ScheduleItem? = nil
+    @State private var showCreateScheduleSheet = false
+    @State private var showColorPickerSheet = false
+    
     @EnvironmentObject var scheduleVm: ScheduleViewModel
     @ObservedObject var calendarVm: CustomCalendarViewModel
     
+    // 수정 버튼 눌렀을 때 호출되는 클로저
+    var onEditSchedule: ((ScheduleItem) -> Void)?
+
     var body: some View {
         List {
             ForEach(scheduleVm.filteredSchedules) { schedule in
@@ -30,7 +37,13 @@ struct ScheduleListView: View {
 
                         Spacer()
                         
-                        ScheduleMenu(schedule: schedule, scheduleVm: scheduleVm)
+                        ScheduleMenu(
+                            schedule: schedule,
+                            scheduleVm: scheduleVm,
+                            onEdit: {
+                                onEditSchedule?(schedule)
+                            }
+                        )
                     }
                     .padding(.horizontal, 15)
                     

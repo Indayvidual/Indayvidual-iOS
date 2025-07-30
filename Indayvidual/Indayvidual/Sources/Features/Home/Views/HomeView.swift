@@ -16,6 +16,7 @@ struct HomeView: View {
     @State private var selectedColor: Color = .button
     @State private var isAllDay: Bool = false
     @State private var showEndSection: Bool = false
+    @State private var scheduleToEdit: ScheduleItem? = nil
 
     @Environment(\.dismiss) private var dismiss
     
@@ -30,8 +31,11 @@ struct HomeView: View {
             
             Spacer().frame(height: 33)
             
-            ScheduleListView(calendarVm: calendarVm)
-                .environmentObject(scheduleVm)
+            ScheduleListView(calendarVm: calendarVm, onEditSchedule: { schedule in
+                            scheduleToEdit = schedule
+                            homeVm.showCreateScheduleSheet = true
+            })
+            .environmentObject(scheduleVm) 
             
             Spacer()
         }
@@ -58,13 +62,17 @@ struct HomeView: View {
         }
         
         /// 일정 등록 시트뷰
-        .sheet(isPresented: $homeVm.showCreateScheduleSheet) {
+        .sheet(isPresented: $homeVm.showCreateScheduleSheet, onDismiss: {
+            // 시트가 닫힐 때 수정 상태 초기화
+            scheduleToEdit = nil
+        }) {
             CreateScheduleSheetView(
                 showColorPickerSheet: $homeVm.showColorPickerSheet,
                 selectedColor: $selectedColor,
                 isAllDay: $isAllDay,
                 showEndSection: $showEndSection,
-                calendarVm: calendarVm
+                calendarVm: calendarVm,
+                scheduleToEdit: scheduleToEdit
             )
             .presentationDragIndicator(.visible)
             .presentationDetents([.fraction(0.83), .large])

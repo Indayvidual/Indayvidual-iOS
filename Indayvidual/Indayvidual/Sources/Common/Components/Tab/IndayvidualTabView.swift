@@ -19,27 +19,29 @@ struct IndayvidualTabView: View{
         }
         UITabBar.appearance().tintColor = .black              // 선택된 아이콘·텍스트 색
         UITabBar.appearance().unselectedItemTintColor = .gray // 선택 안 된 텍스트 색
+        
+        let appearance = UITabBarAppearance()
+        appearance.backgroundColor = .white
+        UITabBar.appearance().scrollEdgeAppearance = appearance
     }
 
     
     // MARK: - Body
     var body: some View{
-        NavigationStack{
-            TabView(selection: $tabcase, content: {
-                ForEach(TabCase.allCases, id: \.rawValue){ tab in
-                        Tab(
-                            value: tab,
-                            content: {
-                                tabView(tab: tab)
-                                    .tag(tab)
-                            },
-                            label: {
-                                tabLabel(tab)
-                            })
-                }
-            })
-            .tint(.black)
-        }
+        TabView(selection: $tabcase, content: {
+            ForEach(TabCase.allCases, id: \.rawValue){ tab in
+                Tab(
+                    value: tab,
+                    content: {
+                        tabView(tab: tab)
+                            .tag(tab)
+                    },
+                    label: {
+                        tabLabel(tab)
+                    })
+            }
+        })
+        .tint(.black)
     }
     
     private func tabLabel(_ tab: TabCase) -> some View{

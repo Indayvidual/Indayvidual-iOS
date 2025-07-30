@@ -32,14 +32,14 @@ final class CustomCalendarViewModel: ObservableObject {
         return calendar.date(from: components) ?? Date()
     }()
     
-    init() {
-        fetchMarkedDates() //마커 초기화
+    init(initialMode: CalendarMode = .month) {
+            self.calendarMode = initialMode
+            fetchMarkedDates() //마커 초기화
     }
     
     private func fetchMarkedDates() {
             //임시 더미 데이터 생성 (추후 일정 조회 API 호출로 변경예정)
-            addMarker(for: Date(), color: .green)
-    
+            addMarker(for: Date(), color: .purple)
         }
 
     /// 특정 날짜에 마커를 추가

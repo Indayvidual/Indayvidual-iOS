@@ -52,6 +52,8 @@ struct RecordView: View {
                 Text("\(sharedVM.name)님의 기록")
                     .font(.pretendBold24)
                     .foregroundStyle(.black)
+                Image("Customdot")
+                    .offset(y: -9)
                 Spacer()
             }
             

@@ -20,7 +20,7 @@ struct WeeklyHabitView: View {
                 
                 VStack(alignment: .leading, spacing: 20) {
                     Text("나의 습관")
-                        .font(.pretendSemiBold22)
+                        .font(.pretendSemiBold16)
                     
                     // 요일 헤더
                     HStack {

@@ -40,7 +40,8 @@ struct CustomView: View{
                 Text("\(vm.name)님의 기록")
                     .font(.pretendBold24)
                     .foregroundStyle(.white)
-                
+                Image("Customdot")
+                    .offset(y: -9)
                 Spacer()
                 Image(systemName: "chevron.right")
                     .bold()

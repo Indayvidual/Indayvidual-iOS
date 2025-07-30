@@ -46,15 +46,18 @@ struct MyHabitView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .topBarLeading, content: {
-                HStack(spacing: 12) {
+                HStack {
                     Button {
                         dismiss()
                     } label: {
                         Image(systemName: "chevron.left")
                             .foregroundColor(.black)
                     }
+                    .lineSpacing(4)
                     Text("\(sharedVM.name)님의 습관")
                         .font(.pretendBold24)
+                    Image("Customdot")
+                        .offset(y: -9)
                 }
             })
             ToolbarItem(placement: .topBarTrailing, content: {

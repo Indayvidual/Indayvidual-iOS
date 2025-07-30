@@ -9,7 +9,8 @@ struct CustomActionSheet<Content: View>: View {
     let secondaryAction: (() -> Void)?
     let content: Content
     let showDivider: Bool
-    
+    let headerRightButton: (() -> AnyView)?
+
     //버튼 관련
     let primaryButtonColor: Color
     let primaryButtonTextColor: Color
@@ -36,6 +37,9 @@ struct CustomActionSheet<Content: View>: View {
         buttonHeight: CGFloat = 50,
         primaryButtonWidth: CGFloat? = nil,
         secondaryButtonWidth: CGFloat? = 150,
+        showPrimaryButton: Bool = true,
+        showSecondaryButton: Bool = true,
+        headerRightButton: (() -> AnyView)? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
@@ -54,6 +58,7 @@ struct CustomActionSheet<Content: View>: View {
         self.primaryButtonWidth = primaryButtonWidth
         self.secondaryButtonWidth = secondaryButtonWidth
         self.content = content()
+        self.headerRightButton = headerRightButton
     }
     
     var body: some View {
@@ -67,6 +72,12 @@ struct CustomActionSheet<Content: View>: View {
                     }
                     Text(title)
                         .font(.pretendSemiBold17)
+                    
+                    Spacer()
+                    
+                    if let headerRightButton = headerRightButton {
+                            headerRightButton()
+                    }
                 }
                 Spacer()
             }
@@ -100,16 +111,17 @@ struct CustomActionSheet<Content: View>: View {
                             )
                     }
                 }
-                
-                Button(action: primaryAction) {
-                    Text(primaryButtonTitle)
-                        .font(.pretendSemiBold15)
-                        .foregroundColor(primaryButtonTextColor)
-                        .frame(width: primaryButtonWidth)
-                        .frame(maxWidth: primaryButtonWidth == nil ? .infinity : nil)
-                        .frame(height: buttonHeight)
-                        .background(primaryButtonColor)
-                        .cornerRadius(8)
+
+                    Button(action: primaryAction) {
+                        Text(primaryButtonTitle)
+                            .font(.pretendSemiBold15)
+                            .foregroundColor(primaryButtonTextColor)
+                            .frame(width: primaryButtonWidth)
+                            .frame(maxWidth: primaryButtonWidth == nil ? .infinity : nil)
+                            .frame(height: buttonHeight)
+                            .background(primaryButtonColor)
+                            .cornerRadius(8)
+                    
                 }
             }
             .padding(.bottom, 40)
@@ -206,3 +218,4 @@ struct CustomButtonActionSheet: View {
     DefaultActionSheet()
     CustomButtonActionSheet()
 }
+ 

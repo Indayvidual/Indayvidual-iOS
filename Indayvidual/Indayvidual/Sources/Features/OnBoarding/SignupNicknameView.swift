@@ -79,12 +79,6 @@ struct SignupNicknameView: View {
             .background(Color.white)
             .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: -1)
         }
-        // 키보드 올라올 때 뷰도 위로
-        .padding(.bottom, isNicknameFocused ? 300 : 0)
-        .animation(.easeOut(duration: 0.25), value: isNicknameFocused)
-        .onTapGesture {
-            hideKeyboard()
-        }
     }
 
     private func hideKeyboard() {

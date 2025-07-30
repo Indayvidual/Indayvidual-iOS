@@ -65,7 +65,7 @@ struct SignupPasswordView: View {
                     showToggleSecure: true
                 )
                 .focused($focusedField, equals: .password)
-                .onTapGesture {
+                .onChange(of: password) {
                     isPasswordEdited = true
                 }
 

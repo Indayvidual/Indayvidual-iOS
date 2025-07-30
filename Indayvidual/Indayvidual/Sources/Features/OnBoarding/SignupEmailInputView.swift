@@ -64,7 +64,7 @@ struct SignupEmailInputView: View {
                             .font(.pretendSemiBold15)
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(Color.black)
+                            .background(viewModel.isValidEmail ? Color.black : Color.gray.opacity(0.3))
                             .foregroundStyle(.white)
                             .cornerRadius(12)
                     }
@@ -76,12 +76,6 @@ struct SignupEmailInputView: View {
             }
             .background(Color.white)
             .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: -1)
-        }
-        // 키보드 올라올 때 뷰도 따라올라가게
-        .padding(.bottom, isEmailFocused ? 300 : 0)
-        .animation(.easeOut(duration: 0.25), value: isEmailFocused)
-        .onTapGesture {
-            hideKeyboard()
         }
     }
 

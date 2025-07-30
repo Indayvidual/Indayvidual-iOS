@@ -142,7 +142,9 @@ struct MyHabitView: View {
     
     var weeklyView: some View {
         VStack {
-            WeeklyHabitView(sharedVM: sharedVM)
+            ScrollView {
+                WeeklyHabitView(sharedVM: sharedVM)
+            }
         }
     }
     
@@ -160,10 +162,10 @@ struct MyHabitView: View {
     
     var completeView: some View {
         VStack(alignment: .leading) {
-            Text("\(7)월 \(30)일 수요일")
+            Text("\(7)월 \(31)일 \("목")요일") //TODO: 날짜 커스텀 캘린더에서 어떻게 받아오는지 여쭤보기
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .font(.pretendMedium15)
-            Text("\(1)개의 활동을 달성했어요!")
+            Text("\(sharedVM.habitsSelectedCount)개의 활동을 달성했어요!")
                 .font(.pretendMedium12)
                 .tint(.gray700)
         }

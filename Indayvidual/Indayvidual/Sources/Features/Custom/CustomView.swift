@@ -60,8 +60,8 @@ struct CustomView: View{
                     .padding(.vertical)
             }
             else {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack {
+                ScrollView(.horizontal) {
+                    LazyHStack {
                         ForEach(Array(vm.memos.enumerated()), id: \.element.id) { index, memo in
                             NavigationLink {
                                 AddMemoView(
@@ -80,6 +80,7 @@ struct CustomView: View{
                     }
                     .padding(.horizontal)
                 }
+                .scrollIndicators(.automatic)
             }
         }
     }
@@ -90,7 +91,7 @@ struct CustomView: View{
                 .ignoresSafeArea(.all)
                 .foregroundStyle(.white)
             
-            VStack {
+            VStack(alignment: .center) {
                 NavigationLink {
                     MyHabitView(sharedVM: vm)
                 } label: {
@@ -103,11 +104,10 @@ struct CustomView: View{
                     }
                 }
                 .tint(.black)
-                
                 Spacer()
-                
-                //습관 달력 만들고 추가 예정
-                
+                ScrollView {
+                    WeeklyHabitView(showTitle: false, showShadow: false, sharedVM: vm)
+                }
             }
             .padding(28)
         }

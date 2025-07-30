@@ -9,35 +9,33 @@ import SwiftUI
 struct MyHabitView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var calendarViewModel = CustomCalendarViewModel()
-    @State private var selectedMode: HabitMode.Mode = .daily
+    @State private var selectedMode: HabitMode = .daily
     @State private var Add : Bool = false
     @State private var habit: MyHabitModel?
     @State private var index: Int?
     var sharedVM: CustomViewModel
 
     var body: some View {
-        NavigationView {
-            ZStack {
-                Color.gray50
-                    .ignoresSafeArea()
-                VStack {
-                    if sharedVM.habits.isEmpty {
-                        Spacer()
-                        Image("NoHabit")
-                        Spacer()
-                    } else {
-                        switch selectedMode {
-                        case .daily:
-                            dailyView
-                        case .weekly:
-                            weeklyView
-                        case .monthly:
-                            monthlyView
-                        }
-                    }
+        ZStack {
+            Color.gray50
+                .ignoresSafeArea()
+            VStack {
+                if sharedVM.habits.isEmpty {
                     Spacer()
-                    selectMode
+                    Image("NoHabit")
+                    Spacer()
+                } else {
+                    switch selectedMode {
+                    case .daily:
+                        dailyView
+                    case .weekly:
+                        weeklyView
+                    case .monthly:
+                        monthlyView
+                    }
                 }
+                Spacer()
+                selectMode
             }
         }
         .navigationDestination(isPresented: $Add) {
@@ -79,7 +77,9 @@ struct MyHabitView: View {
                     HabitCardView(
                         habit: habit,
                         onToggle: {
-                            sharedVM.habits[index].isSelected.toggle()
+                                if index < sharedVM.habits.count {
+                                    sharedVM.habits[index].isSelected.toggle()
+                            }
                         },
                         onEdit: {
                             self.habit = habit
@@ -87,7 +87,9 @@ struct MyHabitView: View {
                             Add = true
                         },
                         onDelete: {
-                            sharedVM.habits.remove(at: index)
+                                if index < sharedVM.habits.count {
+                                    sharedVM.habits.remove(at: index)
+                            }
                         }
                     )
                     .listRowSeparator(.hidden)
@@ -101,7 +103,7 @@ struct MyHabitView: View {
     
     var selectMode: some View {
         HStack(spacing: 0) {
-            ForEach(HabitMode.Mode.allCases, id: \.self) { mode in
+            ForEach(HabitMode.allCases, id: \.self) { mode in
                 Button {
                     selectedMode = mode
                 } label: {

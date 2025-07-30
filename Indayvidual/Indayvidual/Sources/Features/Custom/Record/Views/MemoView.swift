@@ -8,12 +8,7 @@
 import SwiftUI
 
 struct MemoView: View {
-    var memo = MemoModel(
-        title: "메모1",
-        content: "테스트 내용입니다",
-        date: "250719",
-        time: "12:34"
-    )
+    let memo: MemoModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {

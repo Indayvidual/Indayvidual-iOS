@@ -37,7 +37,7 @@ struct WeeklyHabitView: View {
                 }
                 
                 //습관별 체크
-                ForEach(Array(sharedVM.habits.enumerated()), id: \.element.id) { index, habit in
+                ForEach(Array(sharedVM.habits.enumerated()), id: \.element.id) { _, habit in
                     HStack {
                         Text(habit.title)
                             .font(.pretendSemiBold10)

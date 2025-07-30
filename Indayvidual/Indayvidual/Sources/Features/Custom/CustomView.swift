@@ -62,7 +62,8 @@ struct CustomView: View{
             else {
                 ScrollView(.horizontal) {
                     LazyHStack {
-                        ForEach(Array(vm.memos.enumerated()), id: \.element.id) { index, memo in
+                        ForEach(vm.memos.indices, id: \.self) { index in
+                            let memo = vm.memos[index]
                             NavigationLink {
                                 AddMemoView(
                                     vm: MemoViewModel(
@@ -105,8 +106,12 @@ struct CustomView: View{
                 }
                 .tint(.black)
                 Spacer()
-                ScrollView {
-                    WeeklyHabitView(showTitle: false, showShadow: false, sharedVM: vm)
+                if vm.habits.isEmpty {
+                    Image("NoHabit")
+                } else {
+                    ScrollView {
+                        WeeklyHabitView(showTitle: false, showShadow: false, sharedVM: vm)
+                    }
                 }
             }
             .padding(28)

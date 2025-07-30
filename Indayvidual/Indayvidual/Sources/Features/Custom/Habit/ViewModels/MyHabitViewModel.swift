@@ -61,10 +61,12 @@ class MyHabitViewModel {
     }
 
     func delete(at index: Int) {
+        guard index >= 0 && index < sharedVM.habits.count else { return }
         sharedVM.habits.remove(at: index)
     }
 
     func toggleSelection(at index: Int) {
+        guard index >= 0 && index < sharedVM.habits.count else { return }
         sharedVM.habits[index].isSelected.toggle()
     }
 }

@@ -37,29 +37,35 @@ class MemoViewModel {
         }
     }
     
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyMMdd"
+        return formatter
+    }()
+
+    private static let timeFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter
+    }()
+    
     func save() {
         let newTitle = title.isEmpty ? "새로운 메모" : title
         // 현재 시간으로 날짜, 시간 생성
         let now = Date()
-        let df = DateFormatter()
-        df.dateFormat = "yyMMdd"
-        let tf = DateFormatter()
-        tf.dateFormat = "HH:mm"
-        let dateString = df.string(from: now)
-        let timeString = tf.string(from: now)
+        let dateString = Self.dateFormatter.string(from: now)
+        let timeString = Self.timeFormatter.string(from: now)
         
         if let idx = editIndex {
-            // 수정 모드: 배열에서 해당 인덱스 교체
-            var updated = sharedVM.memos[idx]
-            updated.title = title
-            updated.content = content
-            updated.date = dateString
-            updated.time = timeString
-            sharedVM.memos[idx] = updated
-            
-            // 1) 기존 위치에서 제거
-            sharedVM.memos.remove(at: idx)
-            // 2) 맨 앞에 삽입
+            // 수정 모드: 기존 항목을 제거하고 업데이트된 항목을 맨 앞에 삽입
+            let existingMemo = sharedVM.memos.remove(at: idx)
+            let updated = MemoModel(
+                id: existingMemo.id,
+                title: title,
+                content: content,
+                date: dateString,
+                time: timeString
+            )
             sharedVM.memos.insert(updated, at: 0)
         } else {
             // 신규 모드: 배열 맨 앞에 삽입

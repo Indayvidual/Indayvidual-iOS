@@ -19,15 +19,15 @@ struct MyHabitModel: Codable, Identifiable {
 extension MyHabitModel {
     func toCreateDTO() -> CreateHabitRequestDTO {
         return CreateHabitRequestDTO(
-            title: self.title,
-            colorCode: self.colorName
+            title: title,
+            colorCode: colorName
         )
     }
 
     func toUpdateDTO() -> UpdateHabitRequestDTO {
         return UpdateHabitRequestDTO(
-            title: self.title,
-            colorCode: self.colorName
+            title: title,
+            colorCode: colorName
         )
     }
 }

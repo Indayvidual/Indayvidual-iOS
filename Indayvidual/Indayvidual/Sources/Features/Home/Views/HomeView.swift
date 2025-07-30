@@ -67,11 +67,8 @@ struct HomeView: View {
             scheduleToEdit = nil
         }) {
             CreateScheduleSheetView(
-                showColorPickerSheet: $homeVm.showColorPickerSheet,
-                selectedColor: $selectedColor,
-                isAllDay: $isAllDay,
-                showEndSection: $showEndSection,
                 calendarVm: calendarVm,
+                scheduleVm: scheduleVm,
                 scheduleToEdit: scheduleToEdit
             )
             .presentationDragIndicator(.visible)

@@ -9,16 +9,25 @@ import Foundation
 
 struct MyHabitModel: Codable, Identifiable {
     var id = UUID()
+    var habitId: Int?
     var title: String
     var colorName: String
     var checkedAt: String
     var isSelected: Bool
+}
 
-//    enum CodingKeys: String, CodingKey {
-//        case id           = "habitId" 
-//        case title         = "title"
-//        case colorName    = "colorCode"
-//        case checkedAt
-//        case isSelected   = "checked"
-//    }
+extension MyHabitModel {
+    func toCreateDTO() -> CreateHabitRequestDTO {
+        return CreateHabitRequestDTO(
+            title: self.title,
+            colorCode: self.colorName
+        )
+    }
+
+    func toUpdateDTO() -> UpdateHabitRequestDTO {
+        return UpdateHabitRequestDTO(
+            title: self.title,
+            colorCode: self.colorName
+        )
+    }
 }

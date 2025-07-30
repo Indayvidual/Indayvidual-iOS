@@ -19,7 +19,6 @@ struct HabitFormView: View {
                 .ignoresSafeArea()
             
             VStack(spacing: 24) {
-                topBarView
                 mainView
                 Spacer()
             }
@@ -41,43 +40,40 @@ struct HabitFormView: View {
             //단순 for문 동작이기 때문에 onDisappear는 필수적이진 않지만 있어서 나쁠 건 없다
             print("HabitFormView 닫힘")
         }
-    }
-    
-    var topBarView: some View {
-        HStack {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(.black)
-            }
-
-            Spacer()
-
-            Text(viewModel.isEditing ? "습관 수정" :"새로운 습관")
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(.black)
-
-            Spacer()
-
-            Button {
-                if let selectedColor = colorViewModel.colors.first(where: { $0.isSelected })?.name {
-                    viewModel.colorName = selectedColor
-                    viewModel.save()
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading, content: {
+                Button {
                     dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(.black)
                 }
-            } label: {
-                Text("등록")
-                    .font(.system(size: 16, weight: .medium))
-                    .tint(.black)
-            }
+            })
+            ToolbarItem(placement: .principal, content: {
+                Text(viewModel.isEditing ? "습관 수정" :"새로운 습관")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.black)
+            })
+            ToolbarItem(placement: .topBarTrailing, content: {
+                Button {
+                    if let selectedColor = colorViewModel.colors.first(where: { $0.isSelected })?.name {
+                        viewModel.colorName = selectedColor
+                        viewModel.save()
+                        dismiss()
+                    }
+                } label: {
+                    Text("등록")
+                        .font(.system(size: 16, weight: .medium))
+                        .tint(.black)
+                }
+            })
         }
-        .padding(.top, 24)
     }
     
     var mainView: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 8) {
+            padding(.top, 16)
             TextField("습관 이름", text: $viewModel.title)
                 .font(.pretendMedium14)
                 .padding()

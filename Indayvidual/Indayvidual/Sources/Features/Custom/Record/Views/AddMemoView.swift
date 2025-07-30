@@ -14,9 +14,7 @@ struct AddMemoView: View {
     var body: some View {
         ZStack {
             Color.gray50.ignoresSafeArea()
-            
             VStack(spacing: 12) {
-                topbar
                 // 제목 입력
                 TextField("새로운 메모", text: $vm.title)
                     .font(.pretendMedium14)
@@ -34,25 +32,30 @@ struct AddMemoView: View {
             .padding()
         }
         .navigationBarBackButtonHidden(true)
-    }
-    
-    var topbar: some View {
-        HStack {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
-            }
-            Spacer()
-            Text(vm.isEditing ? "메모 수정" : "새로운 메모")
-            Spacer()
-            Button(vm.isEditing ? "수정" : "등록") {
-                vm.save()
-                dismiss()
-            }
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading, content: {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                }
+                .font(.pretendSemiBold18)
+                .tint(.black)
+            })
+            ToolbarItem(placement: .principal, content: {
+                Text(vm.isEditing ? "메모 수정" : "새로운 메모")
+                    .font(.pretendSemiBold18)
+                    .tint(.black)
+            })
+            ToolbarItem(placement: .topBarTrailing, content: {
+                Button(vm.isEditing ? "수정" : "등록") {
+                    vm.save()
+                    dismiss()
+                }
+                .font(.pretendSemiBold18)
+                .tint(.black)
+            })
         }
-        .font(.pretendSemiBold18)
-        .tint(.black)
     }
 }
 

@@ -2,7 +2,7 @@ import SwiftUI
 import PhotosUI
 
 @MainActor
-class TimeTableViewModel: ObservableObject {
+class TimetableViewModel: ObservableObject {
     
     // MARK: - Properties
     

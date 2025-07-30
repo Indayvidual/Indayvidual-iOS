@@ -12,7 +12,7 @@ class ColorViewModel: ObservableObject {
 
     init() {
         self.colors = [
-            ColorModel(name: "purple-05", isSelected: true),  // 기본 값(임시로 지정했고, 추후 디자인 확정 되면 수정할 계획입니다)
+            ColorModel(name: "purple-05", isSelected: true),// 기본 값
             ColorModel(name: "purple-04"),
             ColorModel(name: "purple-03"),
             ColorModel(name: "purple-02"),
@@ -55,9 +55,17 @@ class ColorViewModel: ObservableObject {
         ]
     }
 
+    /// 컬러 선택 함수
     func colorSelection(for id: UUID) {
         for i in colors.indices {
             colors[i].isSelected = (colors[i].id == id)
+        }
+    }
+    
+    /// 컬러 초기화 함수
+    func resetToDefault() {
+        for i in colors.indices {
+            colors[i].isSelected = (colors[i].name == "purple-05")
         }
     }
 }

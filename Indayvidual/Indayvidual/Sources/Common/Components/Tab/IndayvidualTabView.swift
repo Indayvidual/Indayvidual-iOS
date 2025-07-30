@@ -10,6 +10,7 @@ import SwiftUI
 struct IndayvidualTabView: View{
     //기본 선택된 탭
     @State var tabcase: TabCase = .home
+    @StateObject private var calendarVm = CustomCalendarViewModel()
 
     init() {
         if let customFont = UIFont(name: "Pretendard-Regular", size: 12) {
@@ -58,7 +59,7 @@ struct IndayvidualTabView: View{
         Group{
             switch tab {
             case .home :
-                Color.white
+                HomeView(calendarVm: calendarVm)
             case .todo :
                 Color.black
             case .timetable :

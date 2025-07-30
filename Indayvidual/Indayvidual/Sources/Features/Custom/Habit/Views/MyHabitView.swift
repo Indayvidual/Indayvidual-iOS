@@ -27,7 +27,7 @@ struct MyHabitView: View {
                     } else {
                         switch selectedMode {
                         case .daily:
-                            Text("일간 습관 뷰")
+                            MemoListView
                         case .weekly:
                             Text("주간 습관 뷰")
                         case .monthly:

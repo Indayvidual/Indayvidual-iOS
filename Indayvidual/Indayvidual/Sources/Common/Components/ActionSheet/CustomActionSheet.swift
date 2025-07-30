@@ -37,8 +37,6 @@ struct CustomActionSheet<Content: View>: View {
         buttonHeight: CGFloat = 50,
         primaryButtonWidth: CGFloat? = nil,
         secondaryButtonWidth: CGFloat? = 150,
-        showPrimaryButton: Bool = true,
-        showSecondaryButton: Bool = true,
         headerRightButton: (() -> AnyView)? = nil,
         @ViewBuilder content: () -> Content
     ) {

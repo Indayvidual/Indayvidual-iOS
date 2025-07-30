@@ -65,8 +65,8 @@ struct DatePickerSheetView: View {
                 selectedColor: $selectedColor
             )
             .presentationDragIndicator(.visible)
-            .presentationDetents([.height(764)])
-        } 
+            .presentationDetents([.fraction(0.95)])
+        }
     }
 }
 

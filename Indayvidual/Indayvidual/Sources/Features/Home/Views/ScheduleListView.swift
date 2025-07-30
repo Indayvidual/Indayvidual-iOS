@@ -9,9 +9,7 @@ import SwiftUI
 
 struct ScheduleListView: View {
     @State private var scheduleToEdit: ScheduleItem? = nil
-    @State private var showCreateScheduleSheet = false
-    @State private var showColorPickerSheet = false
-    
+
     @EnvironmentObject var scheduleVm: ScheduleViewModel
     @ObservedObject var calendarVm: CustomCalendarViewModel
     

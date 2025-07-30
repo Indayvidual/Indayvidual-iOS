@@ -40,6 +40,7 @@ struct ScheduleListView: View {
                         ScheduleMenu(
                             schedule: schedule,
                             scheduleVm: scheduleVm,
+                            calendarVm: calendarVm,
                             onEdit: {
                                 onEditSchedule?(schedule)
                             }
@@ -65,13 +66,15 @@ struct ScheduleListView: View {
                 .listRowBackground(Color.clear)
                 .padding(.horizontal, 18)
                 .padding(.vertical, -3)
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        scheduleVm.deleteSchedule(schedule, calendarViewModel: calendarVm)
+                    } label: {
+                        Image(systemName: "trash.fill")
+                    }
+                    .tint(.red)
+                }
                 
-            }
-            .onDelete { indexSet in
-                            indexSet.forEach { index in
-                                let schedule = scheduleVm.filteredSchedules[index]
-                                scheduleVm.deleteSchedule(schedule)
-                            }
             }
         }
         .listStyle(.plain)

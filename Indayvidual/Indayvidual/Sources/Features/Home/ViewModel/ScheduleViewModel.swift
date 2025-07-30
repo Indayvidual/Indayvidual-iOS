@@ -36,8 +36,16 @@ class ScheduleViewModel: ObservableObject {
     }
 
     /// 일정 삭제
-    func deleteSchedule(_ schedule: ScheduleItem) {
+    func deleteSchedule(_ schedule: ScheduleItem, calendarViewModel: CustomCalendarViewModel) {
+        // 1. 데이터 소스에서 일정 제거
         schedules.removeAll { $0.id == schedule.id }
+        
+        // 2. 캘린더 뷰모델에서 해당 날짜의 마커 제거
+        let markerDate = Calendar.current.startOfDay(for: schedule.startTime)
+        calendarViewModel.removeMarker(for: markerDate, color: schedule.color)
+        
+        // 3. 현재 보고 있는 날짜의 일정 목록을 새로고침하여 UI에 반영
+        updateFilteredSchedules(for: calendarViewModel.selectDate)
     }
 
     /// 일정 수정

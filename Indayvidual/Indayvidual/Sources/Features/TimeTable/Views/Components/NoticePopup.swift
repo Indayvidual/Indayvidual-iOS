@@ -1,5 +1,5 @@
 //
-//  PopupView.swift
+//  NoticePopupView.swift
 //  Indayvidual
 //
 //  Created by 장주리 on 7/31/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct PopupView: View {
+struct NoticePopupView: View {
     @Binding var showModal: Bool
     var onCompletion: ((String, String) -> Void)?
     var onSetupTapped: (() -> Void)?
@@ -39,7 +39,7 @@ struct PopupView: View {
 }
 
 #Preview {
-    PopupView(
+    NoticePopupView(
         showModal: .constant(true),
         onCompletion: { school, semester in
             print("선택된 학교: \(school), 학기: \(semester)")

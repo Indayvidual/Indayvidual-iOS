@@ -12,6 +12,8 @@ struct SignupPasswordView: View {
     @State private var confirmPassword: String = ""
     @FocusState private var focusedField: Field?
     @State private var isPasswordEdited = false
+    @State private var goToCodeView = false
+    @Environment(\.dismiss) private var dismiss
 
     enum Field {
         case password
@@ -32,16 +34,14 @@ struct SignupPasswordView: View {
             // 상단 뒤로가기
             HStack {
                 Button {
-                    // 뒤로가기 동작
+                    dismiss()
                 } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.title2)
-                        .foregroundStyle(.black)
+                    Image("back-icon")
                 }
                 Spacer()
             }
             .padding(.horizontal, 20)
-
+            
             // 타이틀
             Text("비밀번호를\n설정해주세요")
                 .font(.pretendBold24)
@@ -49,13 +49,13 @@ struct SignupPasswordView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 20)
                 .padding(.horizontal, 20)
-
+            
             // 입력 필드
             VStack(spacing: 12) {
                 Text("비밀번호")
                     .font(.pretendMedium13)
                     .frame(maxWidth: .infinity, alignment: .leading)
-
+                
                 CustomTextField(
                     placeholder: "비밀번호",
                     text: $password,
@@ -68,7 +68,7 @@ struct SignupPasswordView: View {
                 .onChange(of: password) {
                     isPasswordEdited = true
                 }
-
+                
                 CustomTextField(
                     placeholder: "비밀번호 확인",
                     text: $confirmPassword,
@@ -83,33 +83,36 @@ struct SignupPasswordView: View {
                 }
             }
             .padding(.horizontal, 20)
-
+            
             Spacer()
-
+            
             // 하단 버튼
             VStack {
-                Button {
-                    // 다음 단계로 이동
-                } label: {
-                    Text("다음")
-                        .font(.pretendSemiBold15)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(isPasswordValid && isConfirmMatched ? Color.black : Color.gray.opacity(0.3))
-                        .foregroundStyle(.white)
-                        .cornerRadius(12)
+                NavigationLink(destination: SignupNicknameView(), isActive: $goToCodeView) {
+                    Button {
+                        goToCodeView = true
+                    } label: {
+                        Text("다음")
+                            .font(.pretendSemiBold15)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(isPasswordValid && isConfirmMatched ? Color.black : Color.gray.opacity(0.3))
+                            .foregroundStyle(.white)
+                            .cornerRadius(12)
+                    }
+                    .disabled(!(isPasswordValid && isConfirmMatched))
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
                 }
-                .disabled(!(isPasswordValid && isConfirmMatched))
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
+                .background(.white)
+                .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: -5)
             }
-            .background(.white)
-            .shadow(color: .black.opacity(0.2), radius: 10, x: 0, y: -5)
+            .padding(.top, 40)
+            .onTapGesture {
+                hideKeyboard()
+            }
         }
-        .padding(.top, 40)
-        .onTapGesture {
-            hideKeyboard()
-        }
+        .navigationBarBackButtonHidden(true)
     }
 
     private func hideKeyboard() {

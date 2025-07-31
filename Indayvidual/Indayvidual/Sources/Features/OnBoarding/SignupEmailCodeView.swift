@@ -13,17 +13,17 @@ struct SignupEmailCodeView: View {
     @State private var countdown: Int = 180
     @State private var timer: Timer? = nil
     @FocusState private var isCodeFocused: Bool
+    @Environment(\.dismiss) private var dismiss
+    @State private var goToNextStep = false
 
     var body: some View {
         VStack(spacing: 28) {
             // 뒤로가기
             HStack {
                 Button {
-                    // TODO: 뒤로가기 동작
+                    dismiss()
                 } label: {
-                    Image(systemName: "chevron.left")
-                        .font(.title2)
-                        .foregroundStyle(.black)
+                    Image("back-icon")
                 }
                 Spacer()
             }
@@ -85,27 +85,28 @@ struct SignupEmailCodeView: View {
 
             // 하단 버튼
             VStack {
-                Button {
-                    // 다음 단계
-                } label: {
-                    Text("다음")
-                        .font(.pretendSemiBold15)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(isCodeValid ? Color.black : Color.gray.opacity(0.3))
-                        .foregroundStyle(.white)
-                        .cornerRadius(12)
+                NavigationLink(destination: SignupPasswordView(), isActive: $goToNextStep) {
+                    Button {
+                        goToNextStep = true
+                    } label: {
+                        Text("다음")
+                            .font(.pretendSemiBold15)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(isCodeValid ? Color.black : Color.gray.opacity(0.3))
+                            .foregroundStyle(.white)
+                            .cornerRadius(12)
+                    }
+                    .disabled(!isCodeValid)
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
                 }
-                .disabled(!isCodeValid)
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
             }
             .background(Color.white)
             .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: -1)
 
         }
-        
-        .padding(.bottom, isCodeFocused ? 300 : 0)
+        .navigationBarBackButtonHidden(true)
         .animation(.easeOut(duration: 0.25), value: isCodeFocused)
         .onTapGesture {
             hideKeyboard()

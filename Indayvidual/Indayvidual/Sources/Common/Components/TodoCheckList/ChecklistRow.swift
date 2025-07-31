@@ -18,7 +18,7 @@ struct ChecklistRow: View {
             .padding(.vertical, 3)
             underLine
         }
-
+        .contentShape(Rectangle())
         .sheet(isPresented: $showActionSheet) {
             todoActionSheet
         }
@@ -75,6 +75,7 @@ struct ChecklistRow: View {
         } label: {
             Image("more-btn")
         }
+        .buttonStyle(PlainButtonStyle())
     }
     
     private var underLine: some View {

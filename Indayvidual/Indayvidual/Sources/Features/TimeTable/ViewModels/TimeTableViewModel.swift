@@ -40,7 +40,7 @@ class TimetableViewModel: ObservableObject {
             }
         }
     }
-
+    
     // MARK: - 팝업/네비게이션 제어용 상태 (뷰에서 바인딩하여 사용)
     @Published var showSchoolSheet = false
     @Published var showSemesterSheet = false

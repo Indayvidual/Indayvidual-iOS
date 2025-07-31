@@ -14,11 +14,11 @@ struct TimetableView: View {
     var body: some View {
         NavigationStack {
             mainContent
-                .onAppear(perform: timetableVm.onAppear)  // 뷰 등장 시 뷰모델 onAppear 호출
-                .floatingBtn { timetableVm.showSchoolSheet = true }  // 플로팅 버튼 액션 처리
+                .onAppear(perform: timetableVm.onAppear)
+                .floatingBtn { timetableVm.showImagePicker = true }  // 플로팅 버튼 액션 처리
                 .photosPicker(
-                    isPresented: $timetableVm.showImagePicker,  // 사진 선택기 표시 제어
-                    selection: $timetableVm.selectedPhotoItem,  // 선택된 사진 바인딩
+                    isPresented: $timetableVm.showImagePicker,
+                    selection: $timetableVm.selectedPhotoItem,
                     matching: .images
                 )
                 .background(Color(.gray50))
@@ -77,7 +77,7 @@ struct TimetableView: View {
                     .transition(.opacity)
                     Spacer()
                 }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .frame(maxWidth: .infinity, alignment: .top)
             }
         }
     }
@@ -101,10 +101,15 @@ private extension TimetableView {
             
             Spacer().frame(height: 22)
             
-            timetableContent()  // 시간표 내용 표시
+            HStack {
+                    Spacer()
+                    timetableContent()
+                    Spacer()
+                }
             
             Spacer()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     // 시간표 이미지 혹은 빈 화면 처리
@@ -115,7 +120,7 @@ private extension TimetableView {
                 .resizable()
                 .scaledToFit()
                 .padding()
-        } else if timetableVm.dropdownOptions.isEmpty {
+        } else if timetableVm.timetableImages.isEmpty {
             EmptyTimeTableView()  // 시간표 없을 때 표시하는 뷰
         } else {
             EmptyView()

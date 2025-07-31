@@ -10,6 +10,7 @@ import SwiftUI
 struct PasswordConfirmView: View {
     @State private var password: String = ""
     @State private var showError: Bool = false
+    @State private var goToNextView = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -68,21 +69,19 @@ struct PasswordConfirmView: View {
                 .frame(height: 30)
 
             // 다음 버튼
-            Button(action: {
-                if password != "correctPassword" { // 예시용 비교
-                    showError = true
-                } else {
-                    showError = false
-                    // 다음으로 진행
+            VStack {
+                NavigationLink(destination: EditProfileView(), isActive: $goToNextView) {
+                    Button(action: {
+                        goToNextView = true // 비밀번호와 관계없이 바로 이동
+                    }) {                Text("다음")
+                            .font(.system(size: 16, weight: .semibold))
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.black)
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                    }
                 }
-            }) {
-                Text("다음")
-                    .font(.system(size: 16, weight: .semibold))
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.black)
-                    .foregroundColor(.white)
-                    .cornerRadius(12)
             }
 
             Spacer()
@@ -124,6 +123,7 @@ struct PasswordConfirmView: View {
         }
         .padding(.horizontal, 20)
         .navigationBarHidden(true)
+        .navigationBarBackButtonHidden(true)
     }
 }
 

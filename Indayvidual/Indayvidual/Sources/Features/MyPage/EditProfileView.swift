@@ -9,6 +9,7 @@ import SwiftUI
 
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var goToMyPage = false
 
     @State private var nickname: String = "인데비"
     @State private var email: String = "bbangitnow@gmail.com"
@@ -237,19 +238,25 @@ struct EditProfileView: View {
                             RoundedRectangle(cornerRadius: 12)
                                 .stroke(Color("gray-200"), lineWidth: 1)
                         )
-
-                    Button("저장") {}
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .background(Color.black)
-                        .foregroundStyle(.white)
-                        .cornerRadius(12)
+                    
+                    Button("저장") {
+                        goToMyPage = true                   }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .background(Color.black)
+                            .foregroundStyle(.white)
+                            .cornerRadius(12)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 12)
                 .background(Color("gray-white"))
+                
+                NavigationLink(destination: MyPageView(), isActive: $goToMyPage) {
+                    EmptyView()
+                }
             }
         }
+        .navigationBarBackButtonHidden(true)
     }
 }
 

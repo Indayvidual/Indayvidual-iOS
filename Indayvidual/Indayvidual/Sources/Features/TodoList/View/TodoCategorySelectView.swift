@@ -144,13 +144,13 @@ struct SelectColorField: View {
     }
 }
 
-extension ColorViewModel {
-    func resetToDefault() {
-        for i in colors.indices {
-            colors[i].isSelected = (colors[i].name == "purple05")
-        }
-    }
-}
+//extension ColorViewModel {
+//    func resetToDefault() {
+//        for i in colors.indices {
+//            colors[i].isSelected = (colors[i].name == "purple05")
+//        }
+//    }
+//}
 
 #Preview("TodoCategorySelectView") {
     TodoCategorySelectView(onCategoryAdded: { name, color in

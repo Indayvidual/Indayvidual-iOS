@@ -10,6 +10,7 @@ struct CustomActionSheet<Content: View>: View {
     let content: Content
     let showDivider: Bool
     let headerRightButton: (() -> AnyView)?
+    let headerLeftButton: (() -> AnyView)? 
 
     //버튼 관련
     let primaryButtonColor: Color
@@ -38,6 +39,7 @@ struct CustomActionSheet<Content: View>: View {
         primaryButtonWidth: CGFloat? = nil,
         secondaryButtonWidth: CGFloat? = 150,
         headerRightButton: (() -> AnyView)? = nil,
+        headerLeftButton: (() -> AnyView)? = nil, 
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
@@ -57,13 +59,16 @@ struct CustomActionSheet<Content: View>: View {
         self.secondaryButtonWidth = secondaryButtonWidth
         self.content = content()
         self.headerRightButton = headerRightButton
+        self.headerLeftButton = headerLeftButton
     }
     
     var body: some View {
         VStack(spacing: 0) {
             HStack {
                 HStack(spacing: 8) {
-                    if let titleIcon = titleIcon {
+                    if let headerLeftButton = headerLeftButton {
+                        headerLeftButton()
+                    } else if let titleIcon = titleIcon {
                         Image(titleIcon)
                             .resizable()
                             .frame(width: 22.62, height: 22.62)
@@ -79,8 +84,8 @@ struct CustomActionSheet<Content: View>: View {
                 }
                 Spacer()
             }
-            .padding(.top, 33.65)
-            .padding(.bottom, 15)
+            .padding(.top, 20)
+            .padding(.bottom, 10)
             .padding(.horizontal, 15.4)
             if showDivider {
                 Divider()
@@ -89,8 +94,6 @@ struct CustomActionSheet<Content: View>: View {
             }
 
             content.padding(.horizontal, 15)
-
-            Spacer()
             
             HStack(spacing: 12) {
                 if let secondaryButtonTitle = secondaryButtonTitle,

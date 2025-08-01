@@ -3,7 +3,10 @@ import SwiftUI
 struct ChecklistRow: View {
     @Binding var isChecked: Bool
     @Binding var text: String
+    let task: TodoTask
+    @ObservedObject var actionViewModel: TodoActionViewModel
     @State private var showActionSheet = false
+    @State private var currentActionOption: TodoActionOption? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -21,6 +24,9 @@ struct ChecklistRow: View {
         .contentShape(Rectangle())
         .sheet(isPresented: $showActionSheet) {
             todoActionSheet
+        }
+        .sheet(isPresented: $actionViewModel.showDatePicker) {
+            datePickerSheet
         }
     }
     
@@ -42,7 +48,13 @@ struct ChecklistRow: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 8, height: 8)
-                        .foregroundColor(.white)
+                        .foregroundColor(.grayWhite)
+                } else {
+                    Image(systemName: "checkmark")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 8, height: 8)
+                        .foregroundColor(.gray400)
                 }
             }
         }
@@ -92,7 +104,7 @@ struct ChecklistRow: View {
             primaryButtonTitle: "삭제하기",
             secondaryButtonTitle: "수정하기",
             primaryAction: {
-                print("삭제 선택됨")
+                actionViewModel.handleAction(.delete, for: task)
                 showActionSheet = false
             },
             secondaryAction: {
@@ -101,25 +113,86 @@ struct ChecklistRow: View {
             },
             primaryButtonColor: .systemError,
             primaryButtonTextColor: .grayWhite,
-            secondaryButtonColor: .gray100,
-            secondaryButtonTextColor: .black,
+            secondaryButtonColor: .gray900,
+            secondaryButtonTextColor: .grayWhite,
             secondaryButtonBorderColor: .gray100,
             secondaryButtonWidth: 175
         ) {
-            TodoActionOptionsView()
+            TodoActionOptionsView(
+                task: task,
+                actionViewModel: actionViewModel,
+                onActionSelected: { option in
+                    currentActionOption = option
+                    showActionSheet = false
+                }
+            )
         }
         .presentationDetents([.medium])
         .presentationDragIndicator(.visible)
     }
+    
+    private var datePickerSheet: some View {
+        CustomActionSheet(
+            title: "일정 수정",
+            titleIcon: "calendar",
+            primaryButtonTitle: "일정 선택",
+            secondaryButtonTitle: "취소",
+            primaryAction: {
+                if let currentOption = currentActionOption {
+                    actionViewModel.handleDateSelection(for: task, option: currentOption)
+                }
+                currentActionOption = nil
+            },
+            secondaryAction: {
+                actionViewModel.showDatePicker = false
+                currentActionOption = nil
+            },
+            ) {
+            CalendarWrapperView(
+                initialSelectedDate: actionViewModel.selectedActionDate,
+                onDateSelected: { selectedDate in
+                    actionViewModel.selectedActionDate = selectedDate
+                }
+            )
+        }
+        .presentationDetents([.fraction(0.6)])
+        .presentationDragIndicator(.visible)
+    }
+}
+
+// MARK: - Calendar Wrapper View
+struct CalendarWrapperView: View {
+    let initialSelectedDate: Date
+    let onDateSelected: (Date) -> Void
+    @StateObject private var calendarViewModel = CustomCalendarViewModel()
+    
+    var body: some View {
+        CustomCalendarView(
+            calendarViewModel: calendarViewModel,
+            showToggleButton: false,
+            showShadow: false,
+            showNavigationButtons: true,
+            showMarkers: false,
+            initialMode: .month
+        ) { date in
+            onDateSelected(date)
+        }
+    }
 }
 
 // MARK: - Todo Action Options View
-
 struct TodoActionOptionsView: View {
+    let task: TodoTask
+    let actionViewModel: TodoActionViewModel
+    let onActionSelected: (TodoActionOption) -> Void
+
     var body: some View {
         VStack(alignment: .leading, spacing: 25) {
-            ForEach(TodoActionOption.allCases, id: \.self) { option in
-                TodoActionOptionRow(option: option)
+            ForEach(TodoActionOption.availableOptions(for: task, currentDate: Date()), id: \.self) { option in
+                TodoActionOptionRow(option: option) {
+                    onActionSelected(option)
+                    actionViewModel.handleAction(option, for: task)
+                }
             }
         }
     }
@@ -127,17 +200,16 @@ struct TodoActionOptionsView: View {
 
 struct TodoActionOptionRow: View {
     let option: TodoActionOption
+    let action: () -> Void
     
     var body: some View {
-        Button(action: option.action) {
+        Button(action: action) {
             HStack(spacing: 12) {
                 Image(option.iconName)
                     .frame(width: 20, height: 20)
-                
                 Text(option.title)
                     .font(.pretendSemiBold17)
                     .foregroundStyle(.black)
-                
                 Spacer()
             }
         }
@@ -146,16 +218,38 @@ struct TodoActionOptionRow: View {
 
 // MARK: - 사용 예시
 
-struct TestView: View {
-    @State private var todoText = ""
-    @State private var isChecked = false
-
-    var body: some View {
-        ChecklistRow(isChecked: $isChecked, text: $todoText)
-          
-    }
+#Preview {
+    let dummyTodoManager = TodoViewModel()
+    let dummyActionViewModel = TodoActionViewModel(todoManager: dummyTodoManager)
+    let dummyTask = TodoTask(
+        taskId: 1,
+        categoryId: 1,
+        title: "프리뷰용 할 일",
+        isCompleted: false,
+        order: 0,
+        date: "2024-06-01"
+    )
+    
+    return PreviewWrapper(
+        task: dummyTask,
+        actionViewModel: dummyActionViewModel
+    )
 }
 
-#Preview {
-    TestView()
+private struct PreviewWrapper: View {
+    let task: TodoTask
+    @ObservedObject var actionViewModel: TodoActionViewModel
+    
+    @State private var todoText = "프리뷰용 할 일"
+    @State private var isChecked = false
+    
+    var body: some View {
+        ChecklistRow(
+            isChecked: $isChecked,
+            text: $todoText,
+            task: task,
+            actionViewModel: actionViewModel
+        )
+        .padding()
+    }
 }

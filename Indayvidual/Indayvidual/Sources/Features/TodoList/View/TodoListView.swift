@@ -5,18 +5,27 @@ enum Route1: Hashable {
 }
 
 struct TodoListView: View {
+    @ObservedObject var viewModel: TodoViewModel
+    @StateObject private var calendarViewModel = CustomCalendarViewModel()
     @State private var path = NavigationPath()
-    @State private var categories: [Category] = []
     
     var body: some View {
         NavigationStack(path: $path) {
             VStack {
                 Topbar()
                 Spacer().frame(height: 18)
-                CustomCalendarView(calendarViewModel: CustomCalendarViewModel())
+                CustomCalendarView(
+                    calendarViewModel: calendarViewModel,
+                    onDateSelected: { selectedDate in
+                        // 날짜 선택 시 TodoViewModel의 selectedDate 업데이트
+                        let formatter = DateFormatter()
+                        formatter.dateFormat = "yyyy-MM-dd"
+                        viewModel.selectedDate = formatter.string(from: selectedDate)
+                    }
+                )
                 Spacer().frame(height: 20)
                 
-                if categories.isEmpty {
+                if viewModel.categories.isEmpty {
                     VStack() {
                         Image("todo_checkbox")
                             .resizable()
@@ -36,12 +45,16 @@ struct TodoListView: View {
                 } else {
                     ScrollView {
                         LazyVStack(spacing: 0) {
-                            ForEach(categories.indices, id: \.self) { index in
-                                CategoryRowView(category: categories[index])
-                                if index < categories.count - 1 {
+                            ForEach(Array(viewModel.categories.enumerated()), id: \.element.categoryId) { index, category in
+                                CategoryRowView(
+                                    category: category,
+                                    viewModel: viewModel,
+                                    date: viewModel.selectedDate
+                                )
+                                if index < viewModel.categories.count - 1 {
                                     Divider()
                                         .background(.gray200)
-                                        .padding(.vertical,16)       
+                                        .padding(.vertical,16)
                                 }
                             }
                         }.padding(.horizontal,27)
@@ -56,7 +69,7 @@ struct TodoListView: View {
                 switch route {
                 case .next:
                     TodoCategorySelectView(onCategoryAdded: { name, color in
-                        addNewCategory(name: name, color: color)
+                        viewModel.addCategory(name: name, color: color)
                         path.removeLast()
                     })
                 }
@@ -65,16 +78,9 @@ struct TodoListView: View {
         .floatingBtn {
             path.append(Route1.next)
         }
-
     }
-    private func addNewCategory(name: String, color: Color) {
-        let newCategory = Category(name: name, color: color)
-        categories.append(newCategory)
-        print("새 카테고리 추가됨: \(name)")
-    }
-    
 }
 
 #Preview {
-    TodoListView()
+    TodoListView(viewModel: TodoViewModel())
 }

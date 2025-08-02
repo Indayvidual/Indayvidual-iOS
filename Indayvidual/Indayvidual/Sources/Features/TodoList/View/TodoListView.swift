@@ -1,7 +1,8 @@
 import SwiftUI
 
 enum Route1: Hashable {
-    case next
+    case selectCategory
+    case editCategory
 }
 
 struct TodoListView: View {
@@ -12,7 +13,9 @@ struct TodoListView: View {
     var body: some View {
         NavigationStack(path: $path) {
             VStack {
-                Topbar()
+                Topbar(customAction: {
+                    path.append(Route1.editCategory)
+                })
                 Spacer().frame(height: 18)
                 CustomCalendarView(
                     calendarViewModel: calendarViewModel,
@@ -67,19 +70,25 @@ struct TodoListView: View {
             .background(.gray50)
             .navigationDestination(for: Route1.self) { route in
                 switch route {
-                case .next:
-                    TodoCategorySelectView(onCategoryAdded: { name, color in
-                        viewModel.addCategory(name: name, color: color)
-                        path.removeLast()
-                    })
+                case .selectCategory:
+                    TodoCategorySelectView(
+                        isEditMode: false,
+                        onCategoryAdded: { name, color in
+                            viewModel.addCategory(name: name, color: color)
+                            path.removeLast()
+                        }
+                    )
+                case .editCategory:
+                    TodoCategoryEditView(viewModel: viewModel)
                 }
             }
         }
         .floatingBtn {
-            path.append(Route1.next)
+            path.append(Route1.selectCategory)
         }
     }
 }
+
 
 #Preview {
     TodoListView(viewModel: TodoViewModel())

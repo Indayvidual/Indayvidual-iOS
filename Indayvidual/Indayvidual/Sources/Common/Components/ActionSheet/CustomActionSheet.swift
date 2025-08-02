@@ -84,8 +84,8 @@ struct CustomActionSheet<Content: View>: View {
                 }
                 Spacer()
             }
-            .padding(.top, 20)
-            .padding(.bottom, 10)
+            .padding(.top, 30.58)
+            .padding(.bottom, 17.69)
             .padding(.horizontal, 15.4)
             if showDivider {
                 Divider()
@@ -94,7 +94,7 @@ struct CustomActionSheet<Content: View>: View {
             }
 
             content.padding(.horizontal, 15)
-            
+            Spacer()
             HStack(spacing: 12) {
                 if let secondaryButtonTitle = secondaryButtonTitle,
                    let secondaryAction = secondaryAction {
@@ -125,7 +125,7 @@ struct CustomActionSheet<Content: View>: View {
                     
                 }
             }
-            .padding(.bottom, 40)
+//            .padding(.bottom, 30)
             .padding(.horizontal, 15.4)
         }
         .background(Color.white)

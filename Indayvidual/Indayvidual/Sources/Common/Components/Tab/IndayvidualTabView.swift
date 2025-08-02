@@ -68,7 +68,7 @@ struct IndayvidualTabView: View{
             case .custom :
                 CustomView()
             case .settings :
-                Color.gray
+                MyPageView()
             }
         }
     }

@@ -5,5 +5,5 @@
 //  Created by 장주리 on 7/25/25.
 //
 
-SCHOOL_INFO_API_KEY
-baseURL
+SCHOOL_INFO_API_KEY = 8f8104c494a7613dcc0b58f8e8b7bb39
+BASE_URL = https://dev.indayvidual.shop

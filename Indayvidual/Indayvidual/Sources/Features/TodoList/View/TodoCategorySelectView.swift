@@ -199,7 +199,6 @@ struct SelectColorField: View {
     }
 }
 
-//extension ColorViewModel {
 #Preview("TodoCategorySelectView - 등록") {
     NavigationView {
         TodoCategorySelectView(onCategoryAdded: { name, color in

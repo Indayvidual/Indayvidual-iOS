@@ -10,11 +10,14 @@ import SwiftUI
 struct SignupEmailCodeView: View {
     @State private var code: String = ""
     @State private var isCodeValid: Bool = false
-    @State private var countdown: Int = 180
+    @State private var countdown: Int = 600
     @State private var timer: Timer? = nil
     @FocusState private var isCodeFocused: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var goToNextStep = false
+    @State private var isVerifying = false
+    @State private var errorMessage: String?
+    @EnvironmentObject var viewModel: SignupViewModel
 
     var body: some View {
         VStack(spacing: 28) {
@@ -66,7 +69,9 @@ struct SignupEmailCodeView: View {
                     }
 
                     Button {
-                        countdown = 180
+                        timer?.invalidate()
+                        viewModel.sendVerificationCode()
+                        countdown = 600
                         startTimer()
                     } label: {
                         Text("재전송")
@@ -85,23 +90,39 @@ struct SignupEmailCodeView: View {
 
             // 하단 버튼
             VStack {
-                NavigationLink(destination: SignupPasswordView(), isActive: $goToNextStep) {
-                    Button {
-                        goToNextStep = true
-                    } label: {
-                        Text("다음")
-                            .font(.pretendSemiBold15)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(isCodeValid ? Color.black : Color.gray.opacity(0.3))
-                            .foregroundStyle(.white)
-                            .cornerRadius(12)
+                NavigationLink(destination: SignupPasswordView().environmentObject(viewModel), isActive: $goToNextStep) {
+                       Button {
+                           isVerifying = true
+                           viewModel.code = code
+                           viewModel.verifyCode { verified in
+                               isVerifying = false
+                               if verified {
+                                   goToNextStep = true
+                               } else {
+                                   errorMessage = "인증번호가 올바르지 않거나 만료되었습니다."
+                               }
+                           }
+                       } label: {
+                            Text(isVerifying ? "확인 중..." : "다음")
+                                .font(.pretendSemiBold15)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(code.count == 4 ? Color.black : Color.gray.opacity(0.3))
+                                .foregroundStyle(.white)
+                                .cornerRadius(12)
+                        }
+                        .disabled(code.count != 4 || isVerifying)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
                     }
-                    .disabled(!isCodeValid)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
+
+                    if let errorMessage = errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                            .font(.system(size: 14))
+                            .padding(.top, 8)
+                    }
                 }
-            }
             .background(Color.white)
             .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: -1)
 

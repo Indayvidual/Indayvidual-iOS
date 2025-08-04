@@ -125,13 +125,13 @@ struct TodoCategorySelectView: View {
                     colorViewModel.resetToDefault()
                     selectedColor = .purple05
                     print("초기화 버튼 클릭")
-                    showColorPicker = false
                 }
             ) {
                 VStack(alignment: .leading) {
                     ColorGridView(viewModel: colorViewModel)
                 }
             }
+            .presentationDragIndicator(.visible)
         }
     }
 }

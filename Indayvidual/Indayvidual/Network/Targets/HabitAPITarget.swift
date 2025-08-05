@@ -84,6 +84,9 @@ extension HabitAPITarget: APITargetType {
 
     
     var headers: [String : String]? {
-        return ["Content-Type": "application/json"]
+        return [
+                "Content-Type": "application/json",
+                "Authorization": "Bearer \(00)"
+            ]
     }
 }

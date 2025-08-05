@@ -2,54 +2,109 @@ import SwiftUI
 
 struct TodoCategorySelectView: View {
     @Environment(\.dismiss) var dismiss
-    @State private var selectedColor: Color = .purple05
-    @State private var categoryName: String = ""
+    @State private var selectedColor: Color
+    @State private var categoryName: String
     @State private var showColorPicker = false
     @StateObject private var colorViewModel = ColorViewModel()
-    
+
     let onCategoryAdded: (String, Color) -> Void
+    let isEditMode: Bool
+
+    init(
+        initialName: String = "",
+        initialColor: Color = .purple05,
+        isEditMode: Bool = false,
+        onCategoryAdded: @escaping (String, Color) -> Void
+    ) {
+        self._categoryName = State(initialValue: initialName)
+        self._selectedColor = State(initialValue: initialColor)
+        self.onCategoryAdded = onCategoryAdded
+        self.isEditMode = isEditMode
+    }
     
     var body: some View {
-        VStack(spacing: 14){
-            Spacer().frame(height: 8)
-            CustomPlaceholderTextField(text: $categoryName)
-            SelectColorField(selectedColor: $selectedColor, showColorPicker: $showColorPicker)
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity) // 화면 전체 채우기!
-        .background(Color.gray50)       
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    HStack {
-                        Image("back")
+        Group {
+            if isEditMode {
+                VStack(spacing: 0) {
+                    RoundedRectangle(cornerRadius: 3)
+                        .fill(Color.gray300)
+                        .frame(width: 36, height: 5)
+                        .padding(.top, 8)
+                    
+                    VStack(spacing: 20) {
+                        Spacer().frame(height: 32)
+                        
+                        CustomPlaceholderTextField(text: $categoryName)
+                        SelectColorField(selectedColor: $selectedColor, showColorPicker: $showColorPicker)
+                        
+                        Spacer().frame(height: 20)
+
+                        Button {
+                            if !categoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                onCategoryAdded(categoryName, selectedColor)
+                                dismiss()
+                            }
+                        } label: {
+                            Text("완료")
+                                .font(.pretendSemiBold16)
+                                .foregroundStyle(.grayWhite)
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 50)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(categoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? Color.gray300 : Color.gray900)
+                                )
+                        }
+                        .disabled(categoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                        .padding(.horizontal, 20)
+                        
+                        Spacer()
                     }
-                }.padding(.leading, 15)
-            }
-
-            ToolbarItem(placement: .principal) {
-                Text("카테고리 등록")
-                    .font(.pretendSemiBold18)
-                    .foregroundStyle(.black)
-            }
-
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Button("등록") {
-                    // 카테고리 이름이 비어있지 않은 경우만 등록
-                    if !categoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        // 콜백 함수 호출 >> 데이터 전달
-                        onCategoryAdded(categoryName, selectedColor)
-                        dismiss()
-                    } else {
-                        print("카테고리 이름을 입력해주세요")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.gray50)
+                }
+                .background(Color.gray50)
+                .presentationDetents([.height(300), .medium])
+                .presentationDragIndicator(.hidden)
+            } else {
+                VStack(spacing: 14) {
+                    Spacer().frame(height: 8)
+                    CustomPlaceholderTextField(text: $categoryName)
+                    SelectColorField(selectedColor: $selectedColor, showColorPicker: $showColorPicker)
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.gray50)
+                .navigationBarBackButtonHidden(true)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button {
+                            dismiss()
+                        } label: {
+                            HStack {
+                                Image("back")
+                            }
+                        }.padding(.leading, 15)
+                    }
+                    ToolbarItem(placement: .principal) {
+                        Text("카테고리 등록")
+                            .font(.pretendSemiBold18)
+                            .foregroundStyle(.black)
+                    }
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("등록") {
+                            if !categoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                onCategoryAdded(categoryName, selectedColor)
+                                dismiss()
+                            } else {
+                                print("카테고리 이름을 입력해주세요")
+                            }
+                        }
+                        .font(.pretendSemiBold18)
+                        .foregroundStyle(.gray900)
+                        .padding(.trailing, 20)
                     }
                 }
-                .font(.pretendSemiBold18)
-                .foregroundStyle(.black)
-                .padding(.trailing, 20)
             }
         }
         .sheet(isPresented: $showColorPicker) {
@@ -70,13 +125,13 @@ struct TodoCategorySelectView: View {
                     colorViewModel.resetToDefault()
                     selectedColor = .purple05
                     print("초기화 버튼 클릭")
-                    showColorPicker = false
                 }
             ) {
                 VStack(alignment: .leading) {
                     ColorGridView(viewModel: colorViewModel)
                 }
             }
+            .presentationDragIndicator(.visible)
         }
     }
 }
@@ -144,16 +199,21 @@ struct SelectColorField: View {
     }
 }
 
-//extension ColorViewModel {
-//    func resetToDefault() {
-//        for i in colors.indices {
-//            colors[i].isSelected = (colors[i].name == "purple05")
-//        }
-//    }
-//}
+#Preview("TodoCategorySelectView - 등록") {
+    NavigationView {
+        TodoCategorySelectView(onCategoryAdded: { name, color in
+            print("Preview - 카테고리 추가됨: \(name), 색상: \(color)")
+        })
+    }
+}
 
-#Preview("TodoCategorySelectView") {
-    TodoCategorySelectView(onCategoryAdded: { name, color in
-        print("Preview - 카테고리 추가됨: \(name), 색상: \(color)")
-    })
+#Preview("TodoCategorySelectView - 수정") {
+    TodoCategorySelectView(
+        initialName: "기존 카테고리",
+        initialColor: .blue,
+        isEditMode: true,
+        onCategoryAdded: { name, color in
+            print("Preview - 카테고리 수정됨: \(name), 색상: \(color)")
+        }
+    )
 }

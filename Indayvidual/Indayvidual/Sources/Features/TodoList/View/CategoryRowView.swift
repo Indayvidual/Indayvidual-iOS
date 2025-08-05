@@ -2,10 +2,11 @@ import SwiftUI
 
 struct CategoryRowView: View {
     let category: Category
-
-    @State private var checklistItems: [CheckListItem] = []
-    @State private var isExpanded: Bool = true
+    @ObservedObject var viewModel: TodoViewModel
+    let date: String // "yyyy-MM-dd" 형태
     
+    @State private var isExpanded: Bool = true
+
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
             ZStack(alignment: .leading) {
@@ -31,23 +32,10 @@ struct CategoryRowView: View {
             }
             if isExpanded {
                 List {
-                    ForEach(checklistItems.indices, id: \.self) { index in
-                        ChecklistRow(
-                            isChecked: Binding(
-                                get: { checklistItems[index].isChecked },
-                                set: { newValue in
-                                    withAnimation(.easeInOut(duration: 0.3)) {
-                                        checklistItems[index].isChecked = newValue
-                                        sortItemsIfNeeded()
-                                    }
-                                }
-                            ),
-                            text: Binding(
-                                get: { checklistItems[index].text },
-                                set: { newValue in
-                                    checklistItems[index].text = newValue
-                                }
-                            )
+                    ForEach(viewModel.tasks(for: date, categoryId: category.categoryId ?? 0)) { task in
+                        ChecklistRowWrapper(
+                            task: task,
+                            viewModel: viewModel
                         )
                         .listRowInsets(EdgeInsets())
                         .padding(.horizontal,10)
@@ -55,10 +43,12 @@ struct CategoryRowView: View {
                         .listRowBackground(Color.clear)
                         .listRowSeparator(.hidden)
                     }
-                    .onMove(perform: moveChecklistItem)
+                    .onMove { indices, newOffset in
+                        viewModel.moveTask(from: indices, to: newOffset, date: date)
+                    }
                 }
                 .listStyle(PlainListStyle())
-                .frame(height: CGFloat(checklistItems.count * 50))
+                .frame(height: CGFloat(viewModel.tasks(for: date, categoryId: category.categoryId ?? 0).count * 50))
                 .transition(.opacity)
                 .clipped()
             }
@@ -67,40 +57,47 @@ struct CategoryRowView: View {
 
     private func addChecklistItemIfAllowed() {
         // 마지막 아이템이 있으면 텍스트 입력 여부 체크, 없으면 바로 추가
-        if let lastItem = checklistItems.last {
-            if !lastItem.text.isEmpty {
-                checklistItems.append(CheckListItem(text: "", isChecked: false))
+        let tasks = viewModel.tasks(for: date, categoryId: category.categoryId ?? 0)
+        if let lastItem = tasks.last {
+            if !lastItem.title.isEmpty {
+                viewModel.addTask(title: "", categoryId: category.categoryId ?? 0, date: date)
             }
         } else {
-            checklistItems.append(CheckListItem(text: "", isChecked: false))
+            viewModel.addTask(title: "", categoryId: category.categoryId ?? 0, date: date)
         }
     }
+}
+
+// MARK: - ChecklistRow를 감싸는 Wrapper
+struct ChecklistRowWrapper: View {
+    let task: TodoTask
+    @ObservedObject var viewModel: TodoViewModel
+    @StateObject private var actionViewModel: TodoActionViewModel
     
-    private func moveChecklistItem(from source: IndexSet, to destination: Int) {
-        withAnimation(.easeInOut(duration: 0.1)) {
-            checklistItems.move(fromOffsets: source, toOffset: destination)
-        }
-        sortItemsImmediately()
+    init(task: TodoTask, viewModel: TodoViewModel) {
+        self.task = task
+        self.viewModel = viewModel
+        self._actionViewModel = StateObject(wrappedValue: TodoActionViewModel(todoManager: viewModel))
     }
     
-    private func sortItemsImmediately() {
-        withAnimation(.easeInOut(duration: 0.2)) {
-            checklistItems.sort { first, second in
-                // 체크된 아이템이 위로 오도록 정렬
-                if first.isChecked != second.isChecked {
-                    return first.isChecked && !second.isChecked
+    var body: some View {
+        ChecklistRow(
+            isChecked: Binding(
+                get: { task.isCompleted },
+                set: { newValue in
+                    viewModel.toggleTask(task)
                 }
-                return false
-            }
-        }
+            ),
+            text: Binding(
+                get: { task.title },
+                set: { newValue in
+                    viewModel.updateTaskTitle(task, newTitle: newValue)
+                }
+            ),
+            task: task,
+            actionViewModel: actionViewModel
+        )
     }
-    
-    private func sortItemsIfNeeded() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            sortItemsImmediately()
-        }
-    }
-    
 }
 
 struct NameField: View {
@@ -138,5 +135,9 @@ struct NameField: View {
 }
 
 #Preview {
-    CategoryRowView(category: Category(name: "샘플 카테고리", color: .yellow01))
+    CategoryRowView(
+        category: Category(categoryId: 1, name: "샘플 카테고리", color: .yellow01),
+        viewModel: TodoViewModel(),
+        date: "2024-06-01"
+    )
 }

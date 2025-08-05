@@ -10,6 +10,7 @@ import SwiftUI
 struct RecordView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var Add : Bool = false
+    @State var vm: MemoViewModel
     var sharedVM: CustomViewModel // 공유된 ViewModel로 상위 뷰에서 가져와 사용
     
     var body: some View {
@@ -110,7 +111,7 @@ struct RecordView: View {
                     }
                     .swipeActions(edge: .trailing) {
                         Button(role: .destructive) {
-                            sharedVM.deleteMemo(at: index)
+                            vm.delete(at: index)
                         } label: {
                             Label("삭제", systemImage: "trash")
                                 .tint(.red)
@@ -125,8 +126,4 @@ struct RecordView: View {
             .clipShape(RoundedRectangle(cornerRadius: 20))
         }
     }
-}
-
-#Preview {
-    RecordView(sharedVM: CustomViewModel.init())
 }

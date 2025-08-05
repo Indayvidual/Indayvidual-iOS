@@ -34,7 +34,7 @@ struct CustomView: View{
     
     var userRecord: some View {
         NavigationLink {
-            RecordView(sharedVM: vm)
+            RecordView(vm: MemoViewModel(sharedVM: vm), sharedVM: vm)
         } label: {
             HStack {
                 Text("\(vm.name)님의 기록")

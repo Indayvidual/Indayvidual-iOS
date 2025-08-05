@@ -6,32 +6,59 @@
 //
 
 import Foundation
+import Moya
 import SwiftUI
 import Observation
 
 @Observable
 class CustomViewModel {
     var name: String = "인데비"
-    
-    //MARK: - 메모
-    var memos: [MemoModel] = [
-        MemoModel(title: "메모1", content: "긴 내용1\n내용1내용1내용1내용1내용1내용1내용1내용1내용1", date: "250718", time: "12:00"),
-        MemoModel(title: "메모2", content: "내용2\n내용2", date: "250717", time: "13:00"),
-        MemoModel(title: "메모3", content: "내용3", date: "250717", time: "13:00"),
-    ]
+
+    // MARK: - 메모
+    var memos: [MemoModel] = []
+
     var memosCount: Int {
         memos.count
     }
-    func deleteMemo(at index: Int) {
-        memos.remove(at: index)
-    }
-    
-    //MARK: - 습관
-    var habits: [MyHabitModel] = [
-        MyHabitModel(title: "Habit1", colorName: "peach-03", checkedAt: "", isSelected: true),
-        MyHabitModel(title: "Habit2", colorName: "teal-03", checkedAt: "", isSelected: false)
-    ]
+
+    // MARK: - 습관
+    var habits: [MyHabitModel] = []
+
     var habitsSelectedCount: Int {
         habits.filter { $0.isSelected }.count
+    }
+
+    private let provider = MoyaProvider<MemoAPITarget>()
+
+    init() {
+        loadMemos() // 앱 실행 시 자동 호출
+    }
+
+    func loadMemos() {
+        provider.request(.getMemos) { result in
+            switch result {
+            case .success(let response):
+                print("📦 상태 코드:", response.statusCode)
+                print("📦 응답 원문:", String(data: response.data, encoding: .utf8) ?? "없음")
+
+                guard !response.data.isEmpty else {
+                    print("✅ 응답이 비어 있음 (204 No Content 등)")
+                    return
+                }
+
+                do {
+                    let decoded = try JSONDecoder().decode(ApiResponseMemoSliceResponseDTO.self, from: response.data)
+                    let models = decoded.data.toModelList()
+                    DispatchQueue.main.async {
+                        self.memos = models
+                    }
+                } catch {
+                    print("❌ 디코딩 실패:", error)
+                }
+
+            case .failure(let error):
+                print("❌ API 요청 실패:", error)
+            }
+        }
     }
 }

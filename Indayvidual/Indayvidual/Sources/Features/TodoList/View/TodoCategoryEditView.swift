@@ -115,9 +115,11 @@ struct TodoCategoryEditView: View {
         .sheet(item: $editTarget) { editing in
             NavigationView {
                 TodoCategorySelectView(
+                    todoViewModel: viewModel,
                     initialName: editing.name,
                     initialColor: editing.color,
                     isEditMode: true,
+                    categoryToUpdate: editing,
                     onCategoryAdded: { newName, newColor in
                         viewModel.updateCategory(editing, newName: newName, newColor: newColor)
                         editTarget = nil

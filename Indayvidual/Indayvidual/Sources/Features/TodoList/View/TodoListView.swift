@@ -67,11 +67,15 @@ struct TodoListView: View {
                 
                 Spacer()
             }
+            .onAppear {
+                viewModel.fetchCategories() 
+            }
             .background(.gray50)
             .navigationDestination(for: Route1.self) { route in
                 switch route {
                 case .selectCategory:
                     TodoCategorySelectView(
+                        todoViewModel: viewModel,
                         isEditMode: false,
                         onCategoryAdded: { name, color in
                             viewModel.addCategory(name: name, color: color)

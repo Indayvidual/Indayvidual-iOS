@@ -84,9 +84,14 @@ extension HabitAPITarget: APITargetType {
 
     
     var headers: [String : String]? {
+        guard let token = UserDefaults.standard.string(forKey: "accessToken") else {
+            print("❌ accessToken 없음")
+            return nil
+        }
         return [
-                "Content-Type": "application/json",
-                "Authorization": "Bearer \(00)"
-            ]
+            "Content-Type": "application/json",
+            "Authorization": "Bearer \(token)"
+        ]
     }
+
 }

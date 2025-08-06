@@ -17,7 +17,7 @@ struct WeeklyHabitView: View {
     
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 11)
+            RoundedRectangle(cornerRadius: 20)
                 .fill(.white)
             VStack(alignment: .leading, spacing: 20) {
                 if showTitle {
@@ -52,7 +52,7 @@ struct WeeklyHabitView: View {
             }
             .padding()
         }
-        .padding(.horizontal)
+        .padding(.horizontal, 6)
         .shadow(color: showShadow ? Color.black.opacity(0.08) : .clear, radius: 9.5, x: 2, y: 3)
     }
 }

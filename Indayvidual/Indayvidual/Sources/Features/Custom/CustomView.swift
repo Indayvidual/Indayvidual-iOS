@@ -28,6 +28,7 @@ struct CustomView: View{
                     Spacer()
                     myHabits
                 }
+                .padding(.horizontal)
             }
         }
     }

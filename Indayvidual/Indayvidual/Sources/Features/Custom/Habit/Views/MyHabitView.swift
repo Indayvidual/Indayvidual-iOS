@@ -146,6 +146,8 @@ struct MyHabitView: View {
         VStack {
             ScrollView {
                 WeeklyHabitView(sharedVM: sharedVM)
+                    .padding(12)
+                    .padding(.horizontal)
             }
         }
     }

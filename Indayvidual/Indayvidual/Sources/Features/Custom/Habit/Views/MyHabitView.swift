@@ -20,19 +20,13 @@ struct MyHabitView: View {
             Color.gray50
                 .ignoresSafeArea()
             VStack {
-                if sharedVM.habits.isEmpty {
-                    Spacer()
-                    Image("NoHabit")
-                    Spacer()
-                } else {
-                    switch selectedMode {
-                    case .daily:
-                        dailyView
-                    case .weekly:
-                        weeklyView
-                    case .monthly:
-                        monthlyView
-                    }
+                switch selectedMode {
+                case .daily:
+                    dailyView
+                case .weekly:
+                    weeklyView
+                case .monthly:
+                    monthlyView
                 }
                 Spacer()
                 selectMode
@@ -165,10 +159,14 @@ struct MyHabitView: View {
     }
     
     var completeView: some View {
-        VStack(alignment: .leading) {
-            Text("\(7)월 \(31)일 \("목")요일") //TODO: 날짜 커스텀 캘린더에서 어떻게 받아오는지 여쭤보기
+        let displayDate = calendarViewModel.selectDate.toDisplayFormat()
+        let apiDate = calendarViewModel.selectDate.toAPIDateFormat()
+
+        return VStack(alignment: .leading) {
+            Text(displayDate)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .font(.pretendMedium15)
+
             Text("\(sharedVM.habitsSelectedCount)개의 활동을 달성했어요!")
                 .font(.pretendMedium12)
                 .tint(.gray700)
@@ -180,6 +178,9 @@ struct MyHabitView: View {
         )
         .padding(.horizontal, 16)
         .padding(.top, 16)
+        .task(id: calendarViewModel.selectDate) {
+            MyHabitViewModel(sharedVM: sharedVM).fetchDailyChecks(startDate: apiDate)
+        }
     }
 }
 

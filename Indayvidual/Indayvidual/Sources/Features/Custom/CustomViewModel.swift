@@ -28,21 +28,24 @@ class CustomViewModel {
         habits.filter { $0.isSelected }.count
     }
 
-    private let provider = MoyaProvider<MemoAPITarget>()
+    private let memoProvider = MoyaProvider<MemoAPITarget>()
+    private let habitProvider = MoyaProvider<HabitAPITarget>()
 
     init() {
-        loadMemos() // 앱 실행 시 자동 호출
+        loadMemos()
+        loadHabits()
     }
 
+    // ✅ 메모 불러오기
     func loadMemos() {
-        provider.request(.getMemos) { result in
+        memoProvider.request(.getMemos) { result in
             switch result {
             case .success(let response):
-                print("📦 상태 코드:", response.statusCode)
-                print("📦 응답 원문:", String(data: response.data, encoding: .utf8) ?? "없음")
+                print("📦 [Memos] 상태 코드:", response.statusCode)
+                print("📦 [Memos] 응답 원문:", String(data: response.data, encoding: .utf8) ?? "없음")
 
                 guard !response.data.isEmpty else {
-                    print("✅ 응답이 비어 있음 (204 No Content 등)")
+                    print("✅ 메모 응답이 비어 있음")
                     return
                 }
 
@@ -51,13 +54,44 @@ class CustomViewModel {
                     let models = decoded.data.toModelList()
                     DispatchQueue.main.async {
                         self.memos = models
+                        print("✅ 메모 불러오기 성공")
                     }
                 } catch {
-                    print("❌ 디코딩 실패:", error)
+                    print("❌ 메모 디코딩 실패:", error)
                 }
 
             case .failure(let error):
-                print("❌ API 요청 실패:", error)
+                print("❌ 메모 API 요청 실패:", error)
+            }
+        }
+    }
+
+    // ✅ 습관 불러오기
+    func loadHabits() {
+        habitProvider.request(.getHabits) { result in
+            switch result {
+            case .success(let response):
+                print("📦 [Habits] 상태 코드:", response.statusCode)
+                print("📦 [Habits] 응답 원문:", String(data: response.data, encoding: .utf8) ?? "없음")
+
+                guard !response.data.isEmpty else {
+                    print("✅ 습관 응답이 비어 있음")
+                    return
+                }
+
+                do {
+                    let decoded = try JSONDecoder().decode(ApiResponseListHabitResponseDTO.self, from: response.data)
+                    let models = decoded.data.toModelList()
+                    DispatchQueue.main.async {
+                        self.habits = models
+                        print("✅ 습관 불러오기 성공")
+                    }
+                } catch {
+                    print("❌ 습관 디코딩 실패:", error)
+                }
+
+            case .failure(let error):
+                print("❌ 습관 API 요청 실패:", error)
             }
         }
     }

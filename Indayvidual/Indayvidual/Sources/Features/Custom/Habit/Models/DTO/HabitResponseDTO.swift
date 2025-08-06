@@ -19,3 +19,9 @@ extension HabitResponseDTO {
         )
     }
 }
+
+extension Array where Element == HabitResponseDTO {
+    func toModelList() -> [MyHabitModel] {
+        return self.map { $0.toModel() }
+    }
+}

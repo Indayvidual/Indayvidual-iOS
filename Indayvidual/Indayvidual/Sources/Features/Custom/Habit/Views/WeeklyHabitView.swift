@@ -42,10 +42,15 @@ struct WeeklyHabitView: View {
                         Text(habit.title)
                             .font(.pretendSemiBold10)
                             .frame(width: 40, alignment: .leading)
-                        ForEach(0..<7) { i in
+                        
+                        ForEach(0..<7, id: \.self) { i in
                             RoundedRectangle(cornerRadius: 3)
                                 .frame(width: 28, height: 28)
-                                .foregroundStyle(habit.isSelected ? Color(habit.colorName) : .gray500) //TODO: API연결 시 habit.checks[i]로 수정
+                                .foregroundStyle(
+                                    (habit.checks.indices.contains(i) && habit.checks[i])
+                                    ? Color(habit.colorName)
+                                    : .gray500
+                                )
                         }
                     }
                 }

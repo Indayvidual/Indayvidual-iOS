@@ -48,28 +48,18 @@ class MemoViewModel {
             provider.request(.patchMemos(memoId: memoId, title: newTitle, content: content)) { result in
                 switch result {
                 case .success(let response):
-                    if response.statusCode == 204 {
-                        print("✅ PATCH 성공 (204 No Content)")
-                        DispatchQueue.main.async {
-                            var memo = self.sharedVM.memos[idx]
-                            memo.title = newTitle
-                            memo.content = self.content
-                            self.sharedVM.memos.remove(at: idx)
-                            self.sharedVM.memos.insert(memo, at: 0)
-                        }
-                        return
-                    }
-
-                    // 예외적으로 JSON이 온다면 처리
                     do {
                         let apiResponse = try JSONDecoder().decode(ApiResponseMemoDetailResponseDTO.self, from: response.data)
                         let updated = apiResponse.data.toModel()
                         DispatchQueue.main.async {
                             self.sharedVM.memos.remove(at: idx)
                             self.sharedVM.memos.insert(updated, at: 0)
+                            print("✅ PATCH 성공")
                         }
                     } catch {
                         print("❌ PATCH decoding 실패:", error)
+                        let raw = String(data: response.data, encoding: .utf8)
+                        print("🧾 응답 본문:", raw ?? "없음")
                     }
 
                 case .failure(let error):
@@ -82,34 +72,12 @@ class MemoViewModel {
             provider.request(.postMemos(title: newTitle, content: content)) { result in
                 switch result {
                 case .success(let response):
-                    if response.statusCode == 204 || response.data.isEmpty {
-                        print("✅ POST 성공 (204 No Content)")
-                        DispatchQueue.main.async {
-                            let now = Date()
-                            let dateFormatter = DateFormatter()
-                            dateFormatter.dateFormat = "yyMMdd"
-                            let timeFormatter = DateFormatter()
-                            timeFormatter.dateFormat = "HH:mm"
-                            
-                            let newMemo = MemoModel(
-                                id: UUID(),
-                                memoId: nil,  // 서버가 memoId를 안 줬으니까 nil 처리
-                                title: newTitle,
-                                content: self.content,
-                                date: dateFormatter.string(from: now),
-                                time: timeFormatter.string(from: now)
-                            )
-                            self.sharedVM.memos.insert(newMemo, at: 0)
-                        }
-                        return
-                    }
-
-                    // 예외적으로 JSON이 온 경우만 처리
                     do {
                         let api = try JSONDecoder().decode(ApiResponseMemoDetailResponseDTO.self, from: response.data)
                         let newMemo = api.data.toModel()
                         DispatchQueue.main.async {
                             self.sharedVM.memos.insert(newMemo, at: 0)
+                            print("✅ POST 성공")
                         }
                     } catch {
                         print("❌ POST decoding 실패:", error)
@@ -135,9 +103,10 @@ class MemoViewModel {
             case .success:
                 DispatchQueue.main.async {
                     self.sharedVM.memos.remove(at: index)
+                    print("✅ DELETE 성공 (memoId: \(memoId))")
                 }
             case .failure(let error):
-                print("DELETE 요청 실패:", error)
+                print("❌ DELETE 요청 실패:", error)
             }
         }
     }

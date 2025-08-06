@@ -9,8 +9,8 @@ import SwiftUI
 
 struct HabitFormView: View {
     @Environment(\.dismiss) var dismiss
+    @ObservedObject var colorViewModel: ColorViewModel
     @State var viewModel: MyHabitViewModel
-    @State var colorViewModel: ColorViewModel
     @State private var showColorTable = false
 
     var body: some View {
@@ -149,5 +149,5 @@ struct HabitFormView: View {
 }
 
 #Preview {
-    HabitFormView(viewModel: MyHabitViewModel(sharedVM: CustomViewModel()), colorViewModel: ColorViewModel())
+    HabitFormView(colorViewModel: ColorViewModel(), viewModel: MyHabitViewModel(sharedVM: CustomViewModel()))
 }

@@ -39,7 +39,7 @@ struct MyHabitView: View {
             }
         }
         .navigationDestination(isPresented: $Add) {
-            HabitFormView(viewModel: MyHabitViewModel(sharedVM: sharedVM, habit: habit, index: index), colorViewModel: ColorViewModel())
+            HabitFormView(colorViewModel: ColorViewModel(), viewModel: MyHabitViewModel(sharedVM: sharedVM, habit: habit, index: index))
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -60,7 +60,7 @@ struct MyHabitView: View {
             })
             ToolbarItem(placement: .topBarTrailing, content: {
                 NavigationLink {
-                    HabitFormView(viewModel: MyHabitViewModel(sharedVM: sharedVM),colorViewModel: ColorViewModel())
+                    HabitFormView(colorViewModel: ColorViewModel(), viewModel: MyHabitViewModel(sharedVM: sharedVM))
                 } label: {
                     Image("plusBTN")
                         .resizable()

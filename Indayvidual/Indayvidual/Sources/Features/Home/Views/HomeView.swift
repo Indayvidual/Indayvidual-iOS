@@ -9,7 +9,7 @@ import SwiftUI
 
 struct HomeView: View {
     @ObservedObject var calendarVm: CustomCalendarViewModel
-    @StateObject private var scheduleVm = ScheduleViewModel()
+    
     @StateObject private var colorVm = ColorViewModel()
     @StateObject private var homeVm = HomeViewModel()
     
@@ -26,7 +26,7 @@ struct HomeView: View {
             
             CustomCalendarView(calendarViewModel: calendarVm)
                 .onChange(of: calendarVm.selectDate) { oldDate, newDate in
-                    scheduleVm.updateFilteredSchedules(for: newDate)
+                    homeVm.updateFilteredSchedules(for: newDate)
                 }
             
             Spacer().frame(height: 33)
@@ -35,16 +35,16 @@ struct HomeView: View {
                             scheduleToEdit = schedule
                             homeVm.showCreateScheduleSheet = true
             })
-            .environmentObject(scheduleVm) 
+            .environmentObject(homeVm) 
             
             Spacer()
         }
         .onAppear {
-            scheduleVm.updateFilteredSchedules(for: calendarVm.selectDate)
+            homeVm.updateFilteredSchedules(for: calendarVm.selectDate)
         }
         
         .onDisappear {
-            scheduleVm.filteredSchedules = []
+            homeVm.filteredSchedules = []
         }
         .floatingBtn {
             homeVm.showDatePickerSheet.toggle()
@@ -68,12 +68,12 @@ struct HomeView: View {
         }) {
             CreateScheduleSheetView(
                 calendarVm: calendarVm,
-                scheduleVm: scheduleVm,
+                homeVm: homeVm,
                 scheduleToEdit: scheduleToEdit
             )
             .presentationDragIndicator(.visible)
             .presentationDetents([.fraction(0.83), .large])
-            .environmentObject(scheduleVm)
+            .environmentObject(homeVm)
         }
         
         .background(Color(.gray50))

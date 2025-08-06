@@ -7,9 +7,12 @@
 
 import Foundation
 import SwiftUI
+import Moya
 
 @MainActor
 class TodoViewModel: ObservableObject {
+    let categoryProvider = MoyaProvider<TodoCategoryAPITarget>()
+
     @Published var tasks: [String: [TodoTask]] = [:] // 날짜별로 관리
     @Published var selectedDate: String = {
         let formatter = DateFormatter()
@@ -17,6 +20,8 @@ class TodoViewModel: ObservableObject {
         return formatter.string(from: Date())
     }() // 현재 날짜로 초기화
     @Published var categories: [Category] = [] // 카테고리 배열 추가
+    @Published var isLoading: Bool = false // 로딩 상태 추가
+    @Published var errorMessage: String? = nil // 에러 메시지 추가
     
     private var nextCategoryId: Int = 1
     
@@ -41,16 +46,82 @@ class TodoViewModel: ObservableObject {
         return tasks(for: date).filter { $0.categoryId == categoryId }
     }
     
-    // 카테고리 추가
-    func addCategory(name: String, color: Color) {
-        let newCategory = Category(
-            categoryId: nextCategoryId,
-            name: name,
-            color: color
-        )
-        categories.append(newCategory)
-        nextCategoryId += 1
-        // TODO: API 호출
+    // 카테고리 추가 - API 호출 포함
+    func addCategory(name: String, color: Color, completion: ((Bool) -> Void)? = nil) {
+        guard !isLoading else { return }
+        isLoading = true
+        errorMessage = nil
+
+        let colorHex = color.toHex()
+
+        categoryProvider.request(TodoCategoryAPITarget.postCategories(name: name, color: colorHex)) { [weak self] result in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+                switch result {
+                case .success(let response):
+                    guard 200...299 ~= response.statusCode else {
+                        self?.errorMessage = "서버 에러: HTTP \(response.statusCode)"
+                        completion?(false)
+                        return
+                    }
+                    do {
+                        let apiResponse = try JSONDecoder().decode(APIResponse<CategoryResponseDTO>.self, from: response.data)
+                        if apiResponse.isSuccess {
+                            print("🟢 [SUCCESS] 카테고리 추가 성공: \(name), 색상: \(colorHex)")
+                            self?.fetchCategories()
+                            completion?(true)
+                        } else {
+                            self?.errorMessage = apiResponse.message
+                            completion?(false)
+                        }
+                    } catch {
+                        self?.errorMessage = "디코딩 실패: \(error.localizedDescription)"
+                        completion?(false)
+                    }
+                case .failure(let error):
+                    self?.errorMessage = "등록 실패: \(error.localizedDescription)"
+                    completion?(false)
+                }
+            }
+        }
+    }
+
+    //카테고리 조회
+    func fetchCategories() {
+        isLoading = true
+        errorMessage = nil
+        
+        categoryProvider.request(.getCategories) { [weak self] result in
+            DispatchQueue.main.async {
+                self?.isLoading = false
+                
+                switch result {
+                case .success(let response):
+                    guard 200...299 ~= response.statusCode else {
+                        self?.errorMessage = "서버 에러: HTTP \(response.statusCode)"
+                        return
+                    }
+                    do {
+                        let apiResponse = try JSONDecoder().decode(APIResponse<[CategoryResponseDTO]>.self, from: response.data)
+                        if apiResponse.isSuccess {
+                            self?.categories = apiResponse.data.map {
+                                Category(
+                                    categoryId: $0.categoryId,
+                                    name: $0.name,
+                                    color: Color(hex: $0.color) ?? .purple
+                                )
+                            }
+                        } else {
+                            self?.errorMessage = apiResponse.message
+                        }
+                    } catch {
+                        self?.errorMessage = "파싱 에러: \(error.localizedDescription)"
+                    }
+                case .failure(let error):
+                    self?.errorMessage = "조회 실패: \(error.localizedDescription)"
+                }
+            }
+        }
     }
     
     // Task 추가
@@ -73,7 +144,9 @@ class TodoViewModel: ObservableObject {
     // Task 체크 토글
     func toggleTask(_ task: TodoTask) {
         guard let index = tasks[task.date]?.firstIndex(where: { $0.id == task.id }) else { return }
-        tasks[task.date]?[index].isCompleted.toggle()
+        var updatedTask = tasks[task.date]![index]
+        updatedTask.isCompleted.toggle()
+        tasks[task.date]![index] = updatedTask  // 새로운 값으로 교체
         // TODO: API 호출
     }
     

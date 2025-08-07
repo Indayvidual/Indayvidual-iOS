@@ -11,8 +11,8 @@ struct CustomCalendarView: View {
     @ObservedObject var calendarViewModel: CustomCalendarViewModel
     var onDateSelected: ((Date) -> Void)?
     
-    var showToggleButton: Bool = true        // 월/주 버튼 표시 여부
-    var showShadow: Bool = true              // 쉐도우 표시 여부
+    var showToggleButton: Bool = true      // 월/주 버튼 표시 여부
+    var showShadow: Bool = true            // 쉐도우 표시 여부
     var showNavigationButtons: Bool = true   // 달(month) 이동 버튼 표시 여부
     var showMarkers: Bool = true             // 마커 표시 여부
     var initialMode: CalendarMode = .month   // 초기 모드 설정 (.month 또는 .week)
@@ -81,13 +81,14 @@ struct CustomCalendarView: View {
 // 캘린더 헤더
 struct CalendarHeaderView: View {
     @ObservedObject var calendarViewModel: CustomCalendarViewModel
-    var showToggleButton: Bool = true       // 월/주 버튼 표시 여부
-    var showNavigationButtons: Bool = true  // 달(month)이동 버튼 표시 여부
+    var showToggleButton: Bool = true      // 월/주 버튼 표시 여부
+    var showNavigationButtons: Bool = true // 달(month)이동 버튼 표시 여부
 
     private var yearAndMonth: (year: String, month: String) {
-        let ym = calendarViewModel.getYearAndMonthString(currentDate: calendarViewModel.displayedMonthDate)
-        guard ym.count >= 2 else {return (year: "", month: "")}
-        return (year: ym[0], month: ym[1])
+        let date = calendarViewModel.displayedMonthDate
+        let year = date.toString(format: "yyyy")
+        let month = date.toString(format: "M")
+        return (year: year, month: month)
     }
 
     var body: some View {
@@ -177,8 +178,8 @@ struct MonthlyCalendarView: View {
         LazyVGrid(columns: columns) {
             ForEach(calendarViewModel.extractDate(baseDate: calendarViewModel.displayedMonthDate)) { value in
                 if value.day != -1 {
-                    let isToday = Calendar.current.isDateInToday(value.date)
-                    let isSelected = calendarViewModel.isSameDay(date1: value.date, date2: calendarViewModel.selectDate)
+                    let isToday = value.date.isToday
+                    let isSelected = value.date.isSameDay(as: calendarViewModel.selectDate)
 
                     DateButton(
                         value: value,
@@ -188,7 +189,7 @@ struct MonthlyCalendarView: View {
                             calendarViewModel.updateSelectedDate(value.date)
                             onDateSelected?(value.date)
                         },
-                        markers: showMarkers ? (calendarViewModel.dateMarkers[Calendar.current.startOfDay(for: value.date)] ?? []) : []
+                        markers: showMarkers ? (calendarViewModel.dateMarkers[value.date.startOfDay] ?? []) : []
                     )
                 } else {
                     Color.clear.frame(width: 30, height: 30)
@@ -212,8 +213,8 @@ struct WeeklyCalendarView: View {
     var body: some View {
         HStack(spacing: 15) {
             ForEach(getThisWeekDateValues()) { value in
-                let isToday = Calendar.current.isDateInToday(value.date)
-                let isSelected = calendarViewModel.isSameDay(date1: value.date, date2: calendarViewModel.selectDate)
+                let isToday = value.date.isToday
+                let isSelected = value.date.isSameDay(as: calendarViewModel.selectDate)
 
                 DateButton(
                     value: value,
@@ -223,7 +224,7 @@ struct WeeklyCalendarView: View {
                         calendarViewModel.updateSelectedDate(value.date)
                         onDateSelected?(value.date)
                     },
-                    markers: showMarkers ? (calendarViewModel.dateMarkers[Calendar.current.startOfDay(for: value.date)] ?? []) : []  
+                    markers: showMarkers ? (calendarViewModel.dateMarkers[value.date.startOfDay] ?? []) : []
                 )
             }
         }
@@ -232,8 +233,9 @@ struct WeeklyCalendarView: View {
     private func getThisWeekDateValues() -> [DateValue] {
         let calendar = Calendar.current
         let selectedDate = calendarViewModel.selectDate
-        let weekday = calendar.component(.weekday, from: selectedDate)
-        let startOfWeek = calendar.date(byAdding: .day, value: -(weekday - 1), to: selectedDate)!
+        guard let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: selectedDate)) else {
+            return []
+        }
 
         return (0..<7).compactMap { offset in
             if let date = calendar.date(byAdding: .day, value: offset, to: startOfWeek) {
@@ -358,11 +360,11 @@ struct DateButton: View {
 
     예시:
      CustomCalendarView(
-         calendarViewModel: CalendarViewModel(),
+         calendarViewModel: CustomCalendarViewModel(),
          showToggleButton: false,   // 토글 버튼 숨김
          showShadow: false,         // 그림자 제거
          showNavigationButtons: false, // 좌우 이동 버튼 숨김
-         showMarkers: false,        // 마커 표시 안함
+         showMarkers: false,       // 마커 표시 안함
          initialMode: .week         // 처음에 주간 보기로 시작
      ) { selectedDate in
          print("선택된 날짜: \(selectedDate)")
@@ -375,4 +377,3 @@ struct DateButton: View {
 #Preview {
     CustomCalendarView(calendarViewModel: CustomCalendarViewModel())
 }
-

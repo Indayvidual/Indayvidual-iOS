@@ -14,12 +14,12 @@ struct CreateScheduleSheetView: View {
 
     init(
         calendarVm: CustomCalendarViewModel,
-        scheduleVm: ScheduleViewModel,
+        homeVm: HomeViewModel,
         scheduleToEdit: ScheduleItem?
     ) {
         _viewModel = StateObject(wrappedValue: CreateScheduleSheetViewModel(
             mainCalendarVm: calendarVm,
-            scheduleVm: scheduleVm,
+            homeVm: homeVm,
             scheduleToEdit: scheduleToEdit
         ))
     }
@@ -110,15 +110,15 @@ struct CreateScheduleSheetView: View {
 #Preview {
     struct PreviewWrapper: View {
         @StateObject private var calendarVm = CustomCalendarViewModel()
-        @StateObject private var scheduleVm = ScheduleViewModel()
+        @StateObject private var homeVm = HomeViewModel()
 
         var body: some View {
             CreateScheduleSheetView(
                 calendarVm: calendarVm,
-                scheduleVm: scheduleVm,
+                homeVm: homeVm,
                 scheduleToEdit: nil
             )
-            .environmentObject(scheduleVm)
+            .environmentObject(homeVm)
         }
     }
     return PreviewWrapper()

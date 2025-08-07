@@ -9,7 +9,7 @@ import SwiftUI
 import UIKit
 
 struct ScheduleInput: View {
-    @EnvironmentObject var scheduleVm: ScheduleViewModel
+    @EnvironmentObject var homeVm: HomeViewModel
     @Environment(\.presentationMode) var presentationMode
 
     @Binding var title: String
@@ -175,6 +175,6 @@ private struct PreviewWrapper: View {
             showEndSection: $showEndSection,
             isAllDay: $isAllDay
         )
-        .environmentObject(ScheduleViewModel())
+        .environmentObject(HomeViewModel())
     }
 }

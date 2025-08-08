@@ -24,7 +24,7 @@ class HomeViewModel: ObservableObject {
     let calendarProvider = MoyaProvider<CalendarTarget>()
     let evnetProvider = MoyaProvider<EventTarget>()
     private var alertService: AlertService? // AlertService 주입
-
+    
     func setup(alertService: AlertService) {
         self.alertService = alertService
     }
@@ -139,32 +139,37 @@ class HomeViewModel: ObservableObject {
             }
         }
     }
-
-
+    
+    
     // MARK: - 로컬 데이터 및 UI 업데이트
     
     /// 로컬 `schedules` 배열과 UI를 동기화합니다.
     func updateFilteredSchedules(for selectedDate: Date) {
         filteredSchedules = schedules
             .filter { schedule in
-                guard let start = schedule.startTime else { return false }
-                return Calendar.current.isDate(start, inSameDayAs: selectedDate)
+                if schedule.isAllDay {
+                    return true
+                } else {
+                    guard let start = schedule.startTime else { return false }
+                    return Calendar.current.isDate(start, inSameDayAs: selectedDate)
+                }
             }
             .sorted()
     }
+    
     
     /// 새 일정을 로컬 데이터에 추가하고 UI를 업데이트합니다.
     func addSchedule(_ schedule: ScheduleItem, calendarViewModel: CustomCalendarViewModel) {
         schedules.append(schedule)
         schedules.sort()
-
+        
         if let start = schedule.startTime {
             let markerDate = Calendar.current.startOfDay(for: start)
             calendarViewModel.addMarker(for: markerDate, color: schedule.color)
         }
         updateFilteredSchedules(for: calendarViewModel.selectDate)
     }
-
+    
     /// 기존 일정을 업데이트하고 UI를 갱신합니다.
     func updateSchedule(
         _ updated: ScheduleItem,

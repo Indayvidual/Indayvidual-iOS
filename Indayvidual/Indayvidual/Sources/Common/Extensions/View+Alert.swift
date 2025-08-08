@@ -19,7 +19,7 @@ struct RootAlertModifier: ViewModifier {
                     Alert(
                         title: Text(info.title),
                         message: info.message != nil ? Text(info.message!) : nil,
-                        primaryButton: .default(Text(secondaryButton.title), action: secondaryButton.action),
+                        primaryButton: .cancel(Text(secondaryButton.title), action: secondaryButton.action), // 취소
                         secondaryButton: .default(Text(info.primaryButton.title), action: info.primaryButton.action)
                     )
                 } else {
@@ -34,35 +34,36 @@ struct RootAlertModifier: ViewModifier {
 }
 
 // MARK: - 사용 방법
+
 /// **1. 기본 Alert (확인 버튼 하나):**
 /// ```swift
 /// @EnvironmentObject var alertService: AlertService
 ///
 /// Button("알림 표시") {
 ///     alertService.showAlert(
-///         title: "알림",
+///         title: "안내",        // "알림"이 디폴트 값이지만, 커스텀 필요시 필요한 문구 명시하여 사용 가능
 ///         message: "작업이 성공적으로 완료되었습니다.",
-///         primaryButton: .default(Text("확인")) {
+///         primaryButton: .primary(title: "확인", action: {
 ///             print("확인 버튼 클릭됨")
-///         }
+///         })
 ///     )
 /// }
 /// ```
-///
+
 /// **2. 두 개의 버튼을 가진 Alert (확인 및 취소):**
 /// ```swift
 /// @EnvironmentObject var alertService: AlertService
 ///
 /// Button("확인/취소 알림") {
 ///     alertService.showAlert(
-///         title: "경고",
+///         title: "경고",        // "알림"이 디폴트 값이지만, 커스텀 필요시 필요한 문구 명시하여 사용 가능
 ///         message: "정말 삭제하시겠습니까?",
-///         primaryButton: .default(Text("삭제")) {
-///             print("삭제 버튼 클릭됨")
-///         },
-///         secondaryButton: .cancel(Text("취소")) {
+///         primaryButton: .primary(title: "취소", action: {    // 왼쪽에 위치해서 "취소" 사용을 유도함
 ///             print("취소 버튼 클릭됨")
-///         }
+///         }),
+///         secondaryButton: .secondary(title: "재시도", action: {
+///             print("재시도 버튼 클릭됨")
+///         })
 ///     )
 /// }
 /// ```

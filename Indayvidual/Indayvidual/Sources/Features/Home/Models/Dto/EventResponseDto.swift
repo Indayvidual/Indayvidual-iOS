@@ -8,9 +8,9 @@
 import Foundation
 
 struct EventResponseDto: Codable{
-    var eventid: Int
-    var type: String
-    var startTime: String
-    var endTime: String
+    var eventId: Int
+    var title: String
+    var startTime: String?
+    var endTime: String?
     var color: String
 }

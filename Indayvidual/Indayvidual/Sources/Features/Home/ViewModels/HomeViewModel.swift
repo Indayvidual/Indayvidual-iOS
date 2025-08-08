@@ -99,7 +99,7 @@ class HomeViewModel: ObservableObject {
                                 endTime: endTime,
                                 title: dto.title,
                                 color: color,
-                                isAllDay: false
+                                isAllDay: dto.isAllDay
                             )
                         }
                         

@@ -13,4 +13,5 @@ struct EventResponseDto: Codable{
     var startTime: String?
     var endTime: String?
     var color: String
+    var isAllDay: Bool
 }

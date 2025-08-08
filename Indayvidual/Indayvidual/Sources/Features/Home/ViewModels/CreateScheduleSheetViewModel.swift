@@ -81,7 +81,7 @@ class CreateScheduleSheetViewModel: ObservableObject {
     }
     
     // MARK: - 일정 등록/수정
-    func createSchedule() {
+    func saveSchedule() {
         guard isPrimaryButtonEnabled else { return }
         
         let isNew = scheduleToEdit == nil
@@ -172,23 +172,32 @@ class CreateScheduleSheetViewModel: ObservableObject {
                     return
                 }
                 
-                do {
-                    let response = try JSONDecoder().decode(APIResponseDto<EventCreateResponseDto>.self, from: response.data)
-                    let newEventId = response.data.eventId
-                    
-                    let finalSchedule = ScheduleItem(
-                        id: newEventId,
-                        startTime: self.startTime,
-                        endTime: self.calculateFinalEndTime(),
-                        title: self.title,
-                        color: self.selectedColor,
-                        isAllDay: self.isAllDay
-                    )
-                    self.completionPublisher.send((finalSchedule, isNew))
-                    
-                } catch {
-                    self.alertService?.showAlert(message: "데이터 처리 중 오류가 발생했습니다.", primaryButton: .primary(title: "확인"))
+                let eventId: Int
+                if isNew {
+                    // 생성: 응답에서 새로운 ID를 디코딩
+                    guard let decodedId = try? JSONDecoder().decode(APIResponseDto<EventCreateResponseDto>.self, from: response.data).data.eventId else {
+                        self.alertService?.showAlert(message: "데이터 처리 중 오류가 발생했습니다.", primaryButton: .primary(title: "확인"))
+                        return
+                    }
+                    eventId = decodedId
+                } else {
+                    // 수정: 기존 ID를 사용
+                    guard let existingId = self.scheduleToEdit?.id else {
+                        self.alertService?.showAlert(message: "수정할 일정을 찾을 수 없습니다.", primaryButton: .primary(title: "확인"))
+                        return
+                    }
+                    eventId = existingId
                 }
+                
+                let finalSchedule = ScheduleItem(
+                    id: eventId,
+                    startTime: self.startTime,
+                    endTime: self.calculateFinalEndTime(),
+                    title: self.title,
+                    color: self.selectedColor,
+                    isAllDay: self.isAllDay
+                )
+                self.completionPublisher.send((finalSchedule, isNew))
                 
             case .failure:
                 self.alertService?.showAlert(message: "네트워크 연결을 확인해주세요.", primaryButton: .primary(title: "확인"))

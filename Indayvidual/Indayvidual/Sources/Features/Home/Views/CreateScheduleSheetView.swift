@@ -23,7 +23,7 @@ struct CreateScheduleSheetView: View {
             primaryButtonTitle: viewModel.submitButtonTitle,
             secondaryButtonTitle: "취소",
             primaryAction: {
-                viewModel.createSchedule()
+                viewModel.saveSchedule()
             },
             secondaryAction: {
                 dismiss()

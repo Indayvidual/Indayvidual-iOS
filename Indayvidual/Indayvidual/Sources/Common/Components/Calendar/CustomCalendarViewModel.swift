@@ -26,7 +26,7 @@ final class CustomCalendarViewModel: ObservableObject {
     /// 키는 `Date` (년, 월, 일만 고려), 값은 `Marker` 배열
     /// 한 날짜에 최대 3개의 마커를 가질 수 있음
     @Published var dateMarkers: [Date: [Marker]] = [:]
-
+    
     /// 월 기준 날짜 (year, month 만 있는 Date, 시간은 00:00:00)
     @Published var displayedMonthDate: Date = {
         let calendar = Calendar.current
@@ -35,15 +35,11 @@ final class CustomCalendarViewModel: ObservableObject {
     }()
     
     init(initialMode: CalendarMode = .month) {
-            self.calendarMode = initialMode
-            //fetchMarkedDates() //마커 초기화
+        self.calendarMode = initialMode
     }
     
-//   private func fetchMarkedDates() {
-//           //임시 더미 데이터 생성 (추후 일정 조회 API 호출로 변경예정)
-//           addMarker(for: Date(), color: .purple)
-//       }
-
+    // MARK: - 마커 관리
+    
     /// 특정 날짜에 마커를 추가
     /// - Parameters:
     ///   - date: 마커를 추가할 날짜. 시간 정보는 무시하고 년, 월, 일만 사용됩니다.
@@ -53,10 +49,10 @@ final class CustomCalendarViewModel: ObservableObject {
     /// 한 날짜에 최대 3개의 마커만 추가할 수 있으며, 이미 3개의 마커가 있는 경우 가장 오래된 마커가 제거되고 새로운 마커가 추가됨
     func addMarker(for date: Date, color: Color) {
         let dayKey = date.startOfDay
-
+        
         var markers = dateMarkers[dayKey] ?? []
         let newMarker = Marker(color: color)
-
+        
         if markers.count >= 3 {
             // 3개 이상이면 가장 오래된(첫 번째) 마커를 제거하고 새 마커 추가
             markers.removeFirst()
@@ -64,11 +60,11 @@ final class CustomCalendarViewModel: ObservableObject {
         markers.append(newMarker)
         dateMarkers[dayKey] = markers
     }
-
+    
     /// 특정 날짜의 특정 색상 마커를 제거
     func removeMarker(for date: Date, color: Color) {
         let dayKey = date.startOfDay
-
+        
         if var markers = dateMarkers[dayKey] {
             // 주어진 색상과 일치하는 첫 번째 마커를 찾아 제거
             if let index = markers.firstIndex(where: { $0.color == color }) {
@@ -83,30 +79,37 @@ final class CustomCalendarViewModel: ObservableObject {
             }
         }
     }
-
+    
+    /// 모든 마커를 제거합니다. (월 이동 시 호출)
+    func clearAllMarkers() {
+        dateMarkers.removeAll()
+    }
+    
+    // MARK: - 캘린더 UI 및 날짜 계산 로직
+    
     /// 연, 월 문자열 반환
     func getYearAndMonthString(currentDate: Date) -> [String] {
         return currentDate.toString(format: "yyyy.M").split(separator: ".").map { String($0) }
     }
-
+    
     /// 월 이동
     func moveMonth(by value: Int) {
         if let newMonthDate = calendar.date(byAdding: .month, value: value, to: displayedMonthDate) {
             displayedMonthDate = newMonthDate.startOfDay
         }
-
+        
         if let newSelectedDate = calendar.date(byAdding: .month, value: value, to: selectDate) {
             selectDate = newSelectedDate.startOfDay
         }
     }
-
+    
     /// 주 단위 이동 (selectDate만)
     func moveWeek(byWeeks value: Int) {
         if let newDate = calendar.date(byAdding: .day, value: value * 7, to: selectDate) {
             updateSelectedDate(newDate)
         }
     }
-
+    
     /// 캘린더 모드에 따라 이동
     func moveCalendar(by value: Int) {
         switch calendarMode {
@@ -116,30 +119,30 @@ final class CustomCalendarViewModel: ObservableObject {
             moveWeek(byWeeks: value)
         }
     }
-
+    
     /// 모드 전환
     func toggleCalendarMode() {
         calendarMode = (calendarMode == .month) ? .week : .month
     }
-
+    
     //// 날짜 선택 및 월 동기화
     func updateSelectedDate(_ date: Date) {
         let startOfDay = date.startOfDay
-
+        
         selectDate = startOfDay
         checkingDate = startOfDay
         popupDate = true
-
+        
         let selectedComponents = calendar.dateComponents([.year, .month], from: startOfDay)
         let displayedComponents = calendar.dateComponents([.year, .month], from: displayedMonthDate)
-
+        
         if selectedComponents.year != displayedComponents.year || selectedComponents.month != displayedComponents.month {
             if let newDisplayedDate = calendar.date(from: selectedComponents) {
                 displayedMonthDate = newDisplayedDate
             }
         }
     }
-
+    
     // 월 기준 날짜 배열 생성
     func extractDate(baseDate: Date) -> [DateValue] {
         /// baseDate에서 연,월 정보만 가져와 1일 0시 기준 날짜 생성
@@ -174,5 +177,5 @@ final class CustomCalendarViewModel: ObservableObject {
         }
         return days
     }
-
+    
 }

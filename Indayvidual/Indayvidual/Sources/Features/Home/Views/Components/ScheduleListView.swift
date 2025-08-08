@@ -25,14 +25,10 @@ struct ScheduleListView: View {
                             .fill(schedule.color)
                             .frame(width: 10, height: 10)
                         
-                        Text(
-                            schedule.endTime != nil
-                            ? "\(schedule.startTime.toTimeString()) - \(schedule.endTime!.toTimeString())"
-                            : schedule.startTime.toTimeString()
-                        )
+                        Text(schedule.timeText)
                             .font(.pretendMedium11)
                             .foregroundColor(Color(.gray500))
-
+                        
                         Spacer()
                         
                         ScheduleMenu(

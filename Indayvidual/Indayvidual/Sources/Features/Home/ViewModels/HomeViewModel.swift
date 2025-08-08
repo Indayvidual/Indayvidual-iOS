@@ -5,7 +5,8 @@
 //  Created by 장주리 on 7/25/25.
 //
 
-import Foundation
+import Combine
+import Moya
 import SwiftUI
 
 class HomeViewModel: ObservableObject {
@@ -13,143 +14,235 @@ class HomeViewModel: ObservableObject {
     @Published var showCreateScheduleSheet = false
     @Published var showColorPickerSheet = false
     
-    /// 일정 저장 리스트
-    private var schedules: [ScheduleItem] = []
+    @Published var createScheduleSheetViewModel: CreateScheduleSheetViewModel?
     
-    /// 선택된 날짜의 필터링된 일정 (UI 업데이트용)
-    @Published var filteredSchedules: [ScheduleItem] = []
-
-    /// 선택된 날짜 기준으로 필터링
+    @Published var filteredSchedules: [ScheduleItem] = []  // 선택된 날짜의 필터링된 일정 (UI 업데이트용)
+    
+    private var cancellables = Set<AnyCancellable>()   // Combine 구독을 관리하기 위한 프로퍼티
+    private var schedules: [ScheduleItem] = []  // 일정 저장 리스트
+    
+    let calendarProvider = MoyaProvider<CalendarTarget>()
+    let evnetProvider = MoyaProvider<EventTarget>()
+    private var alertService: AlertService? // AlertService 주입
+    
+    func setup(alertService: AlertService) {
+        self.alertService = alertService
+    }
+    
+    // MARK: - 캘린더 조회
+    func fetchHomeCalendar(year: Int, month: Int, calendarViewModel: CustomCalendarViewModel) {
+        calendarProvider.request(.getHomeCalendar(year: year, month: month)) { [weak self] result in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let response):
+                    do {
+                        let decoded = try JSONDecoder().decode(CustomCalendarResponseDto.self, from: response.data) // 응답 객체
+                        
+                        guard decoded.isSuccess else {
+                            self.alertService?.showAlert(message: "캘린더 정보를 가져오는데 실패했습니다: \(decoded.message)", primaryButton: .primary(title: "재시도", action: { self.fetchHomeCalendar(year: year, month: month, calendarViewModel: calendarViewModel) }), secondaryButton: .secondary(title: "취소", action: {}))
+                            return
+                        }
+                        
+                        // 캘린더 UI 업데이트
+                        calendarViewModel.clearAllMarkers()
+                        for item in decoded.data {
+                            if let date = item.date.toDate() {
+                                let markerDate = Calendar.current.startOfDay(for: date)
+                                for hexColor in item.colors {
+                                    calendarViewModel.addMarker(for: markerDate, color: Color(hex: hexColor)!)
+                                }
+                            }
+                        }
+                    } catch {
+                        self.alertService?.showAlert(message: "캘린더 데이터 처리 중 오류가 발생했습니다.", primaryButton: .primary(title: "재시도", action: { self.fetchHomeCalendar(year: year, month: month, calendarViewModel: calendarViewModel) }), secondaryButton: .secondary(title: "취소", action: {}))
+                    }
+                case .failure:
+                    self.alertService?.showAlert(message: "네트워크 연결을 확인해주세요.", primaryButton: .primary(title: "재시도", action: { self.fetchHomeCalendar(year: year, month: month, calendarViewModel: calendarViewModel) }), secondaryButton: .secondary(title: "취소", action: {}))
+                }
+            }
+        }
+    }
+    
+    // MARK: - 일일 스케줄 조회
+    func fetchSchedules(for date: Date) {
+        let dateString = date.toString(format: "yyyy-MM-dd")
+        
+        evnetProvider.request(.getEvents(date: dateString)) { [weak self] result in
+            guard let self = self else { return }
+            
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let response):
+                    do {
+                        let apiResponse = try JSONDecoder().decode(APIResponseDto<[EventResponseDto]>.self, from: response.data)
+                        
+                        guard apiResponse.isSuccess else {
+                            self.alertService?.showAlert(message: "일정 정보를 가져오는데 실패했습니다: \(apiResponse.message)", primaryButton: .primary(title: "재시도", action: { self.fetchSchedules(for: date) }), secondaryButton: .secondary(title: "취소", action: {}))
+                            return
+                        }
+                        
+                        let eventDTOs = apiResponse.data
+                        
+                        let newSchedules = eventDTOs.compactMap { dto -> ScheduleItem? in
+                            let startTime = dto.startTime?.toFullDate(on: date)
+                            let endTime = dto.endTime?.toFullDate(on: date)
+                            
+                            guard let color = Color(hex: dto.color) else {
+                                return nil
+                            }
+                            
+                            return ScheduleItem(
+                                id: dto.eventId,
+                                startTime: startTime,
+                                endTime: endTime,
+                                title: dto.title,
+                                color: color,
+                                isAllDay: dto.isAllDay
+                            )
+                        }
+                        
+                        self.schedules = newSchedules
+                        self.updateFilteredSchedules(for: date)
+                        
+                    } catch {
+                        self.alertService?.showAlert(message: "일정 데이터 처리 중 오류가 발생했습니다.", primaryButton: .primary(title: "재시도", action: { self.fetchSchedules(for: date) }), secondaryButton: .secondary(title: "취소", action: {}))
+                        self.schedules = []
+                        self.updateFilteredSchedules(for: date)
+                    }
+                    
+                case .failure:
+                    self.alertService?.showAlert(message: "네트워크 연결을 확인해주세요.", primaryButton: .primary(title: "재시도", action: { self.fetchSchedules(for: date) }), secondaryButton: .secondary(title: "취소", action: {}))
+                    self.schedules = []
+                    self.updateFilteredSchedules(for: date)
+                }
+            }
+        }
+    }
+    
+    // MARK: - 일정 삭제
+    func deleteSchedule(_ schedule: ScheduleItem, calendarViewModel: CustomCalendarViewModel) {
+        evnetProvider.request(.deleteEvent(eventId: schedule.id)) { [weak self] result in
+            guard let self = self else { return }
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let response):
+                    if (200...299).contains(response.statusCode) {
+                        self.handleScheduleDeletion(schedule, calendarViewModel: calendarViewModel)
+                    } else {
+                        self.alertService?.showAlert(message: "일정 삭제에 실패했습니다. (코드: \(response.statusCode))", primaryButton: .primary(title: "재시도", action: { self.deleteSchedule(schedule, calendarViewModel: calendarViewModel) }), secondaryButton: .secondary(title: "취소", action: {}))
+                    }
+                case .failure:
+                    self.alertService?.showAlert(message: "네트워크 연결을 확인해주세요.", primaryButton: .primary(title: "재시도", action: { self.deleteSchedule(schedule, calendarViewModel: calendarViewModel) }), secondaryButton: .secondary(title: "취소", action: {}))
+                }
+            }
+        }
+    }
+    
+    
+    // MARK: - 로컬 데이터 및 UI 업데이트
+    
+    /// 로컬 `schedules` 배열과 UI를 동기화합니다.
     func updateFilteredSchedules(for selectedDate: Date) {
         filteredSchedules = schedules
-            .filter { Calendar.current.isDate($0.startTime, inSameDayAs: selectedDate) }
+            .filter { schedule in
+                if schedule.isAllDay {
+                    return true
+                } else {
+                    guard let start = schedule.startTime else { return false }
+                    return Calendar.current.isDate(start, inSameDayAs: selectedDate)
+                }
+            }
             .sorted()
     }
-
-    /// 일정 추가
-    func addSchedule(_ schedule: ScheduleItem) {
+    
+    
+    /// 새 일정을 로컬 데이터에 추가하고 UI를 업데이트합니다.
+    func addSchedule(_ schedule: ScheduleItem, calendarViewModel: CustomCalendarViewModel) {
         schedules.append(schedule)
         schedules.sort()
-    }
-
-    /// 일정 삭제
-    func deleteSchedule(_ schedule: ScheduleItem, calendarViewModel: CustomCalendarViewModel) {
-        // 1. 데이터 소스에서 일정 제거
-        schedules.removeAll { $0.id == schedule.id }
         
-        // 2. 캘린더 뷰모델에서 해당 날짜의 마커 제거
-        let markerDate = Calendar.current.startOfDay(for: schedule.startTime)
-        calendarViewModel.removeMarker(for: markerDate, color: schedule.color)
-        
-        // 3. 현재 보고 있는 날짜의 일정 목록을 새로고침하여 UI에 반영
+        if let start = schedule.startTime {
+            let markerDate = Calendar.current.startOfDay(for: start)
+            calendarViewModel.addMarker(for: markerDate, color: schedule.color)
+        }
         updateFilteredSchedules(for: calendarViewModel.selectDate)
     }
-
-    /// 일정 수정
+    
+    /// 기존 일정을 업데이트하고 UI를 갱신합니다.
     func updateSchedule(
         _ updated: ScheduleItem,
         from oldSchedule: ScheduleItem,
         calendarViewModel: CustomCalendarViewModel
     ) {
-        if let index = schedules.firstIndex(where: { $0.id == updated.id }) {
-            // 1. 이전 날짜의 마커 제거
-            let oldMarkerDate = Calendar.current.startOfDay(for: oldSchedule.startTime)
+        guard let index = schedules.firstIndex(where: { $0.id == updated.id }) else { return }
+        
+        // 캘린더 마커 업데이트
+        if let oldStart = oldSchedule.startTime {
+            let oldMarkerDate = Calendar.current.startOfDay(for: oldStart)
             calendarViewModel.removeMarker(for: oldMarkerDate, color: oldSchedule.color)
-
-            // 2. 새 날짜에 마커 추가
-            let newMarkerDate = Calendar.current.startOfDay(for: updated.startTime)
-            calendarViewModel.addMarker(for: newMarkerDate, color: updated.color)
-
-            // 3. 일정 데이터 업데이트
-            schedules[index] = updated
-            schedules.sort()
-
-            // 4. UI 갱신
-            updateFilteredSchedules(for: calendarViewModel.selectDate)
         }
+        if let newStart = updated.startTime {
+            let newMarkerDate = Calendar.current.startOfDay(for: newStart)
+            calendarViewModel.addMarker(for: newMarkerDate, color: updated.color)
+        }
+        
+        // 로컬 데이터 업데이트
+        schedules[index] = updated
+        schedules.sort()
+        updateFilteredSchedules(for: calendarViewModel.selectDate)
     }
-
-    /// 새로운 일정 생성 및 마커 등록
-    func addNewSchedule(
-        title: String,
-        startTime: Date,
-        endTime: Date?,
-        color: Color,
-        isAllDay: Bool,
-        calendarViewModel: CustomCalendarViewModel
-    ) {
-        let newSchedule = ScheduleItem(
-            startTime: startTime,
-            endTime: endTime,
-            title: title,
-            color: color,
-            isAllDay: isAllDay
-        )
+    
+    /// 삭제된 일정을 로컬 데이터에서 제거하고 UI를 업데이트합니다.
+    private func handleScheduleDeletion(_ schedule: ScheduleItem, calendarViewModel: CustomCalendarViewModel) {
+        schedules.removeAll { $0.id == schedule.id }
         
-        addSchedule(newSchedule)
-        
-        let markerDate = Calendar.current.startOfDay(for: startTime)
-        calendarViewModel.addMarker(for: markerDate, color: color)
+        if let start = schedule.startTime {
+            let markerDate = Calendar.current.startOfDay(for: start)
+            calendarViewModel.removeMarker(for: markerDate, color: schedule.color)
+        }
         
         updateFilteredSchedules(for: calendarViewModel.selectDate)
     }
-
-    /// 입력 초기값 설정
-    func initializeInput(for schedule: ScheduleItem?, on date: Date) -> (String, Date, Date, Bool, Bool, Color) {
-        if let schedule = schedule {
-            // 수정 모드: 기존 데이터 사용
-            return (
-                schedule.title,
-                schedule.startTime,
-                schedule.endTime ?? schedule.startTime.addingTimeInterval(3600), // nil이면 1시간 뒤로
-                schedule.isAllDay,
-                schedule.endTime != nil && !schedule.isAllDay, // 종료 시간 표시 여부
-                schedule.color
-            )
-        } else {
-            // 등록 모드: 현재 날짜 기준으로 기본값 설정
-            let calendar = Calendar.current
-            let startOfDay = calendar.startOfDay(for: date)
-            let startTime = calendar.date(bySettingHour: calendar.component(.hour, from: Date()), minute: 0, second: 0, of: startOfDay) ?? date
-            let endTime = calendar.date(byAdding: .hour, value: 1, to: startTime) ?? startTime
-            return ("", startTime, endTime, false, true, .button)
-        }
-    }
-
-    func submitSchedule(
-        existingSchedule: ScheduleItem?,
-        title: String,
-        startTime: Date,
-        endTime: Date?,
-        color: Color,
-        isAllDay: Bool,
+    
+    // MARK: -일정 등록 또는 수정 sheet를 띄우고 결과 구독
+    func presentScheduleSheet(
+        for schedule: ScheduleItem? = nil, // 수정할 스케줄. 새 등록 시 nil
+        on date: Date,
         calendarViewModel: CustomCalendarViewModel
     ) {
-        if let schedule = existingSchedule {
-            // 수정
-            let updatedSchedule = ScheduleItem(
-                id: schedule.id,
-                startTime: startTime,
-                endTime: endTime,
-                title: title,
-                color: color,
-                isAllDay: isAllDay
-            )
-            updateSchedule(
-                updatedSchedule,
-                from: schedule,
-                calendarViewModel: calendarViewModel
-            )
-        } else {
-            // 등록
-            addNewSchedule(
-                title: title,
-                startTime: startTime,
-                endTime: endTime,
-                color: color,
-                isAllDay: isAllDay,
-                calendarViewModel: calendarViewModel
-            )
-        }
+        guard let alertService = self.alertService else { return }
+        // 1. 자식 ViewModel 생성
+        let sheetViewModel = CreateScheduleSheetViewModel(
+            scheduleToEdit: schedule,
+            selectedDate: schedule?.startTime ?? date,
+            alertService: alertService
+        )
+        
+        // 2. 자식 ViewModel의 Publisher 구독
+        sheetViewModel.completionPublisher
+            .sink { [weak self] (resultSchedule, isNew) in
+                guard let self = self else { return }
+                
+                // 3. 결과에 따라 분기 처리
+                if isNew {
+                    self.addSchedule(resultSchedule, calendarViewModel: calendarViewModel)
+                } else if let originalSchedule = schedule {
+                    self.updateSchedule(
+                        resultSchedule,
+                        from: originalSchedule,
+                        calendarViewModel: calendarViewModel
+                    )
+                }
+                
+                // 4. sheet 닫기
+                self.showCreateScheduleSheet = false
+            }
+            .store(in: &cancellables)
+        
+        // 5. 생성한 자식 ViewModel을 View에 전달하고 sheet 띄우기
+        self.createScheduleSheetViewModel = sheetViewModel
+        self.showCreateScheduleSheet = true
     }
 }

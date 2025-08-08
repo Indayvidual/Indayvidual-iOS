@@ -26,12 +26,14 @@ struct ScheduleListView: View {
                             .frame(width: 10, height: 10)
                         
                         Text(
-                            schedule.endTime != nil
-                            ? "\(schedule.startTime.toTimeString()) - \(schedule.endTime!.toTimeString())"
-                            : schedule.startTime.toTimeString()
+                            schedule.startTime == nil ? "" :
+                            (schedule.endTime == nil
+                                ? schedule.startTime!.toTimeString()
+                                : "\(schedule.startTime!.toTimeString()) - \(schedule.endTime!.toTimeString())"
+                            )
                         )
-                            .font(.pretendMedium11)
-                            .foregroundColor(Color(.gray500))
+                        .font(.pretendMedium11)
+                        .foregroundColor(Color(.gray500))
 
                         Spacer()
                         

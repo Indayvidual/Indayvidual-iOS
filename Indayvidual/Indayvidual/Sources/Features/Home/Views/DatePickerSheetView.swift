@@ -8,13 +8,15 @@
 import SwiftUI
 
 struct DatePickerSheetView: View {
-    @Binding var showCreateScheduleSheet: Bool
     @Binding var showColorPickerSheet: Bool
     @Binding var selectedColor: Color
         
     @ObservedObject var calendarVm: CustomCalendarViewModel
     
+    var onComplete: (Date) -> Void
+    
     @Environment(\.dismiss) private var dismiss
+    
 
     var body: some View {
         CustomActionSheet(
@@ -22,10 +24,8 @@ struct DatePickerSheetView: View {
             titleIcon: "calendar_icon",
             primaryButtonTitle: "일정 선택",
             primaryAction: {
+                onComplete(calendarVm.selectDate)
                 dismiss()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                    showCreateScheduleSheet = true
-                }
             },
             secondaryAction: {
                 dismiss()
@@ -72,9 +72,11 @@ struct DatePickerSheetView: View {
 
 #Preview {
     DatePickerSheetView(
-        showCreateScheduleSheet: .constant(false),
         showColorPickerSheet: .constant(false),
         selectedColor: .constant(.green),
-        calendarVm: CustomCalendarViewModel()
+        calendarVm: CustomCalendarViewModel(),
+        onComplete: { selectedDate in
+            print("\(selectedDate) 선택됨")
+        }
     )
 }

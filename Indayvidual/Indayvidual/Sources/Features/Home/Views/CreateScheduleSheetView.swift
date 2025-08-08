@@ -12,17 +12,9 @@ struct CreateScheduleSheetView: View {
     @StateObject private var viewModel: CreateScheduleSheetViewModel
     @Environment(\.dismiss) private var dismiss
 
-    init(
-        calendarVm: CustomCalendarViewModel,
-        homeVm: HomeViewModel,
-        scheduleToEdit: ScheduleItem?
-    ) {
-        _viewModel = StateObject(wrappedValue: CreateScheduleSheetViewModel(
-            mainCalendarVm: calendarVm,
-            homeVm: homeVm,
-            scheduleToEdit: scheduleToEdit
-        ))
-    }
+    init(viewModel: CreateScheduleSheetViewModel) {
+           _viewModel = StateObject(wrappedValue: viewModel)
+       }
 
     var body: some View {
         CustomActionSheet(
@@ -31,8 +23,7 @@ struct CreateScheduleSheetView: View {
             primaryButtonTitle: viewModel.submitButtonTitle,
             secondaryButtonTitle: "취소",
             primaryAction: {
-                viewModel.submitSchedule()
-                dismiss()
+                viewModel.createSchedule()
             },
             secondaryAction: {
                 dismiss()
@@ -108,18 +99,12 @@ struct CreateScheduleSheetView: View {
 }
 
 #Preview {
-    struct PreviewWrapper: View {
-        @StateObject private var calendarVm = CustomCalendarViewModel()
-        @StateObject private var homeVm = HomeViewModel()
-
-        var body: some View {
-            CreateScheduleSheetView(
-                calendarVm: calendarVm,
-                homeVm: homeVm,
-                scheduleToEdit: nil
-            )
-            .environmentObject(homeVm)
-        }
-    }
-    return PreviewWrapper()
+    let previewViewModel = CreateScheduleSheetViewModel(
+        scheduleToEdit: nil,
+        selectedDate: Date(),
+        alertService: AlertService()
+    )
+    
+    return CreateScheduleSheetView(viewModel: previewViewModel)
+        .environmentObject(AlertService())
 }

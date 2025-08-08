@@ -16,9 +16,10 @@ struct HomeView: View {
     @State private var selectedColor: Color = .button
     @State private var isAllDay: Bool = false
     @State private var showEndSection: Bool = false
-    @State private var scheduleToEdit: ScheduleItem? = nil
-
+    
     @Environment(\.dismiss) private var dismiss
+    
+    @EnvironmentObject var alertService: AlertService
     
     var body: some View {
         VStack {
@@ -26,21 +27,39 @@ struct HomeView: View {
             
             CustomCalendarView(calendarViewModel: calendarVm)
                 .onChange(of: calendarVm.selectDate) { oldDate, newDate in
+                    homeVm.fetchSchedules(for: newDate)
                     homeVm.updateFilteredSchedules(for: newDate)
                 }
             
             Spacer().frame(height: 33)
             
             ScheduleListView(calendarVm: calendarVm, onEditSchedule: { schedule in
-                            scheduleToEdit = schedule
-                            homeVm.showCreateScheduleSheet = true
+                homeVm.presentScheduleSheet(
+                    for: schedule,
+                    on: schedule.startTime ?? calendarVm.selectDate,
+                    calendarViewModel: calendarVm
+                )
             })
-            .environmentObject(homeVm) 
+            .environmentObject(homeVm)
             
             Spacer()
         }
         .onAppear {
+            homeVm.setup(alertService: alertService)
+            // 기존 필터 업데이트
             homeVm.updateFilteredSchedules(for: calendarVm.selectDate)
+            
+            // 서버에서 해당 월의 마커 정보 불러오기
+            let year = Calendar.current.component(.year, from: calendarVm.selectDate)
+            let month = Calendar.current.component(.month, from: calendarVm.selectDate)
+            
+            homeVm.fetchHomeCalendar(
+                year: year,
+                month: month,
+                calendarViewModel: calendarVm
+            )
+            
+            homeVm.fetchSchedules(for: calendarVm.selectDate)
         }
         
         .onDisappear {
@@ -49,31 +68,34 @@ struct HomeView: View {
         .floatingBtn {
             homeVm.showDatePickerSheet.toggle()
         }
+        
         /// 일정 선택 시트뷰
         .sheet(isPresented: $homeVm.showDatePickerSheet) {
             DatePickerSheetView(
-                showCreateScheduleSheet: $homeVm.showCreateScheduleSheet,
                 showColorPickerSheet: $homeVm.showColorPickerSheet,
-                selectedColor: $selectedColor,
-                calendarVm: calendarVm
+                selectedColor: .constant(Color(.button)),                calendarVm: calendarVm,
+                onComplete: { selectedDate in
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                        homeVm.presentScheduleSheet(
+                            on: selectedDate,
+                            calendarViewModel: calendarVm
+                        )
+                    }
+                }
             )
             .presentationDragIndicator(.visible)
             .presentationDetents([.fraction(0.65)])
         }
         
         /// 일정 등록 시트뷰
-        .sheet(isPresented: $homeVm.showCreateScheduleSheet, onDismiss: {
-            // 시트가 닫힐 때 수정 상태 초기화
-            scheduleToEdit = nil
-        }) {
-            CreateScheduleSheetView(
-                calendarVm: calendarVm,
-                homeVm: homeVm,
-                scheduleToEdit: scheduleToEdit
-            )
-            .presentationDragIndicator(.visible)
-            .presentationDetents([.fraction(0.83), .large])
-            .environmentObject(homeVm)
+        .sheet(isPresented: $homeVm.showCreateScheduleSheet) {
+            if let sheetViewModel = homeVm.createScheduleSheetViewModel {
+                CreateScheduleSheetView(viewModel: sheetViewModel)
+                    .presentationDragIndicator(.visible)
+                    .presentationDetents([.fraction(0.83), .large])
+                    .environmentObject(homeVm)
+                    .environmentObject(alertService)
+            }
         }
         
         .background(Color(.gray50))
@@ -86,10 +108,12 @@ struct HomeView_Previews: PreviewProvider {
         
         return Group {
             HomeView(calendarVm: calendarVm)
+                .environmentObject(AlertService())
                 .previewDisplayName("iPhone 11")
                 .previewDevice("iPhone 11")
             
             HomeView(calendarVm: calendarVm)
+                .environmentObject(AlertService())
                 .previewDisplayName("iPhone 16 Pro")
                 .previewDevice("iPhone 16 Pro")
         }

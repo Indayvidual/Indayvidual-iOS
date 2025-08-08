@@ -9,21 +9,12 @@ import SwiftUI
 import Combine
 
 struct CreateScheduleSheetView: View {
-    @StateObject private var viewModel: CreateScheduleSheetViewModel
+    @ObservedObject private var viewModel: CreateScheduleSheetViewModel
     @Environment(\.dismiss) private var dismiss
-
-    init(
-        calendarVm: CustomCalendarViewModel,
-        homeVm: HomeViewModel,
-        scheduleToEdit: ScheduleItem?
-    ) {
-        _viewModel = StateObject(wrappedValue: CreateScheduleSheetViewModel(
-            mainCalendarVm: calendarVm,
-            homeVm: homeVm,
-            scheduleToEdit: scheduleToEdit
-        ))
+    
+    init(viewModel: CreateScheduleSheetViewModel) {
+        _viewModel = ObservedObject(wrappedValue: viewModel)
     }
-
     var body: some View {
         CustomActionSheet(
             title: viewModel.navigationTitle,
@@ -31,8 +22,7 @@ struct CreateScheduleSheetView: View {
             primaryButtonTitle: viewModel.submitButtonTitle,
             secondaryButtonTitle: "취소",
             primaryAction: {
-                viewModel.submitSchedule()
-                dismiss()
+                viewModel.saveSchedule()
             },
             secondaryAction: {
                 dismiss()
@@ -62,11 +52,11 @@ struct CreateScheduleSheetView: View {
                         showMarkers: false,
                         initialMode: .week
                     )
-
+                    
                     Divider()
                         .padding(.horizontal, 15.4)
                         .padding(.bottom, 20)
-
+                    
                     HStack(spacing: 8) {
                         Image("calendar_icon")
                             .resizable()
@@ -77,7 +67,7 @@ struct CreateScheduleSheetView: View {
                     }
                     .padding(.horizontal, 15.4)
                     .padding(.bottom, 15)
-
+                    
                     ScheduleInput(
                         title: $viewModel.title,
                         selectedStartTime: $viewModel.startTime,
@@ -88,7 +78,7 @@ struct CreateScheduleSheetView: View {
                     .padding(.horizontal, 20)
                     .animation(.easeInOut, value: viewModel.isAllDay)
                     .animation(.easeInOut, value: viewModel.showEndSection)
-
+                    
                     Divider()
                         .padding(.top, 20)
                         .padding(.bottom, 20)
@@ -108,18 +98,12 @@ struct CreateScheduleSheetView: View {
 }
 
 #Preview {
-    struct PreviewWrapper: View {
-        @StateObject private var calendarVm = CustomCalendarViewModel()
-        @StateObject private var homeVm = HomeViewModel()
-
-        var body: some View {
-            CreateScheduleSheetView(
-                calendarVm: calendarVm,
-                homeVm: homeVm,
-                scheduleToEdit: nil
-            )
-            .environmentObject(homeVm)
-        }
-    }
-    return PreviewWrapper()
+    let previewViewModel = CreateScheduleSheetViewModel(
+        scheduleToEdit: nil,
+        selectedDate: Date(),
+        alertService: AlertService()
+    )
+    
+    return CreateScheduleSheetView(viewModel: previewViewModel)
+        .environmentObject(AlertService())
 }

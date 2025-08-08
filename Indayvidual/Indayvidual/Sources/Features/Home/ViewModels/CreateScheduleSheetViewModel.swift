@@ -1,12 +1,15 @@
 import SwiftUI
 import Combine
+import Moya
 
 class CreateScheduleSheetViewModel: ObservableObject {
-    private let mainCalendarVm: CustomCalendarViewModel
-    private let homeVm: HomeViewModel
     private let scheduleToEdit: ScheduleItem?
     private var cancellables = Set<AnyCancellable>()
-
+    let completionPublisher = PassthroughSubject<(ScheduleItem, Bool), Never>()
+    
+    private let eventProvider = MoyaProvider<EventTarget>()
+    private var alertService: AlertService?
+    
     @Published var title: String = ""
     @Published var startTime: Date = Date()
     @Published var endTime: Date = Date()
@@ -16,88 +19,211 @@ class CreateScheduleSheetViewModel: ObservableObject {
     @Published var showColorPickerSheet: Bool = false
     
     @Published var sheetCalendarVm = CustomCalendarViewModel()
-
+    
     var navigationTitle: String {
         scheduleToEdit == nil ? "일정 등록" : "일정 수정"
     }
-
+    
     var submitButtonTitle: String {
         scheduleToEdit == nil ? "일정 등록하기" : "일정 수정하기"
     }
-
+    
     var isPrimaryButtonEnabled: Bool {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
-
+    
+    // MARK: - 초기화
     init(
-        mainCalendarVm: CustomCalendarViewModel,
-        homeVm: HomeViewModel,
-        scheduleToEdit: ScheduleItem?
+        scheduleToEdit: ScheduleItem?,
+        selectedDate: Date,
+        alertService: AlertService
     ) {
-        self.mainCalendarVm = mainCalendarVm
-        self.homeVm = homeVm
         self.scheduleToEdit = scheduleToEdit
+        self.alertService = alertService
         
-        initializeState()
+        initializeState(with: selectedDate)
         observeSheetCalendarDate()
     }
-
-    private func initializeState() {
-        let (initialTitle, initialStart, initialEnd, initialAllDay, initialShowEnd, initialColor) =
-            homeVm.initializeInput(for: scheduleToEdit, on: mainCalendarVm.selectDate)
-
-        self.title = initialTitle
-        self.startTime = initialStart
-        self.endTime = initialEnd
-        self.isAllDay = initialAllDay
-        self.showEndSection = initialShowEnd
-        self.selectedColor = initialColor
+    
+    private func initializeState(with selectedDate: Date) {
+        if let schedule = scheduleToEdit {
+            // 수정 모드일 때 초기화
+            self.title = schedule.title
+            self.startTime = schedule.startTime ?? selectedDate
+            self.endTime = schedule.endTime ?? self.startTime.addingTimeInterval(3600)
+            
+            self.isAllDay = schedule.isAllDay
+            self.showEndSection = !schedule.isAllDay && (schedule.endTime != nil)
+            self.selectedColor = schedule.color
+        } else {
+            // 새 등록 모드일 때 초기화
+            let calendar = Calendar.current
+            let startOfDay = calendar.startOfDay(for: selectedDate)
+            let hour = calendar.component(.hour, from: Date())
+            
+            self.title = ""
+            self.startTime = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: startOfDay) ?? selectedDate
+            self.endTime = self.startTime.addingTimeInterval(3600)
+            self.isAllDay = false
+            self.showEndSection = true
+            self.selectedColor = .button // 기본 색상
+        }
         
-        self.sheetCalendarVm.selectDate = mainCalendarVm.selectDate
+        self.sheetCalendarVm.selectDate = self.startTime
     }
     
     private func observeSheetCalendarDate() {
         sheetCalendarVm.$selectDate
             .sink { [weak self] newDate in
-                guard let self = self else { return }
-                self.updateStartTime(with: newDate)
+                self?.updateStartTime(with: newDate)
             }
             .store(in: &cancellables)
     }
-
-    private func updateStartTime(with newDate: Date) {
-        let calendar = Calendar.current
-        let timeComponents = calendar.dateComponents([.hour, .minute, .second], from: startTime)
-        var dateComponents = calendar.dateComponents([.year, .month, .day], from: newDate)
-        dateComponents.hour = timeComponents.hour
-        dateComponents.minute = timeComponents.minute
-        dateComponents.second = timeComponents.second
-
-        if let updatedStartTime = calendar.date(from: dateComponents) {
-            self.startTime = updatedStartTime
-            if self.endTime < updatedStartTime {
-                self.endTime = Calendar.current.date(byAdding: .hour, value: 1, to: updatedStartTime) ?? updatedStartTime
+    
+    // MARK: - 일정 등록/수정
+    func saveSchedule() {
+        guard isPrimaryButtonEnabled else { return }
+        
+        let isNew = scheduleToEdit == nil
+        let finalEndTime = calculateFinalEndTime()
+        
+        if isNew {
+            // 생성 요청: 기존 DTO 사용
+            let requestDto = createDto(endTime: finalEndTime)
+            requestCreate(requestDto: requestDto)
+        } else {
+            // 수정 요청: 업데이트용 DTO 사용
+            guard let eventId = scheduleToEdit?.id else {
+                alertService?.showAlert(message: "수정할 일정이 존재하지 않습니다.", primaryButton: .primary(title: "확인"))
+                return
+            }
+            let requestDto = updateDto(endTime: finalEndTime)
+            requestUpdate(eventId: eventId, requestDto: requestDto)
+        }
+    }
+    
+    /// 생성 요청 API 호출
+    private func requestCreate(requestDto: EventCreateRequestDto) {
+        let apiTarget: EventTarget = .postEvent(content: requestDto)
+        
+        eventProvider.request(apiTarget) { [weak self] result in
+            self?.handleResponse(result: result, isNew: true)
+        }
+    }
+    
+    /// 수정 요청 API 호출
+    private func requestUpdate(eventId: Int, requestDto: EventUpdateRequestDto) {
+        let apiTarget: EventTarget = .patchEvent(eventId: eventId, content: requestDto)
+        
+        eventProvider.request(apiTarget) { [weak self] result in
+            self?.handleResponse(result: result, isNew: false)
+        }
+    }
+    
+    /// 생성용 DTO 생성
+    private func createDto(endTime: Date?) -> EventCreateRequestDto {
+        let dateString = startTime.toString(format: "yyyy-MM-dd")
+        
+        // 하루 종일일 경우 start/endTime nil
+        let startTimeString = isAllDay ? nil : startTime.toString(format: "HH:mm")
+        let endTimeString = isAllDay ? nil : (endTime?.toString(format: "HH:mm"))
+        
+        let colorHexString = selectedColor.toHex()
+        
+        return EventCreateRequestDto(
+            date: dateString,
+            title: title,
+            startTime: startTimeString,
+            endTime: endTimeString,
+            color: colorHexString,
+            isAllDay: isAllDay
+        )
+    }
+    
+    /// 수정용 DTO 생성
+    private func updateDto(endTime: Date?) -> EventUpdateRequestDto {
+        let dateString = startTime.toString(format: "yyyy-MM-dd")
+        
+        // 하루 종일일 경우 start/endTime nil
+        let startTimeString = isAllDay ? nil : startTime.toString(format: "HH:mm")
+        let endTimeString = isAllDay ? nil : (endTime?.toString(format: "HH:mm"))
+        
+        let colorHexString = selectedColor.toHex()
+        
+        // 수정 DTO는 모든 필드 nullable
+        // 빈 문자열이면 nil로 처리하도록 할 수도 있음
+        return EventUpdateRequestDto(
+            date: dateString.isEmpty ? nil : dateString,
+            title: title.isEmpty ? nil : title,
+            startTime: startTimeString,
+            endTime: endTimeString,
+            color: colorHexString,
+            isAllDay: isAllDay
+        )
+    }
+    
+    /// API 응답 처리 공통 함수
+    private func handleResponse(result: Result<Response, MoyaError>, isNew: Bool) {
+        DispatchQueue.main.async {
+            switch result {
+            case .success(let response):
+                guard (200...299).contains(response.statusCode) else {
+                    self.alertService?.showAlert(message: "서버에 문제가 발생했습니다. (코드: \(response.statusCode))", primaryButton: .primary(title: "확인"))
+                    return
+                }
+                
+                let eventId: Int
+                if isNew {
+                    // 생성: 응답에서 새로운 ID를 디코딩
+                    guard let decodedId = try? JSONDecoder().decode(APIResponseDto<EventCreateResponseDto>.self, from: response.data).data.eventId else {
+                        self.alertService?.showAlert(message: "데이터 처리 중 오류가 발생했습니다.", primaryButton: .primary(title: "확인"))
+                        return
+                    }
+                    eventId = decodedId
+                } else {
+                    // 수정: 기존 ID를 사용
+                    guard let existingId = self.scheduleToEdit?.id else {
+                        self.alertService?.showAlert(message: "수정할 일정을 찾을 수 없습니다.", primaryButton: .primary(title: "확인"))
+                        return
+                    }
+                    eventId = existingId
+                }
+                
+                let finalSchedule = ScheduleItem(
+                    id: eventId,
+                    startTime: self.startTime,
+                    endTime: self.calculateFinalEndTime(),
+                    title: self.title,
+                    color: self.selectedColor,
+                    isAllDay: self.isAllDay
+                )
+                self.completionPublisher.send((finalSchedule, isNew))
+                
+            case .failure:
+                self.alertService?.showAlert(message: "네트워크 연결을 확인해주세요.", primaryButton: .primary(title: "확인"))
             }
         }
     }
-
-    private func calculateFinalEndTime() -> Date? {
-        if isAllDay { return nil }
-        return showEndSection ? endTime : nil
+    // MARK: - 헬퍼 메서드
+    
+    private func updateStartTime(with newDate: Date) {
+        let calendar = Calendar.current
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: startTime)
+        var dateComponents = calendar.dateComponents([.year, .month, .day], from: newDate)
+        dateComponents.hour = timeComponents.hour
+        dateComponents.minute = timeComponents.minute
+        
+        if let updatedStartTime = calendar.date(from: dateComponents) {
+            self.startTime = updatedStartTime
+            if self.endTime < updatedStartTime {
+                self.endTime = calendar.date(byAdding: .hour, value: 1, to: updatedStartTime) ?? updatedStartTime
+            }
+        }
     }
-
-    func submitSchedule() {
-        guard isPrimaryButtonEnabled else { return }
-        let finalEndTime = calculateFinalEndTime()
-
-        homeVm.submitSchedule(
-            existingSchedule: scheduleToEdit,
-            title: title,
-            startTime: startTime,
-            endTime: finalEndTime,
-            color: selectedColor,
-            isAllDay: isAllDay,
-            calendarViewModel: mainCalendarVm
-        )
+    
+    /// 종료 시간 계산
+    private func calculateFinalEndTime() -> Date? {
+        if isAllDay { return nil }  // 하루종일 일 경우 종료시간 nil
+        return showEndSection ? endTime : nil  // 종료 시간 선택한 경우 endTime, 아닌경우 nil
     }
 }

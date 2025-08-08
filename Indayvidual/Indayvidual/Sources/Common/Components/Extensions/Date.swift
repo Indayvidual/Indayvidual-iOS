@@ -9,7 +9,7 @@ import Foundation
 
 extension Date {
     
-    // MARK: 해당 날짜의 자정 (00:00:00)을 반환합니다.
+    // MARK: - 해당 날짜의 자정 (00:00:00)을 반환합니다.
     /// ```
     /// let today = Date()
     /// let startOfToday = today.startOfDay
@@ -18,7 +18,12 @@ extension Date {
         return Calendar.current.startOfDay(for: self)
     }
     
-    // MARK: 두 날짜가 같은 날인지 (년, 월, 일 기준) 확인합니다.
+    // MARK: - 해당 날짜가 오늘인지 확인합니다.
+    var isToday: Bool {
+        return Calendar.current.isDateInToday(self)
+    }
+    
+    // MARK: - 두 날짜가 같은 날인지 (년, 월, 일 기준) 확인합니다.
     /// ```
     /// if date1.isSameDay(as: date2) { ... }
     /// ```
@@ -26,12 +31,7 @@ extension Date {
         return Calendar.current.isDate(self, inSameDayAs: date)
     }
     
-    // MARK: 해당 날짜가 오늘인지 확인합니다.
-    var isToday: Bool {
-        return Calendar.current.isDateInToday(self)
-    }
-    
-    // MARK: 원하는 형식의 문자열로 날짜를 변환합니다.
+    // MARK: - 원하는 형식의 문자열로 날짜를 변환합니다.
     /// ```
     /// let dateString = Date().toString(format: "yyyy년 M월 d일")
     /// ```
@@ -54,4 +54,12 @@ extension Date {
         components.day = day
         return Calendar.current.date(from: components)
     }
+    
+    // MARK: - Date 타입을 HH:mm으로 변환 합니다.
+    func toTimeString() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: self)
+    }
+
 }

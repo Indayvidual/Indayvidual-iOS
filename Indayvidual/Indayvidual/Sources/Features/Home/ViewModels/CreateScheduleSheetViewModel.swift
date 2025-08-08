@@ -3,7 +3,7 @@ import Combine
 
 class CreateScheduleSheetViewModel: ObservableObject {
     private let mainCalendarVm: CustomCalendarViewModel
-    private let scheduleVm: ScheduleViewModel
+    private let homeVm: HomeViewModel
     private let scheduleToEdit: ScheduleItem?
     private var cancellables = Set<AnyCancellable>()
 
@@ -31,11 +31,11 @@ class CreateScheduleSheetViewModel: ObservableObject {
 
     init(
         mainCalendarVm: CustomCalendarViewModel,
-        scheduleVm: ScheduleViewModel,
+        homeVm: HomeViewModel,
         scheduleToEdit: ScheduleItem?
     ) {
         self.mainCalendarVm = mainCalendarVm
-        self.scheduleVm = scheduleVm
+        self.homeVm = homeVm
         self.scheduleToEdit = scheduleToEdit
         
         initializeState()
@@ -44,7 +44,7 @@ class CreateScheduleSheetViewModel: ObservableObject {
 
     private func initializeState() {
         let (initialTitle, initialStart, initialEnd, initialAllDay, initialShowEnd, initialColor) =
-            scheduleVm.initializeInput(for: scheduleToEdit, on: mainCalendarVm.selectDate)
+            homeVm.initializeInput(for: scheduleToEdit, on: mainCalendarVm.selectDate)
 
         self.title = initialTitle
         self.startTime = initialStart
@@ -90,7 +90,7 @@ class CreateScheduleSheetViewModel: ObservableObject {
         guard isPrimaryButtonEnabled else { return }
         let finalEndTime = calculateFinalEndTime()
 
-        scheduleVm.submitSchedule(
+        homeVm.submitSchedule(
             existingSchedule: scheduleToEdit,
             title: title,
             startTime: startTime,

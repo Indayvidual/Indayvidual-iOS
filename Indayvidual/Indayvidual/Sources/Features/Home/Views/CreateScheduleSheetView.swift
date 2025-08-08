@@ -9,13 +9,12 @@ import SwiftUI
 import Combine
 
 struct CreateScheduleSheetView: View {
-    @StateObject private var viewModel: CreateScheduleSheetViewModel
+    @ObservedObject private var viewModel: CreateScheduleSheetViewModel
     @Environment(\.dismiss) private var dismiss
-
+    
     init(viewModel: CreateScheduleSheetViewModel) {
-           _viewModel = StateObject(wrappedValue: viewModel)
-       }
-
+        _viewModel = ObservedObject(wrappedValue: viewModel)
+    }
     var body: some View {
         CustomActionSheet(
             title: viewModel.navigationTitle,
@@ -53,11 +52,11 @@ struct CreateScheduleSheetView: View {
                         showMarkers: false,
                         initialMode: .week
                     )
-
+                    
                     Divider()
                         .padding(.horizontal, 15.4)
                         .padding(.bottom, 20)
-
+                    
                     HStack(spacing: 8) {
                         Image("calendar_icon")
                             .resizable()
@@ -68,7 +67,7 @@ struct CreateScheduleSheetView: View {
                     }
                     .padding(.horizontal, 15.4)
                     .padding(.bottom, 15)
-
+                    
                     ScheduleInput(
                         title: $viewModel.title,
                         selectedStartTime: $viewModel.startTime,
@@ -79,7 +78,7 @@ struct CreateScheduleSheetView: View {
                     .padding(.horizontal, 20)
                     .animation(.easeInOut, value: viewModel.isAllDay)
                     .animation(.easeInOut, value: viewModel.showEndSection)
-
+                    
                     Divider()
                         .padding(.top, 20)
                         .padding(.bottom, 20)

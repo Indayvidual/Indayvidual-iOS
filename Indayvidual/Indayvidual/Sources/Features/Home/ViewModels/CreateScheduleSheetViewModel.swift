@@ -93,8 +93,12 @@ class CreateScheduleSheetViewModel: ObservableObject {
             requestCreate(requestDto: requestDto)
         } else {
             // 수정 요청: 업데이트용 DTO 사용
+            guard let eventId = scheduleToEdit?.id else {
+                alertService?.showAlert(message: "수정할 일정이 존재하지 않습니다.", primaryButton: .primary(title: "확인"))
+                return
+            }
             let requestDto = updateDto(endTime: finalEndTime)
-            requestUpdate(eventId: scheduleToEdit!.id, requestDto: requestDto)
+            requestUpdate(eventId: eventId, requestDto: requestDto)
         }
     }
     

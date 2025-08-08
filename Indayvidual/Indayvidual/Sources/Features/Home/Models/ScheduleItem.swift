@@ -44,3 +44,15 @@ struct ScheduleItem: Identifiable, Comparable {
         }
     }
 }
+
+extension ScheduleItem {
+    var timeText: String {
+        guard let start = startTime else { return "" }
+        
+        if let end = endTime {
+            return "\(start.toTimeString()) - \(end.toTimeString())"
+        } else {
+            return start.toTimeString()
+        }
+    }
+}

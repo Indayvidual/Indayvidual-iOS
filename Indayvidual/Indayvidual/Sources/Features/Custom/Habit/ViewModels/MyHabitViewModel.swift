@@ -101,16 +101,16 @@ class MyHabitViewModel {
             }
         }
     }
-
+    
     // ✅ 체크 상태 토글 (선택/해제)
     func toggleSelection(at index: Int, date: String) {
         guard index < sharedVM.habits.count,
               let habitId = sharedVM.habits[index].habitId else { return }
-
+        
         // 이전 상태 저장
         let oldChecked = sharedVM.habits[index].isSelected
         let newChecked = !oldChecked
-
+        
         provider.request(
             .patchHabitsCheck(habitId: habitId, date: date, checked: newChecked)
         ) { result in
@@ -120,7 +120,7 @@ class MyHabitViewModel {
                     // 상태 업데이트
                     self.sharedVM.habits[index].isSelected = newChecked
                     self.sharedVM.habits[index].checkedAt  = newChecked ? date : ""
-
+                    
                     // 상세 로그
                     let updated = self.sharedVM.habits[index]
                     print("""
@@ -138,7 +138,7 @@ class MyHabitViewModel {
             }
         }
     }
-
+    
     
     // ✅ 일간 체크 불러오기
     func fetchDailyChecks(Date: String) {
@@ -151,18 +151,18 @@ class MyHabitViewModel {
                         .decode(ApiResponseListHabitResponseDTO.self, from: response.data)
                     DispatchQueue.main.async {
                         let dtos = wrapper.data  // [HabitResponseDTO]
-
+                        
                         // 1) habitId → (checked, checkedAt) 매핑
                         let checkMap: [Int: (checked: Bool, date: String)] = Dictionary(
-                          uniqueKeysWithValues:
-                            dtos.compactMap { dto -> (Int, (checked: Bool, date: String))? in
-                              // checkedAt이 없으면 이 항목은 걸러내고
-                              guard let date = dto.checkedAt else { return nil }
-                              // habitId는 non-optional Int라 곧바로 사용
-                              return (dto.habitId, (dto.checked, date))
-                            }
+                            uniqueKeysWithValues:
+                                dtos.compactMap { dto -> (Int, (checked: Bool, date: String))? in
+                                    // checkedAt이 없으면 이 항목은 걸러내고
+                                    guard let date = dto.checkedAt else { return nil }
+                                    // habitId는 non-optional Int라 곧바로 사용
+                                    return (dto.habitId, (dto.checked, date))
+                                }
                         )
-
+                        
                         // 2) sharedVM.habits만 in-place 업데이트
                         for idx in self.sharedVM.habits.indices {
                             var habit = self.sharedVM.habits[idx]
@@ -172,7 +172,7 @@ class MyHabitViewModel {
                                 habit.checkedAt  = info.date
                             } else {
                                 habit.isSelected = false
-                                habit.checkedAt  = ""  // 모델이 옵셔널로 바뀌어 있어야 합니다
+                                habit.checkedAt  = ""
                             }
                             self.sharedVM.habits[idx] = habit
                         }
@@ -183,27 +183,6 @@ class MyHabitViewModel {
                 }
             case .failure(let error):
                 print("❌ 일간 체크 API 실패: \(error)")
-            }
-        }
-    }
-
-    // ✅ 주간 체크 불러오기
-    func fetchWeeklyChecks(startDate: String) {
-        provider.request(.getHabitsCheckWeekly(startDate: startDate)) { result in
-            switch result {
-            case .success(let response):
-                do {
-                    let decoded = try JSONDecoder().decode([HabitWeeklyChecksResponseDTO].self, from: response.data)
-                    let habits = decoded.map { $0.toWeeklyModel() }
-                    DispatchQueue.main.async {
-                        self.sharedVM.habits = habits
-                        print("✅ 주간 체크 불러오기 성공")
-                    }
-                } catch {
-                    print("❌ 주간 체크 디코딩 실패: \(error)")
-                }
-            case .failure(let error):
-                print("❌ 주간 체크 API 실패: \(error)")
             }
         }
     }

@@ -12,7 +12,6 @@ struct WeeklyHabitView: View {
     var showShadow: Bool = true
     var sharedVM: CustomViewModel
     
-    
     let days = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
     
     var body: some View {
@@ -27,7 +26,7 @@ struct WeeklyHabitView: View {
                 
                 // 요일 헤더
                 HStack {
-                    Text("") // 첫 칸 비워서 헤더 정렬
+                    Text("") // 첫 칸 비워 정렬
                         .frame(width: 40, alignment: .leading)
                     ForEach(days, id: \.self) { day in
                         Text(day)
@@ -36,20 +35,22 @@ struct WeeklyHabitView: View {
                     }
                 }
                 
-                //습관별 체크
-                ForEach(Array(sharedVM.habits.enumerated()), id: \.element.id) { _, habit in
+                // 습관별 주간 체크 박스
+                ForEach(sharedVM.weeklyHabits, id: \.id) { habit in
                     HStack {
                         Text(habit.title)
                             .font(.pretendSemiBold10)
                             .frame(width: 40, alignment: .leading)
                         
-                        ForEach(0..<7, id: \.self) { i in
+                        ForEach(0..<7, id: \.self) { idx in
+                            let checked = habit.checks.indices.contains(idx)
+                                         && habit.checks[idx]
                             RoundedRectangle(cornerRadius: 3)
                                 .frame(width: 28, height: 28)
                                 .foregroundStyle(
-                                    (habit.checks.indices.contains(i) && habit.checks[i])
-                                    ? Color(habit.colorName)
-                                    : .gray500
+                                    checked
+                                        ? Color(habit.colorName)
+                                        : Color.gray.opacity(0.5)
                                 )
                         }
                     }
@@ -58,6 +59,7 @@ struct WeeklyHabitView: View {
             .padding()
         }
         .padding(.horizontal, 6)
-        .shadow(color: showShadow ? Color.black.opacity(0.08) : .clear, radius: 9.5, x: 2, y: 3)
+        .shadow(color: showShadow ? Color.black.opacity(0.08) : .clear,
+                radius: 9.5, x: 2, y: 3)
     }
 }

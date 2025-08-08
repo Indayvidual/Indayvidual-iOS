@@ -63,6 +63,11 @@ struct MyHabitView: View {
                 }
             })
         }
+        .task(id: selectedMode) {
+            if selectedMode == .weekly {
+                sharedVM.loadWeeklyChecks()    // 주간 체크 다시 로드
+            }
+        }
     }
     
     var habitsListView: some View {
@@ -70,10 +75,10 @@ struct MyHabitView: View {
             VStack {
                 ForEach(Array(sharedVM.habits.enumerated()), id: \.element.id) { index, habit in
                     HabitCardView(
+                        calendarVM: calendarViewModel,
                         habit: habit,
                         onToggle: {
-                            MyHabitViewModel(sharedVM: sharedVM)
-                                .toggleSelection(at: index, date: calendarViewModel.selectDate.toAPIDateFormat())
+                            MyHabitViewModel(sharedVM: sharedVM).toggleSelection(at: index, date: calendarViewModel.selectDate.toAPIDateFormat())
                         },
                         onEdit: {
                             self.habit = habit
@@ -137,9 +142,11 @@ struct MyHabitView: View {
     var weeklyView: some View {
         VStack {
             ScrollView {
-                WeeklyHabitView(sharedVM: sharedVM)
-                    .padding(12)
-                    .padding(.horizontal)
+                WeeklyHabitView(
+                    sharedVM: sharedVM
+                )
+                .padding(12)
+                .padding(.horizontal)
             }
         }
     }
@@ -157,15 +164,25 @@ struct MyHabitView: View {
     }
     
     var completeView: some View {
+        // 화면에 표시할 날짜 포맷
         let displayDate = calendarViewModel.selectDate.toDisplayFormat()
-        let apiDate = calendarViewModel.selectDate.toAPIDateFormat()
+        // API 호출에 쓸 날짜 포맷
+        let apiDate     = calendarViewModel.selectDate.toAPIDateFormat()
+        // 오늘 00:00 기준으로 미래 여부 계산
+        let isFuture    = Calendar.current.compare(
+                calendarViewModel.selectDate,
+                to: Date(),
+                toGranularity: .day
+            ) == .orderedDescending
+        // 미래면 0, 아니면 실제 달성 개수
+        let count       = isFuture ? 0 : sharedVM.habitsSelectedCount
 
         return VStack(alignment: .leading) {
             Text(displayDate)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .font(.pretendMedium15)
 
-            Text("\(sharedVM.habitsSelectedCount)개의 활동을 달성했어요!")
+            Text("\(count)개의 활동을 달성했어요!")
                 .font(.pretendMedium12)
                 .tint(.gray700)
         }
@@ -177,9 +194,12 @@ struct MyHabitView: View {
         .padding(.horizontal, 16)
         .padding(.top, 16)
         .task(id: calendarViewModel.selectDate) {
+            // 미래 날짜면 API 호출 스킵
+            guard !isFuture else { return }
             MyHabitViewModel(sharedVM: sharedVM).fetchDailyChecks(Date: apiDate)
         }
     }
+
 }
 
 #Preview {

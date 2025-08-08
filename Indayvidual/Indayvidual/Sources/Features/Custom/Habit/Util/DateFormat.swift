@@ -1,5 +1,5 @@
 //
-//  DataFormat.swift
+//  DateFormat.swift
 //  Indayvidual
 //
 //  Created by 김도연 on 8/6/25.

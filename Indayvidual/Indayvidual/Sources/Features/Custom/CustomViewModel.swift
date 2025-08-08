@@ -80,12 +80,15 @@ class CustomViewModel {
                 }
 
                 do {
-                    let decoded = try JSONDecoder().decode(ApiResponseListHabitResponseDTO.self, from: response.data)
-                    let models = decoded.data.toModelList()
+                    let slice = try JSONDecoder()
+                        .decode(ApiResponseHabitSliceResponseDTO.self, from: response.data)
+                    let models = slice.data.toModelList()
+                    
                     DispatchQueue.main.async {
                         self.habits = models
-                        print("✅ 습관 불러오기 성공")
+                        print("✅ 습관 슬라이스 불러오기 성공: \(models.count)개")
                     }
+
                 } catch {
                     print("❌ 습관 디코딩 실패:", error)
                 }

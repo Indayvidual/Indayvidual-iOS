@@ -8,12 +8,8 @@
 import SwiftUI
 
 struct CustomView: View{
-    @State private var vm : CustomViewModel
+    @Bindable private var vm = CustomViewModel()
     @State private var showAdd : Bool = false
-    
-    init() {
-        self.vm = .init()
-    }
     
     var body: some View{
         NavigationStack {

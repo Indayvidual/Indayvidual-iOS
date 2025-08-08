@@ -6,14 +6,15 @@
 //
 
 import SwiftUI
+
 struct MyHabitView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var calendarViewModel = CustomCalendarViewModel()
+    @State var sharedVM: CustomViewModel
     @State private var selectedMode: HabitMode = .daily
     @State private var Add : Bool = false
     @State private var habit: MyHabitModel?
     @State private var index: Int?
-    var sharedVM: CustomViewModel
 
     var body: some View {
         ZStack {
@@ -71,9 +72,8 @@ struct MyHabitView: View {
                     HabitCardView(
                         habit: habit,
                         onToggle: {
-                                if index < sharedVM.habits.count {
-                                    sharedVM.habits[index].isSelected.toggle()
-                            }
+                            MyHabitViewModel(sharedVM: sharedVM)
+                                .toggleSelection(at: index, date: calendarViewModel.selectDate.toAPIDateFormat())
                         },
                         onEdit: {
                             self.habit = habit
@@ -81,9 +81,7 @@ struct MyHabitView: View {
                             Add = true
                         },
                         onDelete: {
-                                if index < sharedVM.habits.count {
-                                    sharedVM.habits.remove(at: index)
-                            }
+                            MyHabitViewModel(sharedVM: sharedVM).delete(at: index)
                         }
                     )
                     .listRowSeparator(.hidden)
@@ -179,7 +177,7 @@ struct MyHabitView: View {
         .padding(.horizontal, 16)
         .padding(.top, 16)
         .task(id: calendarViewModel.selectDate) {
-            MyHabitViewModel(sharedVM: sharedVM).fetchDailyChecks(startDate: apiDate)
+            MyHabitViewModel(sharedVM: sharedVM).fetchDailyChecks(Date: apiDate)
         }
     }
 }

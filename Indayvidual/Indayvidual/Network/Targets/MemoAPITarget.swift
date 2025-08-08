@@ -63,14 +63,9 @@ extension MemoAPITarget: APITargetType {
 
     
     var headers: [String : String]? {
-        guard let token = UserDefaults.standard.string(forKey: "accessToken") else {
-            print("❌ accessToken 없음")
-            return nil
-        }
         return [
-            "Content-Type": "application/json",
-            "Authorization": "Bearer \(token)"
-        ]
+                "Content-Type": "application/json",
+                "Authorization": "Bearer \("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxNSIsImlhdCI6MTc1NDYxNTYxMSwiZXhwIjoxNzU0NjE2NTExLCJ1c2VySWQiOjE1LCJyb2xlIjoiUk9MRV9VU0VSIiwidG9rZW5UeXBlIjoiYWNjZXNzIn0.YATLyB6cCykMnj4ZrVkg9HLGwiSH2j0xmIB_eSb9jbg")"
+            ]
     }
-
 }

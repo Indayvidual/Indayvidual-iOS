@@ -97,10 +97,12 @@ extension HabitAPITarget: APITargetType {
     }
     
     var headers: [String : String]? {
-        return [
-                "Content-Type": "application/json",
-                "Authorization": "Bearer \("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxNSIsImlhdCI6MTc1NDYxNTYxMSwiZXhwIjoxNzU0NjE2NTExLCJ1c2VySWQiOjE1LCJyb2xlIjoiUk9MRV9VU0VSIiwidG9rZW5UeXBlIjoiYWNjZXNzIn0.YATLyB6cCykMnj4ZrVkg9HLGwiSH2j0xmIB_eSb9jbg")"
-            ]
-    }
+        var headers = ["Content-Type" : "application/json"]
 
+        if let accessToken = UserDefaults.standard.string(forKey: "accessToken"), !accessToken.isEmpty {
+            headers["Authorization"] = "Bearer \(accessToken)"
+        }
+        
+        return headers
+    }
 }

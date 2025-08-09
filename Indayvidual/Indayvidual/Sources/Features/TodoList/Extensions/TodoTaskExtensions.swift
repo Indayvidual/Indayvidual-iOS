@@ -36,15 +36,12 @@ extension TodoViewModel {
             return
         }
         
-        guard !isLoading else { return }
-        isLoading = true
         errorMessage = nil
         
         let colorHex = newColor.toHex()
         
         categoryProvider.request(TodoCategoryAPITarget.updateCategory(categoryId: categoryId, name: newName, color: colorHex)) { [weak self] result in
             DispatchQueue.main.async {
-                self?.isLoading = false
                 
                 switch result {
                 case .success(let response):
@@ -89,13 +86,10 @@ extension TodoViewModel {
     // 카테고리 삭제 + 삭제 할 카테고리에 있는 task들도 모두 삭제
     func deleteCategory(_ category: Category) {
         guard let categoryId = category.categoryId else { return }
-
-        isLoading = true
         errorMessage = nil
 
         categoryProvider.request(TodoCategoryAPITarget.deleteCategory(categoryId: categoryId)) { [weak self] result in
             DispatchQueue.main.async {
-                self?.isLoading = false
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {

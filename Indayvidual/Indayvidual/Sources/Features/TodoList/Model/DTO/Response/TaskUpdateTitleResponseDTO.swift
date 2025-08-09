@@ -10,5 +10,5 @@ import Foundation
 struct TaskUpdateTitleResponseDTO : Decodable {
     let taskId : Int
     let title : String
-    let icCompleted : Bool
+    let isCompleted : Bool
 }

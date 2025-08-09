@@ -62,7 +62,7 @@ struct TodoCategorySelectView: View {
                 Button {
                     handleCategorySubmission()
                 } label: {
-                    Text(todoViewModel.isLoading ? "수정 중..." : "완료")
+                    Text("완료")
                         .font(.pretendSemiBold16)
                         .foregroundStyle(.grayWhite)
                         .frame(maxWidth: .infinity)
@@ -113,7 +113,7 @@ struct TodoCategorySelectView: View {
                     .foregroundStyle(.black)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(todoViewModel.isLoading ? "등록 중.." : "등록") {
+                Button("등록") {
                     handleCategorySubmission()
                 }
                 .font(.pretendSemiBold18)
@@ -164,8 +164,7 @@ struct TodoCategorySelectView: View {
     }
 
     // MARK: - 버튼 기능과 색상 변화
-    private var isButtonDisabled: Bool {
-        todoViewModel.isLoading || categoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+    private var isButtonDisabled: Bool { categoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private var buttonBackgroundColor: Color {
@@ -175,9 +174,6 @@ struct TodoCategorySelectView: View {
     // MARK: - Methods
     private func handleCategorySubmission() {
         let trimmedName = categoryName.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !todoViewModel.isLoading else {
-            return
-        }
 
         if isEditMode {
             guard let targetCategory = categoryToUpdate else {
@@ -194,7 +190,6 @@ struct TodoCategorySelectView: View {
                     }
                 } else {
                     todoViewModel.errorMessage = "카테고리 수정에 실패했습니다. 다시 시도해 주세요."
-                    todoViewModel.isLoading = false
                 }
             }
         } else {
@@ -206,7 +201,6 @@ struct TodoCategorySelectView: View {
                     }
                 } else {
                     todoViewModel.errorMessage = "카테고리 등록에 실패했습니다. 다시 시도해 주세요."
-                    todoViewModel.isLoading = false
                 }
             }
         }

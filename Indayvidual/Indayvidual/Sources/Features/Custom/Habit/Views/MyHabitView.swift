@@ -10,6 +10,7 @@ import SwiftUI
 struct MyHabitView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var calendarViewModel = CustomCalendarViewModel()
+    @State private var editColorVM = ColorViewModel()
     @State var sharedVM: CustomViewModel                // 공유 뷰모델 설정
     @State private var selectedMode: HabitMode = .daily // 기본 .daily로 설정
     @State private var Change : Bool = false            // 습관 수정 NavigationView 트리거
@@ -34,7 +35,7 @@ struct MyHabitView: View {
             }
         }
         .navigationDestination(isPresented: $Change) {  // 습관 수정 시 HabitFormView에 기존 습관 내용 전송
-            HabitFormView(colorViewModel: ColorViewModel(), viewModel: MyHabitViewModel(sharedVM: sharedVM, habit: habit, index: index))
+            HabitFormView(colorViewModel: editColorVM, viewModel: MyHabitViewModel(sharedVM: sharedVM, habit: habit, index: index))
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -68,6 +69,9 @@ struct MyHabitView: View {
                 sharedVM.loadWeeklyChecks()
             }
         }
+        .onDisappear {                                  // 부모 뷰로 돌아갈 때 weekly 새로고침
+            sharedVM.loadWeeklyChecks()
+        }
     }
     
     // 리스트 형식으로 현재 저장된 습관 출력
@@ -86,6 +90,14 @@ struct MyHabitView: View {
                             // 현재 습관 값 불러온 뒤 Change = true 설정하여 navigation
                             self.habit = habit
                             self.index = index
+                            
+                            // 현재 습관 색으로 선택 설정
+                            let vm = ColorViewModel()
+                            if let target = vm.colors.first(where: { $0.name == habit.colorName }) {
+                                vm.colorSelection(for: target.id)
+                            }
+                            self.editColorVM = vm
+                        
                             Change = true
                         },
                         onDelete: {

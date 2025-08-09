@@ -59,8 +59,7 @@ struct CustomView: View{
             else {
                 ScrollView(.horizontal) {
                     LazyHStack {
-                        ForEach(vm.memos.indices, id: \.self) { index in
-                            let memo = vm.memos[index]
+                        ForEach(Array(vm.memos.enumerated()), id: \.element.id) { index, memo in
                             NavigationLink {
                                 AddMemoView(
                                     vm: MemoViewModel(

@@ -12,6 +12,7 @@ import Observation
 
 @Observable
 class CustomViewModel {
+    // TODO: 이름 User정보에서 불러오기
     var name: String = "인데비"
     
     // MARK: - 메모

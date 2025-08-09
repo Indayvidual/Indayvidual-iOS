@@ -44,14 +44,6 @@ class CustomViewModel {
         memoProvider.request(.getMemos) { result in
             switch result {
             case .success(let response):
-                print("📦 [Memos] 상태 코드:", response.statusCode)
-                print("📦 [Memos] 응답 원문:", String(data: response.data, encoding: .utf8) ?? "없음")
-                
-                guard !response.data.isEmpty else {
-                    print("✅ 메모 응답이 비어 있음")
-                    return
-                }
-                
                 do {
                     let decoded = try JSONDecoder().decode(ApiResponseMemoSliceResponseDTO.self, from: response.data)
                     let models = decoded.data.toModelList()
@@ -74,14 +66,6 @@ class CustomViewModel {
         habitProvider.request(.getHabits) { result in
             switch result {
             case .success(let response):
-                print("📦 [Habits] 상태 코드:", response.statusCode)
-                print("📦 [Habits] 응답 원문:", String(data: response.data, encoding: .utf8) ?? "없음")
-                
-                guard !response.data.isEmpty else {
-                    print("✅ 습관 응답이 비어 있음")
-                    return
-                }
-                
                 do {
                     let slice = try JSONDecoder()
                         .decode(ApiResponseHabitSliceResponseDTO.self, from: response.data)
@@ -119,7 +103,6 @@ class CustomViewModel {
         habitProvider.request(.getHabitsCheckWeekly(startDate: startDate)) { result in
             switch result {
             case .success(let response):
-                print("🧾 주간 체크 응답:", String(data: response.data, encoding: .utf8) ?? "")
                 do {
                     // 최상위 래퍼 DTO 디코딩
                     let wrapper = try JSONDecoder()

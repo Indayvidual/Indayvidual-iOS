@@ -61,8 +61,6 @@ class MyHabitViewModel {
             provider.request(.postHabits(title: dto.title, colorCode: dto.colorCode)) { result in
                 switch result {
                 case .success(let response):
-                    print("📦 상태 코드: \(response.statusCode)")
-                    print("🧾 응답 본문:", String(data: response.data, encoding: .utf8) ?? "없음")
                     do {
                         let wrapper = try JSONDecoder()
                             .decode(ApiResponseHabitResponseDTO.self, from: response.data)
@@ -120,18 +118,6 @@ class MyHabitViewModel {
                     // 상태 업데이트
                     self.sharedVM.habits[index].isSelected = newChecked
                     self.sharedVM.habits[index].checkedAt  = newChecked ? date : ""
-                    
-                    // 상세 로그
-                    let updated = self.sharedVM.habits[index]
-                    print("""
-                    ✅ 토글 성공!
-                      • 인덱스: \(index)
-                      • habitId: \(habitId)
-                      • 이전 isSelected: \(oldChecked)
-                      • 현재 isSelected: \(newChecked)
-                      • checkedAt: \(updated.checkedAt)
-                      • 전체 Habit: \(updated)
-                    """)
                 }
             case .failure(let err):
                 print("❌ 토글 실패:", err)
@@ -145,65 +131,33 @@ class MyHabitViewModel {
         provider.request(.getHabitsCheckDaily(Date: Date)) { result in
             switch result {
             case .success(let response):
-                print("🧾 응답 본문:", String(data: response.data, encoding: .utf8) ?? "없음")
                 do {
                     let wrapper = try JSONDecoder()
                         .decode(ApiResponseListHabitResponseDTO.self, from: response.data)
+                    
+                    let checkMap = Dictionary(uniqueKeysWithValues:
+                        wrapper.data.map { ($0.habitId, ($0.checked, $0.checkedAt ?? "")) }
+                    )
+                    
                     DispatchQueue.main.async {
-                        let dtos = wrapper.data  // [HabitResponseDTO]
-                        
-                        // 1) habitId → (checked, checkedAt) 매핑
-                        let checkMap: [Int: (checked: Bool, date: String)] = Dictionary(
-                            uniqueKeysWithValues:
-                                dtos.compactMap { dto -> (Int, (checked: Bool, date: String))? in
-                                    // checkedAt이 없으면 이 항목은 걸러내고
-                                    guard let date = dto.checkedAt else { return nil }
-                                    // habitId는 non-optional Int라 곧바로 사용
-                                    return (dto.habitId, (dto.checked, date))
-                                }
-                        )
-                        
-                        // 2) sharedVM.habits만 in-place 업데이트
-                        for idx in self.sharedVM.habits.indices {
-                            var habit = self.sharedVM.habits[idx]
-                            if let id = habit.habitId,
-                               let info = checkMap[id] {
-                                habit.isSelected = info.checked
-                                habit.checkedAt  = info.date
+                        self.sharedVM.habits = self.sharedVM.habits.map {
+                            var h = $0
+                            if let id = h.habitId, let (checked, date) = checkMap[id] {
+                                h.isSelected = checked
+                                h.checkedAt = date
                             } else {
-                                habit.isSelected = false
-                                habit.checkedAt  = ""
+                                h.isSelected = false
+                                h.checkedAt = ""
                             }
-                            self.sharedVM.habits[idx] = habit
+                            return h
                         }
-                        print("✅ 일간 체크 정보만 in-place 업데이트 성공")
                     }
                 } catch {
                     print("❌ 일간 체크 디코딩 실패: \(error)")
                 }
+                
             case .failure(let error):
                 print("❌ 일간 체크 API 실패: \(error)")
-            }
-        }
-    }
-
-    // ✅ 월간 체크 불러오기
-    func fetchMonthlyChecks(yearMonth: String) {
-        provider.request(.getHabitsCheckMonthly(yearMonth: yearMonth)) { result in
-            switch result {
-            case .success(let response):
-                do {
-                    let decoded = try JSONDecoder().decode([HabitMonthlyChecksResponseDTO].self, from: response.data)
-                    let all = decoded.flatMap { $0.toModelList() }
-                    DispatchQueue.main.async {
-                        self.sharedVM.habits = all
-                        print("✅ 월간 체크 불러오기 성공")
-                    }
-                } catch {
-                    print("❌ 월간 체크 디코딩 실패: \(error)")
-                }
-            case .failure(let error):
-                print("❌ 월간 체크 API 실패: \(error)")
             }
         }
     }

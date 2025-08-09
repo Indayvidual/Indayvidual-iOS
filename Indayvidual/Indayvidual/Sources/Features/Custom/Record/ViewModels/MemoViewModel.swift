@@ -59,7 +59,6 @@ class MemoViewModel {
                     } catch {
                         print("❌ PATCH decoding 실패:", error)
                         let raw = String(data: response.data, encoding: .utf8)
-                        print("🧾 응답 본문:", raw ?? "없음")
                     }
 
                 case .failure(let error):
@@ -82,7 +81,6 @@ class MemoViewModel {
                     } catch {
                         print("❌ POST decoding 실패:", error)
                         let raw = String(data: response.data, encoding: .utf8)
-                        print("🧾 응답 본문:", raw ?? "없음")
                     }
 
                 case .failure(let error):

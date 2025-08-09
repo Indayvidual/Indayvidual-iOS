@@ -9,9 +9,13 @@ import SwiftUI
 
 @main
 struct IndayvidualApp: App {
+    @StateObject private var alertService = AlertService()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            IndayvidualTabView()
+                .rootAlert()
         }
+        .environmentObject(alertService)
     }
 }

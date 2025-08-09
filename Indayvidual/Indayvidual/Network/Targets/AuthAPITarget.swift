@@ -13,6 +13,7 @@ enum AuthAPITarget {
     case kakaoLogin(authorizationCode: String)
     case refresh(refreshToken: String)
     case logout
+    case verifyPassword(provider: String, password: String?)
 }
 
 extension AuthAPITarget: TargetType {
@@ -30,6 +31,7 @@ extension AuthAPITarget: TargetType {
         case .kakaoLogin: return "/api/auth/kakao"
         case .refresh: return "/api/auth/refresh"
         case .logout: return "/api/auth/logout"
+        case .verifyPassword: return "/api/auth/re-auth/password"
         }
     }
 
@@ -47,6 +49,12 @@ extension AuthAPITarget: TargetType {
             return .requestJSONEncodable(["refreshToken": refreshToken])
         case .logout:
             return .requestPlain
+        case let .verifyPassword(provider, password):
+                var params: [String: Any] = ["provider": provider]
+                if let password = password {
+                    params["password"] = password
+                }
+                return .requestParameters(parameters: params, encoding: JSONEncoding.default)
         }
     }
 
@@ -55,10 +63,19 @@ extension AuthAPITarget: TargetType {
         case let .refresh(refreshToken):
             return [
                 "Content-Type": "application/json",
-                "Authorization": "Bearer \(refreshToken)"
+                "Refresh-Token": refreshToken
             ]
+            
+        case .verifyPassword:
+                    var headers = ["Content-Type": "application/json"]
+                    if let token = UserDefaults.standard.string(forKey: "accessToken") {
+                        headers["Authorization"] = "Bearer \(token)"
+                    }
+                    return headers
+            
         default:
             return ["Content-Type": "application/json"]
         }
     }
 }
+

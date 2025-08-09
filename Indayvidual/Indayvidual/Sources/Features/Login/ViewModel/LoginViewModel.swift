@@ -41,59 +41,57 @@ class LoginViewModel: ObservableObject {
         }
         
         provider.request(.login(email: email, password: password)) { [weak self] result in
-                    switch result {
-                    case .success(let response):
-                        do {
-                            print("🔍 Raw JSON: ", String(data: response.data, encoding: .utf8) ?? "변환 실패")
-
-                            let loginResponse = try JSONDecoder().decode(LoginResponseDTO.self, from: response.data)
-
-                            guard loginResponse.isSuccess else {
-                                self?.errorMessage = loginResponse.message
-                                return
-                            }
-
-                            let token = loginResponse.data
-                            userSession.updateSession(token: token)
-
-                            DispatchQueue.main.async {
-                                self?.loginSuccess = true
-                            }
-                        } catch {
-                            self?.errorMessage = "디코딩 실패: \(error.localizedDescription)"
-                        }
-
-                    case .failure(let error):
-                        self?.errorMessage = "로그인 실패: \(error.localizedDescription)"
-                    }
-                }
-            }
-    
-    
-    func refreshToken(_ token: String, completion: @escaping (Bool) -> Void) {
-        provider.request(.refresh(refreshToken: token)) { result in
             switch result {
             case .success(let response):
-                let success = response.statusCode == 200
-                print(success ? "🔁 토큰 갱신 성공" : "❌ 토큰 갱신 실패")
-                completion(success)
+                do {
+                    print("🔍 Raw JSON: ", String(data: response.data, encoding: .utf8) ?? "변환 실패")
+
+                    let loginResponse = try JSONDecoder().decode(LoginResponseDTO.self, from: response.data)
+
+                    guard loginResponse.isSuccess else {
+                        self?.errorMessage = loginResponse.message
+                        return
+                    }
+
+                    // Ensure token is non-nil before updating session
+                    guard let token = loginResponse.data else {
+                        self?.errorMessage = "토큰을 받을 수 없습니다."
+                        return
+                    }
+
+                    userSession.updateSession(token: token)
+
+                    DispatchQueue.main.async {
+                        self?.loginSuccess = true
+                    }
+                } catch {
+                    self?.errorMessage = "디코딩 실패: \(error.localizedDescription)"
+                }
+
             case .failure(let error):
-                print("❌ 토큰 갱신 네트워크 실패: \(error.localizedDescription)")
-                completion(false)
+                self?.errorMessage = "로그인 실패: \(error.localizedDescription)"
             }
         }
     }
-    
-    func logout() {
+
+    // 로그아웃
+    func logout(userSession: UserSession) {
         provider.request(.logout) { result in
             switch result {
             case .success(let response):
-                print("✅ 로그아웃 성공: \(response.statusCode)")
+                print("✅ 서버 로그아웃 성공: \(response.statusCode)")
             case .failure(let error):
-                print("❌ 로그아웃 실패: \(error.localizedDescription)")
+                print("❌ 서버 로그아웃 실패: \(error.localizedDescription)")
+            }
+
+            // 로컬 세션 초기화
+            userSession.clear()
+            UserDefaults.standard.removeObject(forKey: "refreshToken")
+            print("🧹 로컬 토큰 삭제 완료")
+
+            DispatchQueue.main.async {
+                // 로그인 화면으로 이동 등의 작업
             }
         }
     }
 }
-
-

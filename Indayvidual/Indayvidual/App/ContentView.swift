@@ -10,12 +10,12 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var userSession: UserSession
     
-    
     var body: some View {
-        if userSession.accessToken.isEmpty {
+        if userSession.accessToken.isEmpty || userSession.refreshToken.isEmpty {
             LoginView()
         } else {
             IndayvidualTabView()
+                .environmentObject(userSession)
         }
     }
 }

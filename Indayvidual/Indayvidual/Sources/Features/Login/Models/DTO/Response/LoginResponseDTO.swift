@@ -11,7 +11,7 @@ struct LoginResponseDTO: Decodable {
     let isSuccess: Bool
     let code: String
     let message: String
-    let data: TokenInfo
+    let data: TokenInfo?
 }
 
 struct TokenInfo: Decodable {
@@ -19,6 +19,10 @@ struct TokenInfo: Decodable {
     let refreshToken: String
     let userId: Int
     let email: String
-    let username: String?
+    let nickname: String?
     let role: String
+    
+    enum CodingKeys: String, CodingKey {
+        case accessToken, refreshToken, userId, email, nickname = "username", role
+    }
 }

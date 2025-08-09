@@ -11,12 +11,18 @@ struct AuthResponseDTO: Decodable {
     let isSuccess: Bool
     let code: String
     let message: String
-    let result: AuthResult
+    let data: AuthData?
 }
 
-struct AuthResult: Decodable {
+struct AuthData: Decodable {
     let accessToken: String
     let refreshToken: String
-    let expiresIn: Int
-    let isNewUser: Bool
+    let userId: Int
+    let email: String
+    let username: String
+    let role: String
+
+    enum CodingKeys: String, CodingKey {
+        case accessToken, refreshToken, userId, email, username = "nickname", role
+    }
 }

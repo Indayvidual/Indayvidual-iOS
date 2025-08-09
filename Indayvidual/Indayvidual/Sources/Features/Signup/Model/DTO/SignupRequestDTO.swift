@@ -11,4 +11,12 @@ struct SignupRequestDTO: Encodable {
     let email: String
     let password: String
     let nickname: String
+    let phoneNumber: String
+    
+    enum CodingKeys: String, CodingKey {
+            case email
+            case password
+            case nickname = "username"
+            case phoneNumber
+        }
 }

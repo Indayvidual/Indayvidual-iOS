@@ -39,7 +39,7 @@ struct SignupCompleteView: View {
             // 하단 버튼
             VStack {
                 NavigationLink(
-                    destination: IndayvidualTabView(),
+                    destination: LoginView(),
                     isActive: $goToMainTabView
                 ) {
                     Button {

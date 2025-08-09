@@ -1,8 +1,8 @@
 //
-//  Keys.xcconfig.example
+//  Keys.config
 //  Indayvidual
 //
-//  Created by 장주리 on 7/25/25.
+//  Created by Jung Hyun Han on 8/3/25.
 //
 
 SCHOOL_INFO_API_KEY = 8f8104c494a7613dcc0b58f8e8b7bb39

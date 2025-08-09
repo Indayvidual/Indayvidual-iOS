@@ -12,7 +12,7 @@ enum SignupAPITarget {
     case checkEmail(email: String)
     case sendCode(email: String)
     case verifyCode(email: String, code: String)
-    case signup(email: String, password: String, nickname: String)
+    case signup(email: String, password: String, nickname: String, phoneNumber: String)
 }
 
 extension SignupAPITarget: TargetType {
@@ -49,8 +49,8 @@ extension SignupAPITarget: TargetType {
             return .requestJSONEncodable(["email": email])
         case let .verifyCode(email, code):
             return .requestJSONEncodable(["email": email, "code": code])
-        case let .signup(email, password, nickname):
-            return .requestJSONEncodable(SignupRequestDTO(email: email, password: password, nickname: nickname))
+        case let .signup(email, password, nickname, phoneNumber):
+            return .requestJSONEncodable(SignupRequestDTO(email: email, password: password, nickname: nickname, phoneNumber: phoneNumber))
         }
     }
 

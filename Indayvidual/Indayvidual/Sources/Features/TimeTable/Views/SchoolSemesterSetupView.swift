@@ -10,13 +10,12 @@ import SwiftUI
 struct SchoolSemesterSetupView: View {
     @Environment(\.dismiss) private var dismiss
     
-    @Binding var showModal: Bool
     @State private var selectedSchoolName: String? = nil
     @State private var showSemesterPicker = false
     @State private var selectedSemester: String? = nil
     @State private var showSchoolSearchPopup = false
     
-    @StateObject private var timetableVm = TimetableViewModel()
+    @ObservedObject var timetableVm: TimetableViewModel
     
     var onCompletion: ((String, String) -> Void)?
     var onSetupTapped: (() -> Void)?
@@ -30,12 +29,11 @@ struct SchoolSemesterSetupView: View {
                     if let school = selectedSchoolName, let semester = selectedSemester {
                         onCompletion?(school, semester)
                         timetableVm.isSchoolRegistered = true
-                        print(timetableVm.isSchoolRegistered)
                         dismiss()
                     }
                 },
                 secondaryAction: {
-                    dismiss()
+                    timetableVm.showSchoolSemesterSetup = false
                 },
                 primaryButtonColor: (selectedSchoolName != nil && selectedSemester != nil) ? .gray900 : .gray100,
                 headerLeftButton: {
@@ -138,8 +136,13 @@ struct SchoolSemesterSetupView: View {
 }
 
 #Preview {
-    SchoolSemesterSetupView(
-        showModal: .constant(true),
+    let vm = TimetableViewModel()
+    vm.showSchoolSemesterSetup = true
+    vm.selectedSchoolName = "동국대학교"
+    vm.selectedSemester = "1학년 1학기"
+    
+    return SchoolSemesterSetupView(
+        timetableVm: vm,
         onCompletion: { school, semester in
             print("선택된 학교: \(school), 학기: \(semester)")
         },

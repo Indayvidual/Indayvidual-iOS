@@ -18,7 +18,6 @@ struct HabitFormView: View {
             Color.gray50
                 .ignoresSafeArea()
             VStack(spacing: 24) {
-                topBarView
                 mainView
                 Spacer()
             }
@@ -29,47 +28,47 @@ struct HabitFormView: View {
             }.menuIndicator(.visible)
         }
         .navigationBarBackButtonHidden(true)
-        //.task사용 시 뷰가 그려진 후 아래 코드가 동작하여 UI가 한 박자 늦게 바뀜 -> .onAppear사용 : 뷰가 그려짐과 동시에 작동하여 UI가 어색하지 않음
+        // .task사용 시 뷰가 그려진 후 아래 코드가 동작하여 UI가 한 박자 늦게 바뀜 -> .onAppear사용 : 뷰가 그려짐과 동시에 작동하여 UI가 어색하지 않음
         .onAppear {
             let currentColor = viewModel.colorName
             for i in colorViewModel.colors.indices {
                 colorViewModel.colors[i].isSelected = (colorViewModel.colors[i].name == currentColor)
             }
         }
-        //단순 for문 동작이기 때문에 onDisappear는 필수적이진 않지만 있어서 나쁠 건 없다
+        // 단순 for문 동작이기 때문에 onDisappear는 필수적이진 않지만 있어서 나쁠 건 없다
         .onDisappear {
             print("HabitFormView 닫힘")
         }
-    }
-    
-    //TopBar를 .toolbarItem으로 수정하면 충돌 발생..
-    var topBarView: some View {
-        HStack {
-            Button {
-                dismiss()
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 20, weight: .medium))
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.black)
+                }
+            }
+            
+            ToolbarItem(placement: .principal) {
+                Text(viewModel.isEditing ? "습관 수정" :"새로운 습관")       // 수정 중인지 여부에 따라 메인 텍스트 변경
+                    .font(.pretendSemiBold18)
                     .foregroundColor(.black)
             }
-            Spacer()
-            Text(viewModel.isEditing ? "습관 수정" :"새로운 습관")       // 수정 중인지 여부에 따라 메인 텍스트 변경
-                .font(.system(size: 17, weight: .semibold))
-                .foregroundColor(.black)
-            Spacer()
-            Button {
-                if let selectedColor = colorViewModel.colors.first(where: { $0.isSelected })?.name {
-                    viewModel.colorName = selectedColor
-                    viewModel.save()
-                    dismiss()
+            
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button {
+                    if let selectedColor = colorViewModel.colors.first(where: { $0.isSelected })?.name {
+                        viewModel.colorName = selectedColor
+                        viewModel.save()
+                        dismiss()
+                    }
+                } label: {
+                    Text("등록")
+                        .font(.pretendSemiBold16)
+                        .tint(.black)
                 }
-            } label: {
-                Text("등록")
-                    .font(.system(size: 16, weight: .medium))
-                    .tint(.black)
             }
         }
-        .padding(.top, 24)
     }
     
     var mainView: some View {

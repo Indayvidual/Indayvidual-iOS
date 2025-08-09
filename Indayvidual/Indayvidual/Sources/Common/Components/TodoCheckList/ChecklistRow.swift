@@ -7,7 +7,10 @@ struct ChecklistRow: View {
     @ObservedObject var actionViewModel: TodoActionViewModel
     @State private var showActionSheet = false
     @State private var currentActionOption: TodoActionOption? = nil
-
+    @State private var localText: String = ""
+    @FocusState private var isFocused: Bool
+    @State private var didCommit = false
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center) {
@@ -63,24 +66,53 @@ struct ChecklistRow: View {
     
     private var textFieldSection: some View {
         ZStack(alignment: .leading) {
-            if text.isEmpty {
+            if localText.isEmpty {
                 Text("할 일 입력")
                     .font(.pretendSemiBold12)
                     .foregroundColor(.gray400)
             }
             
-            TextField("", text: $text)
+            TextField("", text: $localText)
                 .font(.pretendSemiBold12)
                 .foregroundColor(.black)
                 .disabled(isChecked)
-                .onChange(of: text) { oldValue, newValue in
+                .focused($isFocused)
+                .onChange(of: localText) { oldValue, newValue in
                     if newValue.count > 50 {
-                        text = String(newValue.prefix(50))
+                        localText = String(newValue.prefix(50))
                     }
                 }
+                .onSubmit { commitText() }
+                .onChange(of: isFocused) { wasFocused, isNowFocused in
+                    if wasFocused && !isNowFocused {
+                        commitText()
+                    }
+                }
+                .onAppear {
+                    localText = text // 바인딩 싱크
+                }
+
         }
     }
     
+    private func commitText() {
+        guard !didCommit else { return }
+        didCommit = true
+
+        let trimmed = localText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if task.taskId == nil {
+            actionViewModel.todoManager.addTask(
+                title: trimmed,
+                categoryId: task.categoryId,
+                date: task.date
+            )
+        } else {
+            actionViewModel.todoManager.updateTaskTitle(task, newTitle: trimmed)
+        }
+    }
+
     private var moreButton: some View {
         Button {
             showActionSheet = true

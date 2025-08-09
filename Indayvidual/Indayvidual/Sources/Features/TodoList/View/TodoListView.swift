@@ -23,7 +23,14 @@ struct TodoListView: View {
                         // 날짜 선택 시 TodoViewModel의 selectedDate 업데이트
                         let formatter = DateFormatter()
                         formatter.dateFormat = "yyyy-MM-dd"
-                        viewModel.selectedDate = formatter.string(from: selectedDate)
+                        let dateString = formatter.string(from: selectedDate)
+                        viewModel.selectedDate = dateString
+                        
+                        viewModel.loadTasks(for: dateString) { success in
+                            if !success {
+                                print("날짜 \(dateString)의 할 일 로드에 실패했습니다.")
+                            }
+                        }
                     }
                 )
                 Spacer().frame(height: 20)
@@ -63,12 +70,15 @@ struct TodoListView: View {
                         }.padding(.horizontal,27)
                             
                     }.scrollBounceBehavior(.basedOnSize)
+                    .refreshable {
+                        await refreshAllData()
+                    }
                 }
                 
                 Spacer()
             }
             .onAppear {
-                viewModel.fetchCategories() 
+                refreshData()
             }
             .background(.gray50)
             .navigationDestination(for: Route1.self) { route in
@@ -78,8 +88,6 @@ struct TodoListView: View {
                         todoViewModel: viewModel,
                         isEditMode: false,
                         onCategoryAdded: { name, color in
-                            viewModel.addCategory(name: name, color: color)
-                            path.removeLast()
                         }
                     )
                 case .editCategory:
@@ -90,6 +98,14 @@ struct TodoListView: View {
         .floatingBtn {
             path.append(Route1.selectCategory)
         }
+    }
+    private func refreshData() {
+        viewModel.fetchCategories()
+    }
+    
+    @MainActor
+    private func refreshAllData() async {
+        viewModel.fetchCategories()
     }
 }
 

@@ -67,6 +67,7 @@ struct HabitFormView: View {
                         .font(.pretendSemiBold16)
                         .tint(.black)
                 }
+                .disabled(viewModel.title.isEmpty)
             }
         }
     }

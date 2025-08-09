@@ -12,7 +12,7 @@ class TodoActionViewModel: ObservableObject {
     @Published var showDatePicker = false
     @Published var selectedActionDate = Date()
     
-    private let todoManager: TodoViewModel
+    let todoManager: TodoViewModel
     
     init(todoManager: TodoViewModel) {
         self.todoManager = todoManager

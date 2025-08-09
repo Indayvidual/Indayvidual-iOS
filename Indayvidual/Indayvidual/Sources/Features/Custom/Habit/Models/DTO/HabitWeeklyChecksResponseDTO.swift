@@ -8,15 +8,15 @@ struct HabitWeeklyChecksResponseDTO: Codable {
 }
 
 extension HabitWeeklyChecksResponseDTO {
-    func toModelList() -> [MyHabitModel] {
-        return checkedAtList.map { check in
-            MyHabitModel(
-                habitId: habitId,
-                title: title,
-                colorName: colorCode,
-                checkedAt: check.checkedAt,
-                isSelected: check.isChecked
-            )
-        }
+    func toWeeklyModel() -> MyHabitModel {
+        let checkFlags = checkedAtList.map { $0.isChecked }
+        return MyHabitModel(
+            habitId: habitId,
+            title: title,
+            colorName: colorCode,
+            checkedAt: "", // 필요 없다면 빈 문자열
+            isSelected: false,
+            checks: checkFlags
+        )
     }
 }

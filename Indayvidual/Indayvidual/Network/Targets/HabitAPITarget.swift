@@ -14,9 +14,9 @@ enum HabitAPITarget {
     case deleteHabits(habitId: Int)
     case patchHabits(habitId: Int, title: String, colorCode: String)
     case patchHabitsCheck(habitId: Int, date: String, checked: Bool)
-    case getHabitsCheckDaily(startDate: String)
+    case getHabitsCheckDaily(Date: String)
     case getHabitsCheckWeekly(startDate: String)
-    case getHabitsCheckMonthly(startDate: String)
+    case getHabitsCheckMonthly(yearMonth: String)
 }
 
 extension HabitAPITarget: APITargetType {
@@ -75,15 +75,34 @@ extension HabitAPITarget: APITargetType {
                 "checked": checked
             ]
             return .requestParameters(parameters: parameters, encoding: JSONEncoding.default)
+                
+        case .getHabitsCheckDaily(let date):
+            return .requestParameters(
+                parameters: ["date": date],
+                encoding: URLEncoding.queryString
+            )
             
-        case .getHabitsCheckDaily(let startDate), .getHabitsCheckWeekly(let startDate), .getHabitsCheckMonthly(let startDate):
-            return .requestParameters(parameters: ["startDate": startDate], encoding: URLEncoding.queryString)
+        case .getHabitsCheckWeekly(let startDate):
+            return .requestParameters(parameters:
+                ["startDate": startDate],
+                encoding: URLEncoding.queryString
+            )
+            
+        case .getHabitsCheckMonthly(yearMonth: let yearMonth) :
+            return .requestParameters(parameters:
+                ["yearMonth": yearMonth],
+                encoding: URLEncoding.queryString
+            )
         }
     }
     
-
-    
     var headers: [String : String]? {
-        return ["Content-Type": "application/json"]
+        var headers = ["Content-Type" : "application/json"]
+
+        if let accessToken = UserDefaults.standard.string(forKey: "accessToken"), !accessToken.isEmpty {
+            headers["Authorization"] = "Bearer \(accessToken)"
+        }
+        
+        return headers
     }
 }

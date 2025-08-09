@@ -11,7 +11,7 @@ import Foundation
 enum Config {
     private static let infoDictionary: [String: Any] = {
         guard let dict = Bundle.main.infoDictionary else {
-            fatalError("Plist cannot be fount")
+            fatalError("Plist cannot be found")
         }
         return dict
     }()

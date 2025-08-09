@@ -9,15 +9,14 @@ import SwiftUI
 
 struct HabitFormView: View {
     @Environment(\.dismiss) var dismiss
-    @State var viewModel: MyHabitViewModel
-    @State var colorViewModel: ColorViewModel
-    @State private var showColorTable = false
+    @ObservedObject var colorViewModel: ColorViewModel
+    @State var viewModel: MyHabitViewModel              // ViewModel 설정
+    @State private var showColorTable = false           // 컬러 테이블 Sheet
 
     var body: some View {
         ZStack {
             Color.gray50
                 .ignoresSafeArea()
-            
             VStack(spacing: 24) {
                 topBarView
                 mainView
@@ -37,8 +36,8 @@ struct HabitFormView: View {
                 colorViewModel.colors[i].isSelected = (colorViewModel.colors[i].name == currentColor)
             }
         }
+        //단순 for문 동작이기 때문에 onDisappear는 필수적이진 않지만 있어서 나쁠 건 없다
         .onDisappear {
-            //단순 for문 동작이기 때문에 onDisappear는 필수적이진 않지만 있어서 나쁠 건 없다
             print("HabitFormView 닫힘")
         }
     }
@@ -53,15 +52,11 @@ struct HabitFormView: View {
                     .font(.system(size: 20, weight: .medium))
                     .foregroundColor(.black)
             }
-
             Spacer()
-
-            Text(viewModel.isEditing ? "습관 수정" :"새로운 습관")
+            Text(viewModel.isEditing ? "습관 수정" :"새로운 습관")       // 수정 중인지 여부에 따라 메인 텍스트 변경
                 .font(.system(size: 17, weight: .semibold))
                 .foregroundColor(.black)
-
             Spacer()
-
             Button {
                 if let selectedColor = colorViewModel.colors.first(where: { $0.isSelected })?.name {
                     viewModel.colorName = selectedColor
@@ -149,5 +144,5 @@ struct HabitFormView: View {
 }
 
 #Preview {
-    HabitFormView(viewModel: MyHabitViewModel(sharedVM: CustomViewModel()), colorViewModel: ColorViewModel())
+    HabitFormView(colorViewModel: ColorViewModel(), viewModel: MyHabitViewModel(sharedVM: CustomViewModel()))
 }

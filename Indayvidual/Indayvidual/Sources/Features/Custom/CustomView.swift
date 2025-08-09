@@ -8,12 +8,8 @@
 import SwiftUI
 
 struct CustomView: View{
-    @State private var vm : CustomViewModel
+    @State private var vm = CustomViewModel()
     @State private var showAdd : Bool = false
-    
-    init() {
-        self.vm = .init()
-    }
     
     var body: some View{
         NavigationStack {
@@ -28,13 +24,14 @@ struct CustomView: View{
                     Spacer()
                     myHabits
                 }
+                .padding(.horizontal)
             }
         }
     }
     
     var userRecord: some View {
         NavigationLink {
-            RecordView(sharedVM: vm)
+            RecordView(vm: MemoViewModel(sharedVM: vm), sharedVM: vm)
         } label: {
             HStack {
                 Text("\(vm.name)님의 기록")
@@ -62,8 +59,7 @@ struct CustomView: View{
             else {
                 ScrollView(.horizontal) {
                     LazyHStack {
-                        ForEach(vm.memos.indices, id: \.self) { index in
-                            let memo = vm.memos[index]
+                        ForEach(Array(vm.memos.enumerated()), id: \.element.id) { index, memo in
                             NavigationLink {
                                 AddMemoView(
                                     vm: MemoViewModel(

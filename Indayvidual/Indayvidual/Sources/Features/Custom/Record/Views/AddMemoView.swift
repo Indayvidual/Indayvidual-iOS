@@ -54,6 +54,7 @@ struct AddMemoView: View {
                 }
                 .font(.pretendSemiBold18)
                 .tint(.black)
+                .disabled(vm.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             })
         }
     }
@@ -68,14 +69,21 @@ struct AddMemoView: View {
 
 #Preview {
     // 수정 예시
-    NavigationStack {
-        let customVM = CustomViewModel()
-        AddMemoView(
-            vm: MemoViewModel(
-                sharedVM: customVM,
-                memo: customVM.memos[0],
-                index: 0
-            )
+    let customVM = CustomViewModel()
+    customVM.memos.append(
+        MemoModel(
+            title: "샘플 메모",
+            content: "내용",
+            date: "250719",
+            time: "12:00"
         )
-    }
+    )
+    return AddMemoView(
+        vm: MemoViewModel(
+            sharedVM: customVM,
+            memo: customVM.memos[0],
+            index: 0
+        )
+    )
+
 }

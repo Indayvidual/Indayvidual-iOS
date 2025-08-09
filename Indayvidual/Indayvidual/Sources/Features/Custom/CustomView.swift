@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct CustomView: View{
-    @Bindable private var vm = CustomViewModel()
+    @State private var vm = CustomViewModel()
     @State private var showAdd : Bool = false
     
     var body: some View{

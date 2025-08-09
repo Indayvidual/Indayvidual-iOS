@@ -22,7 +22,7 @@ struct HabitResponseDTO: Codable {
 
 // MARK: – 단일 응답 래퍼
 struct ApiResponseHabitResponseDTO: Codable {
-    let isSuccess: Bool?
+    let isSuccess: Bool
     let code: String
     let message: String
     let data: HabitResponseDTO

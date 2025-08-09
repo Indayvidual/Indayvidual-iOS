@@ -54,6 +54,7 @@ struct AddMemoView: View {
                 }
                 .font(.pretendSemiBold18)
                 .tint(.black)
+                .disabled(vm.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             })
         }
     }

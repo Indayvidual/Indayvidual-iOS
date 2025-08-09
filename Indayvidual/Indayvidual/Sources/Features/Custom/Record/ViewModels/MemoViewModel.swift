@@ -58,7 +58,7 @@ class MemoViewModel {
                         }
                     } catch {
                         print("❌ PATCH decoding 실패:", error)
-                        let raw = String(data: response.data, encoding: .utf8)
+                        _ = String(data: response.data, encoding: .utf8)
                     }
 
                 case .failure(let error):
@@ -80,7 +80,7 @@ class MemoViewModel {
                         }
                     } catch {
                         print("❌ POST decoding 실패:", error)
-                        let raw = String(data: response.data, encoding: .utf8)
+                        _ = String(data: response.data, encoding: .utf8)
                     }
 
                 case .failure(let error):

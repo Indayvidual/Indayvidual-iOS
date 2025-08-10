@@ -9,17 +9,20 @@ import Foundation
 import Moya
 
 enum TimetableTarget {
-    case postTimetable(content: TimetableRequestDto)
+    case postTimetable(schoolId: String, semester: String, image: Data)
     case getTimetable
+    case deleteTimetable(timetableId: Int)
 }
 
 extension TimetableTarget: APITargetType{
     var path: String{
         switch self{
-        case .postTimetable(_):
+        case .postTimetable:
             return "/api/timetable"
         case .getTimetable:
             return "/api/timetable"
+        case .deleteTimetable(let titmetableId):
+            return "/api/timetable/\(titmetableId)"
         }
     }
     
@@ -29,26 +32,41 @@ extension TimetableTarget: APITargetType{
             return .post
         case .getTimetable:
             return .get
+        case .deleteTimetable:
+            return .delete
         }
     }
     
     var task: Task {
-        switch self{
-        case .postTimetable(let content):
-            return .requestJSONEncodable(content)
-        case .getTimetable:
-            return .requestPlain
-        }
-    }
+           switch self {
+           case .postTimetable(let schoolId, let semester, let image):
+               let formData = MultipartFormData(
+                   provider: .data(image),
+                   name: "image",
+                   fileName: "timetable.jpg",
+                   mimeType: "image/jpeg"
+               )
+               
+               let params: [String: Any] = [
+                   "schoolId": schoolId,
+                   "semester": semester
+               ]
+               
+               return .uploadCompositeMultipart([formData], urlParameters: params)
+               
+           case .getTimetable:
+               return .requestPlain
+               
+           case .deleteTimetable(_):
+               return .requestPlain
+           }
+       }
     
     var headers: [String : String]? {
-        var headers = ["Content-Type" : "application/json"]
-
+        var headers = [String: String]()
         if let accessToken = UserDefaults.standard.string(forKey: "accessToken"), !accessToken.isEmpty {
             headers["Authorization"] = "Bearer \(accessToken)"
         }
-        
         return headers
     }
-    
 }

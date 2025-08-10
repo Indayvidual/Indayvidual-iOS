@@ -13,9 +13,11 @@ struct CategoryRowView: View {
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color.grayWhite)
                     .frame(height: 39)
-                HStack{
-                    NameField(category: category,
-                              plusButtonAction: addChecklistItemIfAllowed)
+                HStack {
+                    NameField(
+                        category: category,
+                        plusButtonAction: addChecklistItemIfAllowed
+                    )
                     .padding(.leading, 10)
                     Spacer()
                     Button{
@@ -30,18 +32,17 @@ struct CategoryRowView: View {
                 }
                 
             }
+            
+            // MARK: - Task List
             if isExpanded {
                 List {
                     ForEach(viewModel.tasks(for: date, categoryId: category.categoryId ?? 0)) { task in
-                        ChecklistRowWrapper(
-                            task: task,
-                            viewModel: viewModel
-                        )
-                        .listRowInsets(EdgeInsets())
-                        .padding(.horizontal,10)
-                        .padding(.vertical, 0)
-                        .listRowBackground(Color.clear)
-                        .listRowSeparator(.hidden)
+                        ChecklistRowWrapper(task: task, viewModel: viewModel)
+                            .listRowInsets(EdgeInsets())
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 0)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                     }
                     .onMove { indices, newOffset in
                         viewModel.moveTask(from: indices, to: newOffset, date: date)
@@ -51,20 +52,20 @@ struct CategoryRowView: View {
                 .frame(height: CGFloat(viewModel.tasks(for: date, categoryId: category.categoryId ?? 0).count * 50))
                 .transition(.opacity)
                 .clipped()
+                .refreshable {
+                    await viewModel.loadTasksAsync(for: date, categoryId: category.categoryId ?? 0)
+                }
+            }
+        }
+        .onAppear {
+            Task {
+                await viewModel.loadTasksAsync(for: date, categoryId: category.categoryId ?? 0)
             }
         }
     }
 
     private func addChecklistItemIfAllowed() {
-        // 마지막 아이템이 있으면 텍스트 입력 여부 체크, 없으면 바로 추가
-        let tasks = viewModel.tasks(for: date, categoryId: category.categoryId ?? 0)
-        if let lastItem = tasks.last {
-            if !lastItem.title.isEmpty {
-                viewModel.addTask(title: "", categoryId: category.categoryId ?? 0, date: date)
-            }
-        } else {
-            viewModel.addTask(title: "", categoryId: category.categoryId ?? 0, date: date)
-        }
+        viewModel.addTempTask(for: date, categoryId: category.categoryId ?? 0)
     }
 }
 
@@ -84,9 +85,7 @@ struct ChecklistRowWrapper: View {
         ChecklistRow(
             isChecked: Binding(
                 get: { task.isCompleted },
-                set: { newValue in
-                    viewModel.toggleTask(task)
-                }
+                set: { _ in viewModel.toggleTask(task) }
             ),
             text: Binding(
                 get: { task.title },
@@ -100,6 +99,7 @@ struct ChecklistRowWrapper: View {
     }
 }
 
+// MARK: - Category Name Field
 struct NameField: View {
     let category: Category
     @Environment(\.dismiss) var dismiss

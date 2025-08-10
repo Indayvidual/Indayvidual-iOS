@@ -14,6 +14,8 @@ struct MyHabitModel: Codable, Identifiable {
     var colorName: String
     var checkedAt: String
     var isSelected: Bool
+    
+    var checks: [Bool] = []  // 주간 체크 상태 저장용
 }
 
 extension MyHabitModel {

@@ -8,19 +8,31 @@
 import SwiftUI
 
 struct HabitCardView: View {
+    @ObservedObject var calendarVM: CustomCalendarViewModel
     var habit: MyHabitModel
     var onToggle: () -> Void
     var onEdit: () -> Void
     var onDelete: () -> Void
+    
+    private var isToggleDisabled: Bool {
+            // 오늘보다 일 단위로 엄격히 큰 경우에만 disable
+            Calendar.current.compare(
+                calendarVM.selectDate,
+                to: Date(),
+                toGranularity: .day
+            ) == .orderedDescending
+        }
 
     var body: some View {
         HStack {
-            Button{
+            Button {
                 onToggle()
             } label: {
-                Image(systemName: habit.isSelected ? "checkmark.square.fill" : "square")
+                let imageName = isToggleDisabled ? "square" : (habit.isSelected ? "checkmark.square.fill" : "square")
+                Image(systemName: imageName)
                     .foregroundColor(.black)
             }
+            .disabled(isToggleDisabled)
 
             Text(habit.title)
                 .font(.pretendRegular15)
@@ -38,6 +50,7 @@ struct HabitCardView: View {
                     .padding(.trailing, 8)
             }
         }
+        .opacity(isToggleDisabled ? 0.6 : 1)  
         .foregroundStyle(.gray700)
         .padding()
         .background(Color(habit.colorName))

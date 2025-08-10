@@ -60,9 +60,13 @@ extension MemoAPITarget: APITargetType {
         }
     }
     
-
-    
     var headers: [String : String]? {
-        return ["Content-Type": "application/json"]
+        var headers = ["Content-Type" : "application/json"]
+
+        if let accessToken = UserDefaults.standard.string(forKey: "accessToken"), !accessToken.isEmpty {
+            headers["Authorization"] = "Bearer \(accessToken)"
+        }
+        
+        return headers
     }
 }

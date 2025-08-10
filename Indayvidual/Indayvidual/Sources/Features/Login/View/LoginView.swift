@@ -136,7 +136,13 @@ struct LoginView: View {
                 }
 
                 Button {
-                    // TODO: 카카오 로그인
+                    Task {
+                        async let kakaoLogin = viewModel.loginWithKakao()
+                        async let tokenUpdate = viewModel.loginWithKakaoToken(userSession: userSession)
+                        await kakaoLogin
+                        await tokenUpdate
+                        goToHome = true 
+                    }
                 } label: {
                     HStack {
                         Image(systemName: "message.fill")

@@ -9,11 +9,16 @@ import SwiftUI
 
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var userSession: UserSession
+    @StateObject private var viewModel = EditProfileViewModel()
 
     // 전달받은 Profile로 초기화
     @State private var nickname: String
     @State private var email: String
     @State private var imageUrl: String?
+    
+    @State private var isNicknameChanged: Bool = false
+    @State private var isNicknameButtonEnabled: Bool = false
 
     // 저장 성공 시 상위에서 갱신하고 싶으면 콜백
     var onSaved: (() -> Void)?
@@ -25,7 +30,7 @@ struct EditProfileView: View {
         self.onSaved = onSaved
     }
 
-    // 비번 관련 상태 (필요 시 유지)
+    // 비번 관련 상태
     @State private var password: String = ""
     @State private var confirmPassword: String = ""
     @State private var isEditingPassword: Bool = false
@@ -141,9 +146,13 @@ struct EditProfileView: View {
                                         .frame(height: 48)
                                         .background(Color("gray-50"))
                                         .cornerRadius(8)
+                                        .onChange(of: nickname) { _ in
+                                            isNicknameChanged = true
+                                            isNicknameButtonEnabled = true
+                                        }
                                     
                                     Button("변경하기") {
-                                        // TODO: provider.request(.updateNickname(nickname: nickname))
+                                        viewModel.updateNickname(nickname: nickname)
                                     }
                                     .font(.pretendMedium14)
                                     .padding(.horizontal, 24)
@@ -151,6 +160,7 @@ struct EditProfileView: View {
                                     .background(Color("primary-light"))
                                     .foregroundStyle(.black)
                                     .cornerRadius(8)
+                                    .disabled(!isNicknameButtonEnabled)
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -241,8 +251,7 @@ struct EditProfileView: View {
                         
                         // 하단 로그아웃 / 회원탈퇴
                         HStack(spacing: 120 ) {
-                            Button("로그아웃") {}
-                                .foregroundStyle(Color("gray-500"))
+                            Button("로그아웃") { userSession.clear() }               .foregroundStyle(Color("gray-500"))
                             Button("회원탈퇴") {}
                                 .foregroundStyle(Color("gray-900"))
                         }

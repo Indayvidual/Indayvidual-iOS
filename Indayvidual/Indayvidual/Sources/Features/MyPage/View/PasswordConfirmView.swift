@@ -134,7 +134,7 @@ struct PasswordConfirmView: View {
             DispatchQueue.main.async {
                 isVerifying = false
                 if let profile {
-                    onSuccess(profile)    // ✅ 부모(MyPageView)에 Profile 전달
+                    onSuccess(profile)
                 } else {
                     showError = true
                     errorText = "비밀번호가 일치하지 않거나 재인증에 실패했습니다."

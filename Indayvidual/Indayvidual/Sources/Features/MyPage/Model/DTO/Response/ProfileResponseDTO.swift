@@ -7,14 +7,14 @@
 
 import Foundation
 
-struct ProfileResponseDTO: Decodable, Hashable {   // <- 그대로 유지 OK
+struct ProfileResponseDTO: Decodable, Hashable {
     let isSuccess: Bool
     let code: String
     let message: String
     let data: ProfileDataOrMessage?
 }
 
-enum ProfileDataOrMessage: Decodable, Hashable {   // <- Hashable 추가
+enum ProfileDataOrMessage: Decodable, Hashable {
     case object(Profile)
     case message(String)
 
@@ -30,7 +30,7 @@ enum ProfileDataOrMessage: Decodable, Hashable {   // <- Hashable 추가
     }
 }
 
-struct Profile: Decodable, Hashable {              // <- Hashable 추가
+struct Profile: Decodable, Hashable {              
     let userId: Int
     let email: String
     let nickname: String?
@@ -40,4 +40,10 @@ struct Profile: Decodable, Hashable {              // <- Hashable 추가
         case userId, email, imageUrl
         case nickname = "username"
     }
+}
+
+struct ResponseDTO: Codable {
+    let isSuccess: Bool
+    let message: String
+    let data: String?
 }

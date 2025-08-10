@@ -25,8 +25,7 @@ final class MyPageViewModel: ObservableObject {
 
     private let provider = MoyaProvider<ProfileAPITarget>()
     init() {}
-
-    /// 마이페이지 진입 시: reauth 유효하면만 프로필 로드 (서버 500/재인증 메시지 회피)
+    
     func refreshIfReauthValid() {
         guard isReauthValid() else { return }
         fetchMyProfile()

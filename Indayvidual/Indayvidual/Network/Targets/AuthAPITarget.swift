@@ -10,7 +10,7 @@ import Moya
 
 enum AuthAPITarget {
     case login(email: String, password: String)
-    case kakaoLogin(authorizationCode: String)
+    case kakaoLogin(accessToken: String)
     case refresh(refreshToken: String)
     case logout
     case verifyPassword(provider: String, password: String?)
@@ -43,8 +43,8 @@ extension AuthAPITarget: TargetType {
         switch self {
         case .login(email: let email, password: let password):
             return .requestJSONEncodable(LoginRequestDTO(email: email, password: password))
-        case let .kakaoLogin(authorizationCode):
-            return .requestJSONEncodable(["authorizationCode": authorizationCode])
+        case let .kakaoLogin(accessToken):
+            return .requestJSONEncodable(["accessToken": accessToken])
         case let .refresh(refreshToken):
             return .requestJSONEncodable(["refreshToken": refreshToken])
         case .logout:

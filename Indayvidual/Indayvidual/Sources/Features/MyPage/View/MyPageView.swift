@@ -80,6 +80,8 @@ struct MyPageView: View {
                 }
             }
             Spacer()
+            
+            Button("로그아웃") { userSession.clear() } 
         }
         .padding(20)
         .background(Color("gray-white"))
@@ -121,14 +123,6 @@ struct MyPageView: View {
             .clipShape(RoundedRectangle(cornerRadius: 12))
 
             Spacer()
-
-            HStack(spacing: 120) {
-                Button("로그아웃") { userSession.clear() }
-                    .foregroundStyle(Color("gray-500"))
-            }
-            .font(.pretendMedium14)
-            .padding(.horizontal, 50)
-            .padding(.vertical, 15)
         }
     }
 

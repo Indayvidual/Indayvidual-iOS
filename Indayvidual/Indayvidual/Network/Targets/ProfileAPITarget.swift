@@ -12,7 +12,7 @@ enum ProfileAPITarget {
     case getMyProfile
     case updateNickname(nickname: String)
     case updatePassword(password: String)
-    case verifyBeforeUpdate(currentPassword: String)  // Changed to match API requirement
+    case verifyBeforeUpdate(currentPassword: String)
     case updateProfileImage(imageData: Data)
     case deleteAccount
 }

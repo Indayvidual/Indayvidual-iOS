@@ -8,6 +8,7 @@
 import SwiftUI
 
 struct SignupNicknameView: View {
+    @EnvironmentObject var viewModel: SignupViewModel
     @State private var nickname: String = ""
     @FocusState private var isNicknameFocused: Bool
     private let maxLength = 10
@@ -61,10 +62,19 @@ struct SignupNicknameView: View {
             
             // 하단 버튼
             VStack {
-                NavigationLink(destination: SignupCompleteView(), isActive: $goToCodeView) {
+                NavigationLink(destination: SignupCompleteView().environmentObject(SignupViewModel()), isActive: $goToCodeView) {
                     Button {
-                        goToCodeView = true
-                    } label: {
+                        viewModel.nickname = nickname
+                        viewModel.signup { success in
+                            if success {
+                                print("🎉 회원가입 성공!")
+                                goToCodeView = true
+                            } else {
+                                print("❌ 회원가입 실패")
+                            }
+                        }
+                    }
+ label: {
                         Text("다음")
                             .font(.pretendSemiBold15)
                             .frame(maxWidth: .infinity)

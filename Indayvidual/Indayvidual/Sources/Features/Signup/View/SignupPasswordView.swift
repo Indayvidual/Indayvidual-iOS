@@ -14,6 +14,8 @@ struct SignupPasswordView: View {
     @State private var isPasswordEdited = false
     @State private var goToCodeView = false
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var viewModel: SignupViewModel
+
 
     enum Field {
         case password
@@ -88,10 +90,11 @@ struct SignupPasswordView: View {
             
             // 하단 버튼
             VStack {
-                NavigationLink(destination: SignupNicknameView(), isActive: $goToCodeView) {
-                    Button {
-                        goToCodeView = true
-                    } label: {
+                NavigationLink(destination: SignupNicknameView().environmentObject(viewModel), isActive: $goToCodeView) {
+                                Button {
+                                    viewModel.password = password
+                                    goToCodeView = true
+                                } label: {
                         Text("다음")
                             .font(.pretendSemiBold15)
                             .frame(maxWidth: .infinity)

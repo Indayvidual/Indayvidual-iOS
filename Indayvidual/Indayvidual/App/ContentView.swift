@@ -8,11 +8,19 @@
 import SwiftUI
 
 struct ContentView: View {
+    @EnvironmentObject var userSession: UserSession
+    
     var body: some View {
-        IndayvidualTabView()
+        if userSession.accessToken.isEmpty || userSession.refreshToken.isEmpty {
+            LoginView()
+        } else {
+            IndayvidualTabView()
+                .environmentObject(userSession)
+        }
     }
 }
 
 #Preview {
     ContentView()
+            .environmentObject(UserSession())
 }

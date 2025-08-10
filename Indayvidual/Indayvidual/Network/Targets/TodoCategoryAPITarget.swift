@@ -60,6 +60,9 @@ extension TodoCategoryAPITarget : APITargetType{
     
     var headers: [String: String]? {
         var headers: [String: String] = [:]
+        if let accessToken = UserDefaults.standard.string(forKey: "accessToken"), !accessToken.isEmpty {
+            headers["Authorization"] = "Bearer \(accessToken)"
+        }
         headers["Content-Type"] = "application/json"
         return headers
     }

@@ -21,6 +21,8 @@ class TodoActionViewModel: ObservableObject {
     func handleAction(_ option: TodoActionOption, for task: TodoTask) {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd"
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+        let tomorrowString = dateFormatter.string(from: tomorrow)
         
         switch option {
         case .changeDate:
@@ -36,13 +38,7 @@ class TodoActionViewModel: ObservableObject {
             }
             
         case .doTomorrow:
-            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
-            let tomorrowString = dateFormatter.string(from: tomorrow)
-            if task.isCompleted {
-                todoManager.duplicateTask(task, to: tomorrowString) // 완료된 task는 복사
-            } else {
-                todoManager.moveTask(task, to: tomorrowString) // 미완료된 task는 이동
-            }
+            todoManager.moveTask(task, to: tomorrowString) // 미완료된 task는 이동
             
         case .doAnotherDay:
             selectedActionDate = Date()
@@ -51,7 +47,10 @@ class TodoActionViewModel: ObservableObject {
         case .doTodoayAgain:
             let today = dateFormatter.string(from: Date())
             todoManager.duplicateTask(task, to: today)
-
+            
+        case .doTomorrowAgain:
+            todoManager.duplicateTask(task, to: tomorrowString) // 완료된 task는 복사
+            
         case .delete:
             todoManager.deleteTask(task)
         }

@@ -36,8 +36,7 @@ struct NoticePopupView: View {
 }
 
 #Preview {
-    NoticePopupView(
-    ) {
+    NoticePopupView {
         print("학교/학기 설정 버튼이 탭되었습니다.")
     }
 }

@@ -8,9 +8,7 @@
 import SwiftUI
 
 struct NoticePopupView: View {
-    @Binding var showModal: Bool
-    var onCompletion: ((String, String) -> Void)?
-    var onSetupTapped: (() -> Void)?
+    var onSetupTapped: () -> Void
 
     var body: some View {
         VStack(spacing: 10) {
@@ -20,8 +18,7 @@ struct NoticePopupView: View {
                 .multilineTextAlignment(.center)
             
             Button(action: {
-                onSetupTapped?()
-                showModal = false
+                onSetupTapped()
             }) {
                 Text("학교/학기 설정하러 가기")
                     .font(.pretendSemiBold14)
@@ -40,12 +37,7 @@ struct NoticePopupView: View {
 
 #Preview {
     NoticePopupView(
-        showModal: .constant(true),
-        onCompletion: { school, semester in
-            print("선택된 학교: \(school), 학기: \(semester)")
-        },
-        onSetupTapped: {
-            print("학교/학기 설정 버튼이 탭되었습니다.")
-        }
-    )
+    ) {
+        print("학교/학기 설정 버튼이 탭되었습니다.")
+    }
 }

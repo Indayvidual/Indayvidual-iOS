@@ -13,8 +13,37 @@ struct TimetableView: View {
     
     var body: some View {
         NavigationStack {
-            mainContent
-                .onAppear(perform: timetableVm.onAppear)
+            ZStack(alignment: .topTrailing) {
+                mainContent
+                
+                if timetableVm.showDeleteButton {
+                    if let timetableId = timetableVm.currentTimetable?.timetableId {
+                        Button(action: {
+                            timetableVm.deleteTimetable(timetableId: timetableId)
+                            timetableVm.showDeleteButton = false
+                        }) {
+                            Text("삭제하기")
+                                .foregroundColor(.red)
+                                .font(.pretendSemiBold9)
+                                .frame(width: 65, height: 31)
+                                .background(Color.white)
+                        }
+                        .padding(.top, 40)
+                        .padding(.trailing, 13)
+                        .transition(.move(edge: .top).combined(with: .opacity))
+                        .animation(.easeInOut, value: timetableVm.showDeleteButton)
+                    } else {
+                        EmptyView()
+                    }
+                }
+            }
+            .onAppear {
+                Task {
+                    if !timetableVm.isLoading{
+                        await timetableVm.fetchTimetable()
+                    }
+                }
+            }
                 .floatingBtn { timetableVm.showImagePicker = true }
                 .photosPicker(
                     isPresented: $timetableVm.showImagePicker,
@@ -22,53 +51,27 @@ struct TimetableView: View {
                     matching: .images
                 )
                 .background(Color(.gray50))
-                .navigationDestination(isPresented: $timetableVm.navigateToSchoolSemesterRegistration) {
+                .navigationDestination(isPresented: $timetableVm.showSchoolSemesterSetup) {
                     SchoolSemesterSetupView(
-                        timetableVm: timetableVm,
-                        onCompletion: { school, semester in
-                            // 저장 후 팝업 닫고 등록 완료 상태 변경
-                            timetableVm.isSchoolRegistered = true
-                            timetableVm.showSchoolSemesterSetup = false
-                            timetableVm.showSchoolSearchPopup = false
-                            timetableVm.navigateToSchoolSemesterRegistration = false
-                            // 선택된 학교/학기 업데이트
-                            timetableVm.updateSchoolSemester(schoolName: school, semester: semester)
-                        }
+                        timetableVm: timetableVm
                     )
                 }
-        }
-        // 학교/학기 설정 시트뷰
-        .overlay {
-            if timetableVm.showSchoolSemesterSetup {
-                Color.black.opacity(0.4)
-                    .edgesIgnoringSafeArea(.all)
-                    .onTapGesture { timetableVm.showSchoolSemesterSetup = false }
-                
-                VStack {
-                    Spacer()
-                    SchoolSemesterSetupView(
-                        timetableVm: timetableVm,
-                        onCompletion: timetableVm.handleSchoolRegistrationCompletion,
-                        onSetupTapped: timetableVm.handleSchoolRegistrationSetupTap
-                    )
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-            }
         }
         
-        // 학교 검색 시트 팝업
+        // 안내 팝업
         .overlay {
-            if timetableVm.showSchoolSearchPopup {
+            if !timetableVm.isSchoolRegistered && timetableVm.showNoticePopup { // 학교/학기 미등록 상태일 경우 안내 팝업창 뜸
                 Color.black.opacity(0.4)
-                    .edgesIgnoringSafeArea(.all)
-                    .onTapGesture { timetableVm.showSchoolSearchPopup = false }
+                    .ignoresSafeArea()
+                    .onTapGesture { timetableVm.showNoticePopup = false }
                 
                 VStack {
                     Spacer()
                     NoticePopupView(
-                        showModal: $timetableVm.showSchoolSearchPopup,
-                        onCompletion: timetableVm.handleSchoolSetupCompletion,
-                        onSetupTapped: timetableVm.handleSchoolSetupTapped
+                        onSetupTapped: {
+                            timetableVm.isSchoolRegistered = true
+                            timetableVm.showSchoolSemesterSetup = true
+                        }
                     )
                     .frame(width: 315, height: 172)
                     .background(Color.white)
@@ -80,23 +83,33 @@ struct TimetableView: View {
                 .frame(maxWidth: .infinity, alignment: .top)
             }
         }
+        
+        // 학교/학기 설정뷰
+        .navigationDestination(isPresented: $timetableVm.showSchoolSemesterSetup) {
+            SchoolSemesterSetupView(
+                timetableVm: timetableVm
+            )
+        }
     }
 }
 
 private extension TimetableView {
-    // 메인 화면 구성 뷰
     var mainContent: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Topbar()
+            Topbar(customAction: {
+                timetableVm.showDeleteButton.toggle()
+                print(timetableVm.showDeleteButton)
+            })
             
             Spacer().frame(height: 10)
-        
-            HStack(spacing: 12){
+            
+            HStack(spacing: 12) {
+                
                 Text(timetableVm.formattedSelection() ?? "학교/학기 선택")
                     .font(.pretendRegular13)
-                    .foregroundStyle(timetableVm.selection == nil ? Color(.gray500) : Color(.gray900))
+                    .foregroundStyle(timetableVm.formattedSelection() == nil ? Color(.gray500) : Color(.gray900))
                     .lineLimit(1)
-                   
+                
                 Image(.mingcuteDownFill)
             }
             .padding(.horizontal, 12)
@@ -106,9 +119,6 @@ private extension TimetableView {
             .onTapGesture {
                 timetableVm.showSchoolSemesterSetup = true
             }
-            
-            
-            
             .padding(.horizontal, 15)
             .zIndex(1)
             
@@ -124,19 +134,17 @@ private extension TimetableView {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
-
-    // 시간표 이미지 혹은 빈 화면 처리
+    
     @ViewBuilder
     func timetableContent() -> some View {
-        if let image = timetableVm.selectedImage {
-            Image(uiImage: image)
+        if let selectedImage = timetableVm.selectedImage {
+            Image(uiImage: selectedImage)
                 .resizable()
                 .scaledToFit()
                 .padding()
-        } else if timetableVm.timetableImages.isEmpty {
-            EmptyTimeTableView()  // 시간표 없을 때 표시하는 뷰
-        } else {
-            EmptyView()
+        }  else {
+            // 이미지가 없을 때 보여줄 기본 뷰
+            EmptyTimeTableView()
         }
     }
 }

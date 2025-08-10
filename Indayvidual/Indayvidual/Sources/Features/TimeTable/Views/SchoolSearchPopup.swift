@@ -10,6 +10,7 @@ import SwiftUI
 struct SchoolSearchPopup: View {
     @Binding var isPresented: Bool
     @Binding var selectedSchoolName: String?
+    @Binding var selectedSchoolSeq: String?
     
     @StateObject private var viewModel = SchoolInfoViewModel()
     @State private var selectedSchool: SchoolInfo? = nil
@@ -33,8 +34,10 @@ struct SchoolSearchPopup: View {
                     title: "학교 설정",
                     primaryButtonTitle: "저장",
                     primaryAction: {
-                        if selectedSchool != nil {
-                            selectedSchoolName = selectedSchool?.name
+                        if let school = selectedSchool {
+                            // 선택된 학교 이름과 seq를 부모 뷰에 전달
+                            selectedSchoolName = school.name
+                            selectedSchoolSeq = school.seq
                             isPresented = false
                         }
                     },
@@ -111,17 +114,17 @@ struct SchoolSearchPopup: View {
     struct SchoolRow: View {
         let school: SchoolInfo
         @Binding var selectedSchool: SchoolInfo?
-
+        
         var isSelected: Bool {
             selectedSchool?.id == school.id
         }
-
+        
         var body: some View {
             HStack(spacing: 10) {
                 Button(action: { selectedSchool = school }) {
                     Image(isSelected ? "ic_24_bell_fill" : "ic_24_bell")
                 }
-
+                
                 Text(school.name)
                     .font(.pretendMedium14)
                     .foregroundStyle(Color(.gray900))
@@ -142,11 +145,13 @@ struct SchoolSearchPopup: View {
 private struct SchoolSearchPopupPreviewWrapper: View {
     @State private var isPresented = true
     @State private var selectedSchoolName: String? = nil
+    @State private var selectedSchoolSeq: String? = nil
     
     var body: some View {
         SchoolSearchPopup(
             isPresented: $isPresented,
-            selectedSchoolName: $selectedSchoolName
+            selectedSchoolName: $selectedSchoolName,
+            selectedSchoolSeq: $selectedSchoolSeq
         )
     }
 }

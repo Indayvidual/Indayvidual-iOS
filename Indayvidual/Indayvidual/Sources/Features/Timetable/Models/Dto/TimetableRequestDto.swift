@@ -8,7 +8,7 @@
 import Foundation
 
 struct TimetableRequestDto: Codable {
-    let schoolId: Int
+    let schoolId: String
     let semester: String
     let imageUrl: String
 }

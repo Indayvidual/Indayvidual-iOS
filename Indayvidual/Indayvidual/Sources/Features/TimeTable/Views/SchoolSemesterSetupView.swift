@@ -11,29 +11,31 @@ struct SchoolSemesterSetupView: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var selectedSchoolName: String? = nil
+    @State private var selectedSchoolSeq: String? = nil
     @State private var showSemesterPicker = false
     @State private var selectedSemester: String? = nil
     @State private var showSchoolSearchPopup = false
     
     @ObservedObject var timetableVm: TimetableViewModel
     
-    var onCompletion: ((String, String) -> Void)?
-    var onSetupTapped: (() -> Void)?
+    var onCompletion: ((String, String) -> Void)? = nil
+    var onSetupTapped: (() -> Void)? = nil
     
     var body: some View {
-        ZStack { 
+        ZStack {
             CustomActionSheet(
                 title: "학교/학기 설정",
                 primaryButtonTitle: "저장",
                 primaryAction: {
-                    if let school = selectedSchoolName, let semester = selectedSemester {
-                        onCompletion?(school, semester)
-                        timetableVm.isSchoolRegistered = true
-                        dismiss()
-                    }
+                    guard let schoolSeq = selectedSchoolSeq,
+                          let schoolName = selectedSchoolName,
+                          let semester = selectedSemester else { return }
+                    
+                    timetableVm.saveSchoolSemester(schoolSeq: schoolSeq, schoolName: schoolName, semester: semester)
                 },
                 secondaryAction: {
                     timetableVm.showSchoolSemesterSetup = false
+                    timetableVm.isSchoolRegistered = false
                 },
                 primaryButtonColor: (selectedSchoolName != nil && selectedSemester != nil) ? .gray900 : .gray100,
                 headerLeftButton: {
@@ -46,67 +48,61 @@ struct SchoolSemesterSetupView: View {
                     )
                 }
             ) {
-                ZStack{
-                    RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(.white))
-                            .frame(height: 282)
-                            .frame(maxWidth: .infinity)
+                VStack {
+                    Text("학교 설정")
+                        .font(.pretendSemiBold18)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    VStack {
-                        Text("학교 설정")
-                            .font(.pretendSemiBold18)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        Spacer().frame(height: 15)
-                        
-                        SelectionBar(
-                            title: selectedSchoolName ?? "소속 대학명을 검색 하세요",
-                            isSelected: selectedSchoolName != nil,
-                            iconName: "Group",
-                            onTap: {
-                                showSchoolSearchPopup = true
-                            }
-                        )
-                        
-                        Spacer().frame(height: 50)
-                        
-                        Text("학기 설정")
-                            .font(.pretendSemiBold18)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        SelectionBar(
-                            title: selectedSemester ?? "학기 선택",
-                            isSelected: selectedSemester != nil,
-                            iconName: showSemesterPicker ? "dropup" : "dropdown",
-                            onTap: {
-                                withAnimation {
-                                    showSemesterPicker.toggle()
-                                }
-                            }
-                        )
-                        
-                        if showSemesterPicker {
-                            SemesterPickerView(selectedSemester: $selectedSemester)
-                                .transition(.opacity)
-                                .animation(.easeInOut, value: showSemesterPicker)
+                    Spacer().frame(height: 15)
+                    
+                    SelectionBar(
+                        title: selectedSchoolName ?? "소속 대학명을 검색 하세요",
+                        isSelected: selectedSchoolName != nil,
+                        iconName: "Group",
+                        onTap: { showSchoolSearchPopup = true }
+                    )
+                    
+                    Spacer().frame(height: 50)
+                    
+                    Text("학기 설정")
+                        .font(.pretendSemiBold18)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    SelectionBar(
+                        title: selectedSemester ?? "학기 선택",
+                        isSelected: selectedSemester != nil,
+                        iconName: showSemesterPicker ? "dropup" : "dropdown",
+                        onTap: {
+                            withAnimation { showSemesterPicker.toggle() }
                         }
+                    )
+                                        
+                    // 학기 선택 피커
+                    if showSemesterPicker {
+                        SemesterPickerView(selectedSemester: $selectedSemester)
+                            .transition(.opacity)
+                            .animation(.easeInOut, value: showSemesterPicker)
                         
-                        Spacer()
                     }
-                    .padding(.horizontal, 20)
-                    .navigationBarBackButtonHidden(true)
+                    
                 }
-                
+                .padding(.horizontal, 20)
+                .background(Color.white)
+                .cornerRadius(12)
+                .frame(height: 282)
+                .frame(maxWidth: .infinity)
             }
-
+            
+            // 학교 검색 팝업
             if showSchoolSearchPopup {
                 SchoolSearchPopup(
                     isPresented: $showSchoolSearchPopup,
-                    selectedSchoolName: $selectedSchoolName
+                    selectedSchoolName: $selectedSchoolName,
+                    selectedSchoolSeq: $selectedSchoolSeq
                 )
             }
-            
         }
+        .navigationBarBackButtonHidden(true)
     }
     
     struct SemesterPickerView: View {
@@ -115,7 +111,7 @@ struct SchoolSemesterSetupView: View {
         
         private let semesters = (1...4).flatMap { year in
             (1...2).map { semester in
-                "\(year)학년   \(semester)학기"
+                "\(year)학년 \(semester)학기"
             }
         }
         
@@ -127,27 +123,9 @@ struct SchoolSemesterSetupView: View {
             }
             .pickerStyle(WheelPickerStyle())
             .frame(height: 150)
-            .clipped()
             .onChange(of: selectedIndex) {
                 selectedSemester = semesters[selectedIndex]
             }
         }
     }
-}
-
-#Preview {
-    let vm = TimetableViewModel()
-    vm.showSchoolSemesterSetup = true
-    vm.selectedSchoolName = "동국대학교"
-    vm.selectedSemester = "1학년 1학기"
-    
-    return SchoolSemesterSetupView(
-        timetableVm: vm,
-        onCompletion: { school, semester in
-            print("선택된 학교: \(school), 학기: \(semester)")
-        },
-        onSetupTapped: {
-            print("학교 설정하기 버튼 탭됨")
-        }
-    )
 }

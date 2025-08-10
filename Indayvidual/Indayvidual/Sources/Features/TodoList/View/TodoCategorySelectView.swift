@@ -105,7 +105,7 @@ struct TodoCategorySelectView: View {
                     HStack {
                         Image("back")
                     }
-                }.padding(.leading, 15)
+                }
             }
             ToolbarItem(placement: .principal) {
                 Text("카테고리 등록")
@@ -119,7 +119,6 @@ struct TodoCategorySelectView: View {
                 .font(.pretendSemiBold18)
                 .foregroundStyle(buttonBackgroundColor)
                 .disabled(isButtonDisabled)
-                .padding(.trailing, 20)
             }
         }
     }

@@ -8,16 +8,16 @@
 import SwiftUI
 
 struct ScheduleItem: Identifiable, Comparable {
-    let id: UUID
-    let startTime: Date
+    let id: Int
+    let startTime: Date?
     let endTime: Date?
     let title: String
     let color: Color
     let isAllDay: Bool
     
     init(
-        id: UUID = UUID(),
-        startTime: Date,
+        id: Int,
+        startTime: Date?,
         endTime: Date? = nil,
         title: String,
         color: Color,
@@ -32,14 +32,27 @@ struct ScheduleItem: Identifiable, Comparable {
     }
     
     static func < (lhs: ScheduleItem, rhs: ScheduleItem) -> Bool {
-        lhs.startTime < rhs.startTime
+        switch (lhs.startTime, rhs.startTime) {
+        case let (l?, r?):
+            return l < r
+        case (nil, _?):
+            return true        // nil은 항상 더 이전으로 간주
+        case (_?, nil):
+            return false
+        case (nil, nil):
+            return false       // 둘 다 nil이면 동등 처리
+        }
     }
 }
 
-extension Date {
-    func toTimeString() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: self)
+extension ScheduleItem {
+    var timeText: String {
+        guard let start = startTime else { return "" }
+        
+        if let end = endTime {
+            return "\(start.toTimeString()) - \(end.toTimeString())"
+        } else {
+            return start.toTimeString()
+        }
     }
 }

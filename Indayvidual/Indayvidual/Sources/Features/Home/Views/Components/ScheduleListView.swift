@@ -10,7 +10,7 @@ import SwiftUI
 struct ScheduleListView: View {
     @State private var scheduleToEdit: ScheduleItem? = nil
 
-    @EnvironmentObject var scheduleVm: ScheduleViewModel
+    @EnvironmentObject var homeVm: HomeViewModel
     @ObservedObject var calendarVm: CustomCalendarViewModel
     
     // 수정 버튼 눌렀을 때 호출되는 클로저
@@ -18,26 +18,22 @@ struct ScheduleListView: View {
 
     var body: some View {
         List {
-            ForEach(scheduleVm.filteredSchedules) { schedule in
+            ForEach(homeVm.filteredSchedules) { schedule in
                 VStack(alignment: .leading){
                     HStack{
                         Circle()
                             .fill(schedule.color)
                             .frame(width: 10, height: 10)
                         
-                        Text(
-                            schedule.endTime != nil
-                            ? "\(schedule.startTime.toTimeString()) - \(schedule.endTime!.toTimeString())"
-                            : schedule.startTime.toTimeString()
-                        )
+                        Text(schedule.timeText)
                             .font(.pretendMedium11)
                             .foregroundColor(Color(.gray500))
-
+                        
                         Spacer()
                         
                         ScheduleMenu(
                             schedule: schedule,
-                            scheduleVm: scheduleVm,
+                            homeVm: homeVm,
                             calendarVm: calendarVm,
                             onEdit: {
                                 onEditSchedule?(schedule)
@@ -66,7 +62,7 @@ struct ScheduleListView: View {
                 .padding(.vertical, -3)
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     Button(role: .destructive) {
-                        scheduleVm.deleteSchedule(schedule, calendarViewModel: calendarVm)
+                        homeVm.deleteSchedule(schedule, calendarViewModel: calendarVm)
                     } label: {
                         Image(systemName: "trash.fill")
                     }
@@ -83,9 +79,9 @@ struct ScheduleListView: View {
 }
 
 #Preview {
-    let scheduleVm = ScheduleViewModel()
+    let homeVm = HomeViewModel()
     let calendarVm = CustomCalendarViewModel()
     
     ScheduleListView(calendarVm: calendarVm)
-        .environmentObject(scheduleVm)
+        .environmentObject(homeVm)
 }

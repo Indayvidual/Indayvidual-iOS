@@ -9,9 +9,9 @@ import Foundation
 import Moya
 
 enum EventTarget{
-    case postEvent(content: EventRequestDto)
+    case postEvent(content: EventCreateRequestDto)
     case deleteEvent(eventId: Int)
-    case patchEvent(eventId: Int, content: EventRequestDto)
+    case patchEvent(eventId: Int, content: EventUpdateRequestDto)
     case getEvents(date: String)
 }
 
@@ -22,8 +22,8 @@ extension EventTarget: APITargetType{
             return "/api/events"
         case .deleteEvent(let eventId), .patchEvent(let eventId, _):
             return "/api/events/\(eventId)"
-        case .getEvents:
-            return "/api/events"
+        case .getEvents(let date):
+            return "/api/events/\(date)"
         }
     }
     
@@ -42,19 +42,24 @@ extension EventTarget: APITargetType{
     
     var task: Task{
         switch self{
-        case .postEvent(let content), .patchEvent(_, let content):
+        case .postEvent(let content):
             return .requestJSONEncodable(content)
             
-        case .deleteEvent:
-            return .requestPlain
+        case .patchEvent(_, let content):
+            return .requestJSONEncodable(content)
             
-        case .getEvents(let date):
-            return .requestParameters(parameters: ["date": date], encoding: URLEncoding.queryString)
+        case .deleteEvent, .getEvents:
+            return .requestPlain
         }
     }
     
-    var headers: [String : String]?{
-        //TODO: 액세스 토큰 헤더 추가 (Authorization : Bearer <accessToken>)
-        return ["Content-Type" : "application/json"]
+    var headers: [String : String]? {
+        var headers = ["Content-Type" : "application/json"]
+
+        if let accessToken = UserDefaults.standard.string(forKey: "accessToken"), !accessToken.isEmpty {
+            headers["Authorization"] = "Bearer \(accessToken)"
+        }
+        
+        return headers
     }
 }

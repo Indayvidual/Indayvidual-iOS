@@ -1,0 +1,9 @@
+//
+//  Keys.xcconfig.example
+//  Indayvidual
+//
+//  Created by 장주리 on 7/25/25.
+//
+
+SCHOOL_INFO_API_KEY
+BASE_URL

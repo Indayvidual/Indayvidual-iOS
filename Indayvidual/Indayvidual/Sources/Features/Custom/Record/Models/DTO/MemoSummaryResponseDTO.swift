@@ -11,12 +11,12 @@ struct MemoSummaryResponseDTO: Codable {
 extension MemoSummaryResponseDTO {
     func toModel() -> MemoModel {
         return MemoModel(
-            id: UUID(), // Or map from id
+            id: UUID(),
             memoId: id,
             title: title,
             content: contentPreview,
-            date: createdAt,
-            time: ""
+            date: updatedAt.asYYMMDD(),
+            time: updatedAt.asHHmm()
         )
     }
 }

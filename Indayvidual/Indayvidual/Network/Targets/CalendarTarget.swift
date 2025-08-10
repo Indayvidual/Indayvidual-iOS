@@ -16,7 +16,7 @@ extension CalendarTarget: APITargetType{
     var path: String{
         switch self{
         case .getHomeCalendar(let year, let month):
-            return "/api/calendar/home/\(year)/\(month)"
+            return "/api/calendar/\(year)/\(month)"
         }
     }
     
@@ -34,8 +34,13 @@ extension CalendarTarget: APITargetType{
         }
     }
     
-    var headers: [String : String]?{
-        //TODO: 액세스 토큰 헤더 추가 (Authorization : Bearer <accessToken>)
-        return ["Content-Type" : "application/json"]
+    var headers: [String : String]? {
+        var headers = ["Content-Type" : "application/json"]
+
+        if let accessToken = UserDefaults.standard.string(forKey: "accessToken"), !accessToken.isEmpty {
+            headers["Authorization"] = "Bearer \(accessToken)"
+        }
+        
+        return headers
     }
 }

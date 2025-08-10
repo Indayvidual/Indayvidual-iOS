@@ -7,7 +7,7 @@
 
 import Foundation
 
-struct TaskUpdateCheckResponseDTO : Encodable {
+struct TaskUpdateCheckResponseDTO : Decodable {
     let taskId : Int
     let isCompleted : Bool
 }

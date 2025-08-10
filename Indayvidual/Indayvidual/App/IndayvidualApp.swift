@@ -12,15 +12,18 @@ import KakaoSDKAuth
 @main
 struct IndayvidualApp: App {
     @StateObject var userSession = UserSession()
+    @StateObject private var alertService = AlertService()
     
     init() {
-            let kakaoNativeAppKey = (Bundle.main.infoDictionary?["KAKAO_NATIVE_APP_KEY"] as? String) ?? ""
-            KakaoSDK.initSDK(appKey: kakaoNativeAppKey) 
-        }
+        let kakaoNativeAppKey = (Bundle.main.infoDictionary?["KAKAO_NATIVE_APP_KEY"] as? String) ?? ""
+        KakaoSDK.initSDK(appKey: kakaoNativeAppKey)
+    }
     
     var body: some Scene {
+        
         WindowGroup {
             ContentView()
+                .rootAlert()
                 .environmentObject(userSession)
                 .onOpenURL { url in
                     if AuthApi.isKakaoTalkLoginUrl(url) {
@@ -29,4 +32,5 @@ struct IndayvidualApp: App {
                 }
         }
     }
+    
 }

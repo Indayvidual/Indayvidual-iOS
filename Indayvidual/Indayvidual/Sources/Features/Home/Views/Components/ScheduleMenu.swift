@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ScheduleMenu: View {
     let schedule: ScheduleItem
-    var scheduleVm: ScheduleViewModel
+    var homeVm: HomeViewModel
     var calendarVm: CustomCalendarViewModel 
     var onEdit: (() -> Void)? = nil
     
@@ -31,7 +31,7 @@ struct ScheduleMenu: View {
     }
 
     private func deleteAction() {
-        scheduleVm.deleteSchedule(schedule, calendarViewModel: calendarVm)
+        homeVm.deleteSchedule(schedule, calendarViewModel: calendarVm)
     }
 }
 

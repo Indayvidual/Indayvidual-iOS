@@ -2,9 +2,10 @@ import Foundation
 
 struct MemoDetailResponseDTO: Codable {
     let memoId: Int
+    let title: String
     let content: String
     let createdDate: String
-    let createdTime: LocalTime
+    let createdTime: String
 }
 
 struct LocalTime: Codable {
@@ -17,12 +18,12 @@ struct LocalTime: Codable {
 extension MemoDetailResponseDTO {
     func toModel() -> MemoModel {
         return MemoModel(
-            id: UUID(), // Or map from memoId if you want Int
+            id: UUID(),
             memoId: memoId,
-            title: "",  // Title not present in this DTO
+            title: title,
             content: content,
-            date: createdDate,
-            time: String(format: "%02d:%02d", createdTime.hour, createdTime.minute)
+            date: createdDate.asYYMMDD(),
+            time: createdDate.asHHmm()
         )
     }
 }

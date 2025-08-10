@@ -6,6 +6,7 @@ enum TodoActionOption: CaseIterable {
     case doTomorrow
     case doAnotherDay
     case doTodoayAgain
+    case doTomorrowAgain
     case delete
     
     var title: String {
@@ -20,6 +21,8 @@ enum TodoActionOption: CaseIterable {
             return "다른 날 또 하기"
         case .doTodoayAgain :
             return "오늘 또 하기"
+        case .doTomorrowAgain :
+            return "내일 또 하기"
         case .delete:
             return "삭제하기"
         }
@@ -36,6 +39,8 @@ enum TodoActionOption: CaseIterable {
         case .doAnotherDay:
             return "redo"
         case .doTodoayAgain:
+            return "doingarrow"
+        case .doTomorrowAgain:
             return "doingarrow"
         case .delete:
             return ""
@@ -55,25 +60,25 @@ enum TodoActionOption: CaseIterable {
             // 완료된 task의 경우
             if taskDay < today {
                 // 과거 완료된 task
-                options = [.changeDate, .doToday, .doTodoayAgain, .doAnotherDay]
+                options = [.doTodoayAgain, .doAnotherDay]
             } else if taskDay == today {
                 // 오늘 완료된 task
-                options = [.changeDate, .doTomorrow, .doTodoayAgain, .doAnotherDay]
+                options = [.doTomorrowAgain, .doAnotherDay]
             } else {
                 // 미래 완료된 task (일반적이지 않은 케이스)
-                options = [.changeDate]
+                options = [.doTodoayAgain, .doAnotherDay]
             }
         } else {
             // 미완료된 task의 경우
             if taskDay < today {
                 // 과거 미완료된 task
-                options = [.changeDate, .doToday, .doTomorrow, .doAnotherDay]
+                options = [.changeDate, .doToday, .doTomorrow]
             } else if taskDay == today {
                 // 오늘 미완료된 task
                 options = [.changeDate, .doTomorrow]
             } else {
                 // 미래 미완료된 task
-                options = [.changeDate, .doToday, .doTodoayAgain, .doAnotherDay]
+                options = [.changeDate, .doToday, .doTomorrow]
             }
         }
         return options

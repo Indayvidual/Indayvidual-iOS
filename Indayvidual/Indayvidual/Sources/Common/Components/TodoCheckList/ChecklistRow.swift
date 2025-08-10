@@ -149,7 +149,7 @@ struct ChecklistRow: View {
                 }
             )
         }
-        .presentationDetents([.medium])
+        .presentationDetents([.fraction(0.4)])
         .presentationDragIndicator(.visible)
     }
     

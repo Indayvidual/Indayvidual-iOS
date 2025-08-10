@@ -51,6 +51,8 @@ struct TimetableView: View {
                     matching: .images
                 )
                 .background(Color(.gray50))
+                
+                // 학교/학기 설정 뷰
                 .navigationDestination(isPresented: $timetableVm.showSchoolSemesterSetup) {
                     SchoolSemesterSetupView(
                         timetableVm: timetableVm
@@ -82,13 +84,6 @@ struct TimetableView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .top)
             }
-        }
-        
-        // 학교/학기 설정뷰
-        .navigationDestination(isPresented: $timetableVm.showSchoolSemesterSetup) {
-            SchoolSemesterSetupView(
-                timetableVm: timetableVm
-            )
         }
     }
 }

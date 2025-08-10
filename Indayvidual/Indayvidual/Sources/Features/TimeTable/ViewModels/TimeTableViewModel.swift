@@ -37,8 +37,8 @@ class TimetableViewModel: ObservableObject {
         }
     }
     
-    var selectedSchoolName: String?
-    var selectedSemester: String?
+    @Published var selectedSchoolName: String?
+    @Published var selectedSemester: String?
     
     init(alertService: AlertService? = nil) {
         self.isSchoolRegistered = false

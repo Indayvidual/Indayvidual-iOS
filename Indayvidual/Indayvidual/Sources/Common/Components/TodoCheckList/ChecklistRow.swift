@@ -22,7 +22,14 @@ struct ChecklistRow: View {
                 
             }
             .padding(.vertical, 3)
-            underLine
+            
+            if task.taskId == nil || isFocused {
+                Rectangle()
+                    .foregroundColor(.gray900)
+                    .frame(height: 1)
+                    .padding(.leading, 27)
+                    .padding(.trailing, 20)
+            }
         }
         .contentShape(Rectangle())
         .sheet(isPresented: $showActionSheet) {
@@ -30,6 +37,9 @@ struct ChecklistRow: View {
         }
         .sheet(isPresented: $actionViewModel.showDatePicker) {
             datePickerSheet
+        }
+        .onAppear {
+            localText = text
         }
     }
     
@@ -46,19 +56,11 @@ struct ChecklistRow: View {
                             .stroke(isChecked ? Color.grayWhite : Color.gray400, lineWidth: 1)
                     )
                 
-                if isChecked {
-                    Image(systemName: "checkmark")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 8, height: 8)
-                        .foregroundColor(.grayWhite)
-                } else {
-                    Image(systemName: "checkmark")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 8, height: 8)
-                        .foregroundColor(.gray400)
-                }
+                Image(systemName: "checkmark")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 8, height: 8)
+                    .foregroundColor(isChecked ? .grayWhite : .gray400)
             }
         }
         .buttonStyle(PlainButtonStyle())
@@ -88,10 +90,6 @@ struct ChecklistRow: View {
                         commitText()
                     }
                 }
-                .onAppear {
-                    localText = text // 바인딩 싱크
-                }
-
         }
     }
     
@@ -112,22 +110,14 @@ struct ChecklistRow: View {
             actionViewModel.todoManager.updateTaskTitle(task, newTitle: trimmed)
         }
     }
-
+    
     private var moreButton: some View {
         Button {
             showActionSheet = true
         } label: {
-            Image("more-btn")
+            Image("more-btn-gray")
         }
         .buttonStyle(PlainButtonStyle())
-    }
-    
-    private var underLine: some View {
-        Rectangle()
-            .foregroundColor(.black)
-            .frame(height: 1)
-            .padding(.leading, 27)
-            .padding(.trailing, 20)
     }
     
     private var todoActionSheet: some View {
@@ -178,8 +168,8 @@ struct ChecklistRow: View {
             secondaryAction: {
                 actionViewModel.showDatePicker = false
                 currentActionOption = nil
-            },
-            ) {
+            }
+        ) {
             CalendarWrapperView(
                 initialSelectedDate: actionViewModel.selectedActionDate,
                 onDateSelected: { selectedDate in

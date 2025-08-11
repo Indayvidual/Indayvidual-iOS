@@ -24,7 +24,7 @@ struct CustomCalendarView: View {
         showNavigationButtons: Bool = true,
         showMarkers: Bool = true,
         initialMode: CalendarMode = .month,
-        enableSwipeNavigation: Bool = false,
+        enableSwipe: Bool = false,
         onDateSelected: ((Date) -> Void)? = nil
     ) {
         self.calendarViewModel = calendarViewModel
@@ -33,6 +33,7 @@ struct CustomCalendarView: View {
         self.showNavigationButtons = showNavigationButtons
         self.showMarkers = showMarkers
         self.initialMode = initialMode
+        self.enableSwipe = enableSwipe
         self.onDateSelected = onDateSelected
     }
     
@@ -47,9 +48,7 @@ struct CustomCalendarView: View {
                 WeekdayHeaderView()
                 calendarContentView
             }
-            .padding(.horizontal, 18)
-            .padding(.top, 10)
-            .padding(.bottom, 23)
+            .padding(20)
             .gesture(
                 enableSwipe ?
                 DragGesture().onEnded { value in
@@ -65,14 +64,15 @@ struct CustomCalendarView: View {
                 : nil
             )
         }
-        .frame(width: 320)
-        .background(Color.white)
+        .background(.white)
         .cornerRadius(20)
+        .shadow(color: .black.opacity(0.08), radius: 4.75, x: 2, y: 3)
         .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(Color(red: 242/255, green: 242/255, blue: 247/255), lineWidth: 0.078)
+        RoundedRectangle(cornerRadius: 20)
+        .inset(by: 0.04)
+        .stroke(Color(red: 0.95, green: 0.96, blue: 0.96), lineWidth: 0.07781)
+
         )
-        .shadow(color: showShadow ? Color.black.opacity(0.08) : .clear, radius: 9.5, x: 2, y: 3)
         .task {
             calendarViewModel.calendarMode = initialMode
         }
@@ -129,6 +129,7 @@ struct CalendarHeaderView: View {
                 nextButton
             }
         }
+        .padding(.horizontal, 10)
         .padding(.bottom, 20)
     }
     
@@ -168,11 +169,12 @@ struct WeekdayHeaderView: View {
     private let weekday = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
     
     var body: some View {
-        HStack(spacing: 26) {
+        HStack {
             ForEach(weekday, id: \.self) { day in
                 Text(day)
                     .font(.pretendMedium13)
-                    .frame(width: 19, height: 16)
+                    .frame(maxWidth: .infinity)  // 최대 너비로 확장
+                    .multilineTextAlignment(.center)
             }
         }
         .padding(.bottom, 20)
@@ -185,7 +187,8 @@ struct MonthlyCalendarView: View {
     var showMarkers: Bool = true
     var onDateSelected: ((Date) -> Void)?
     
-    private let columns = Array(repeating: GridItem(.flexible(), spacing: 30), count: 7)
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
+    
     private let rowCount: CGFloat = 6
     private let itemHeight: CGFloat = 30
     
@@ -226,7 +229,7 @@ struct WeeklyCalendarView: View {
     var onDateSelected: ((Date) -> Void)?
     
     var body: some View {
-        HStack(spacing: 15) {
+        HStack(spacing: 0){
             ForEach(getThisWeekDateValues()) { value in
                 let isToday = value.date.isToday
                 let isSelected = value.date.isSameDay(as: calendarViewModel.selectDate)
@@ -241,6 +244,7 @@ struct WeeklyCalendarView: View {
                     },
                     markers: showMarkers ? (calendarViewModel.dateMarkers[value.date.startOfDay] ?? []) : []
                 )
+                .frame(maxWidth: .infinity)
             }
         }
     }

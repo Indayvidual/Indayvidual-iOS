@@ -8,6 +8,7 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
+// TODO: 서버에 습관 순서 저장을 위한 API생성 필요
 struct EphemeralHabitDropDelegate: DropDelegate {
     let target: MyHabitModel
     @Binding var items: [MyHabitModel]

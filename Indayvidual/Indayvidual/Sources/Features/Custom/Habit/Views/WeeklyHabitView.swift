@@ -12,7 +12,7 @@ struct WeeklyHabitView: View {
     var showShadow: Bool = true     // 백그라운드 그림자 여부
     var sharedVM: CustomViewModel
     
-    let days = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+    let days = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
     
     var body: some View {
         ZStack {

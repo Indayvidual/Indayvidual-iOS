@@ -22,8 +22,8 @@ extension MemoDetailResponseDTO {
             memoId: memoId,
             title: title,
             content: content,
-            date: createdDate.asYYMMDD(),
-            time: createdDate.asHHmm()
+            date: Date().toYYMMDD(),
+            time: Date().toHHmm()
         )
     }
 }

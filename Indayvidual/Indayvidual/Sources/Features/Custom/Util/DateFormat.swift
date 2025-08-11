@@ -22,21 +22,42 @@ extension Date {
         return formatter.string(from: self)
     }
     
+    func toYYMMDD() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyMMdd"
+        return formatter.string(from: self)
+    }
+    
+    func toHHmm() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: self)
+    }
 }
 
 // MARK: - String 포맷
 extension String {
     func asYYMMDD() -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "yyMMdd"
-        return formatter.string(from: Date())
+        let inF = DateFormatter()
+        inF.locale = Locale(identifier: "ko_KR")
+        inF.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+        guard let date = inF.date(from: self) else { return "" }
+
+        let outF = DateFormatter()
+        outF.locale = Locale(identifier: "ko_KR")
+        outF.dateFormat = "yyMMdd"
+        return outF.string(from: date)
     }
-    
+
     func asHHmm() -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: Date())
+        let inF = DateFormatter()
+        inF.locale = Locale(identifier: "ko_KR")
+        inF.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+        guard let date = inF.date(from: self) else { return "" }
+
+        let outF = DateFormatter()
+        outF.locale = Locale(identifier: "ko_KR")
+        outF.dateFormat = "HH:mm"
+        return outF.string(from: date)
     }
 }

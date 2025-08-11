@@ -47,8 +47,14 @@ class CustomViewModel {
                 do {
                     let decoded = try JSONDecoder().decode(ApiResponseMemoSliceResponseDTO.self, from: response.data)
                     let models = decoded.data.toModelList()
+                    let sorted = models.sorted {
+                        if $0.date != $1.date {
+                            return $0.date > $1.date      // "yyMMdd" 최신이 먼저
+                        }
+                        return $0.time > $1.time          // 같은 날이면 "HH:mm" 최신이 먼저
+                    }
                     DispatchQueue.main.async {
-                        self.memos = models
+                        self.memos = sorted
                         print("✅ 메모 불러오기 성공")
                     }
                 } catch {

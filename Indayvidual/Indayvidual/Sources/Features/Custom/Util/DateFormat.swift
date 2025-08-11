@@ -18,18 +18,21 @@ extension Date {
 
     func toAPIDateFormat() -> String {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: self)
     }
     
     func toYYMMDD() -> String {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "yyMMdd"
         return formatter.string(from: self)
     }
     
     func toHHmm() -> String {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "HH:mm"
         return formatter.string(from: self)
     }
@@ -37,27 +40,20 @@ extension Date {
 
 // MARK: - String 포맷
 extension String {
-    func asYYMMDD() -> String {
-        let inF = DateFormatter()
-        inF.locale = Locale(identifier: "ko_KR")
-        inF.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
-        guard let date = inF.date(from: self) else { return "" }
-
-        let outF = DateFormatter()
-        outF.locale = Locale(identifier: "ko_KR")
-        outF.dateFormat = "yyMMdd"
-        return outF.string(from: date)
+    private func parseAPIDate() -> Date? {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+        return formatter.date(from: self)
     }
-
+    
+    func asYYMMDD() -> String {
+        guard let date = parseAPIDate() else { return "" }
+        return date.toYYMMDD()
+    }
+    
     func asHHmm() -> String {
-        let inF = DateFormatter()
-        inF.locale = Locale(identifier: "ko_KR")
-        inF.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
-        guard let date = inF.date(from: self) else { return "" }
-
-        let outF = DateFormatter()
-        outF.locale = Locale(identifier: "ko_KR")
-        outF.dateFormat = "HH:mm"
-        return outF.string(from: date)
+        guard let date = parseAPIDate() else { return "" }
+        return date.toHHmm()
     }
 }

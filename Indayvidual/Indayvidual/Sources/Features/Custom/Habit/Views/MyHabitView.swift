@@ -6,11 +6,13 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct MyHabitView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject private var calendarViewModel = CustomCalendarViewModel()
     @State private var editColorVM = ColorViewModel()
+    @State private var draggedHabit: MyHabitModel?      // 드래그 앤 드랍 수정 용
     @State var sharedVM: CustomViewModel                // 공유 뷰모델 설정
     @State private var selectedMode: HabitMode = .daily // 기본 .daily로 설정
     @State private var Change : Bool = false            // 습관 수정 NavigationView 트리거
@@ -107,6 +109,18 @@ struct MyHabitView: View {
                     )
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
+                    .onDrag {
+                        self.draggedHabit = habit
+                        return NSItemProvider(object: (habit.habitId != nil ? "\(habit.habitId!)" : habit.id.uuidString) as NSString)
+                    }
+                    .onDrop(
+                        of: [UTType.text, .plainText],
+                        delegate: EphemeralHabitDropDelegate(
+                            target: habit,
+                            items: $sharedVM.habits,
+                            draggedItem: $draggedHabit
+                        )
+                    )
                 }
             }
             .listStyle(.plain)
@@ -151,7 +165,7 @@ struct MyHabitView: View {
                         showToggleButton: false,
                         initialMode: .week
                     )                                   // 현재 주차 캘린더 출력
-            .padding(.top)
+            .padding([.top, .horizontal])
             completeView                                // 캘린더에서 선택한 날짜 및 완료 체크한 습관의 개수 출력
             habitsListView                              // 습관 리스트 뷰
         }
@@ -165,7 +179,6 @@ struct MyHabitView: View {
                     sharedVM: sharedVM
                 )
                 .padding(12)
-                .padding(.horizontal)
             }
         }
     }
@@ -177,7 +190,7 @@ struct MyHabitView: View {
                         calendarViewModel: calendarViewModel,
                         showToggleButton: false,
                     )                                   // 해당 월 캘린더 출력
-            .padding(.top)
+            .padding([.top, .horizontal])
             completeView                                // 캘린더에서 선택한 날짜 및 완료 체크한 습관의 개수 출력
             habitsListView                              // 습관 리스트 뷰
         }

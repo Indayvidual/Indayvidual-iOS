@@ -12,12 +12,30 @@ struct WeeklyHabitView: View {
     var showShadow: Bool = true     // 백그라운드 그림자 여부
     var sharedVM: CustomViewModel
     
-    let days = ["월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일"]
+    let days = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
+
+    private var orderMap: [AnyHashable: Int] {
+        Dictionary(uniqueKeysWithValues: sharedVM.habits.enumerated().map { idx, h in
+            let key = h.habitId.map { AnyHashable($0) } ?? AnyHashable(h.id)
+            return (key, idx)
+        })
+    }
+
+    private var orderedWeeklyHabits: [MyHabitModel] {
+        let enumerated = Array(sharedVM.weeklyHabits.enumerated())
+        return enumerated.sorted { lhs, rhs in
+            let lKey = lhs.1.habitId.map { AnyHashable($0) } ?? AnyHashable(lhs.1.id)
+            let rKey = rhs.1.habitId.map { AnyHashable($0) } ?? AnyHashable(rhs.1.id)
+            let li = orderMap[lKey] ?? Int.max
+            let ri = orderMap[rKey] ?? Int.max
+            if li != ri { return li < ri }
+            return lhs.0 < rhs.0 // 같은 경우 원래 주간 순서 보존
+        }.map { $0.1 }
+    }
     
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.white)
+            RoundedRectangle(cornerRadius: 20).fill(.white)
             VStack(alignment: .leading, spacing: 20) {
                 if showTitle {
                     Text("나의 습관")
@@ -35,8 +53,7 @@ struct WeeklyHabitView: View {
                     }
                 }
                 
-                // 습관별 주간 체크 박스
-                ForEach(sharedVM.weeklyHabits, id: \.id) { habit in
+                ForEach(orderedWeeklyHabits, id: \.id) { habit in
                     HStack {
                         Text(habit.title)
                             .lineLimit(2)                                   // 두 줄로 출력 제한

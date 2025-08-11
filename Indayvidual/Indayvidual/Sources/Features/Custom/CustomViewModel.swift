@@ -47,8 +47,14 @@ class CustomViewModel {
                 do {
                     let decoded = try JSONDecoder().decode(ApiResponseMemoSliceResponseDTO.self, from: response.data)
                     let models = decoded.data.toModelList()
+                    let sorted = models.sorted {
+                        if $0.date != $1.date {
+                            return $0.date > $1.date      // "yyMMdd" 최신이 먼저
+                        }
+                        return $0.time > $1.time          // 같은 날이면 "HH:mm" 최신이 먼저
+                    }
                     DispatchQueue.main.async {
-                        self.memos = models
+                        self.memos = sorted
                         print("✅ 메모 불러오기 성공")
                     }
                 } catch {
@@ -86,42 +92,42 @@ class CustomViewModel {
         }
     }
     
+    // ✅ 일주일 습관 체크 내역 불러오기
     func loadWeeklyChecks() {
-        // ISO8601 캘린더로 월요일 구하기
-        let isoCal  = Calendar(identifier: .iso8601)
-        let today   = Date()
-        guard let monday = isoCal.date(
-            from: isoCal.dateComponents([.yearForWeekOfYear, .weekOfYear],
-                                        from: today)
-        ) else {
-            print("⚠️ 이번 주 월요일 계산 실패")
+        // Gregorian 캘린더, 일요일이 주 시작
+        var gregorian = Calendar(identifier: .gregorian)
+        gregorian.firstWeekday = 1 // 1 = Sunday
+
+        let today = Date()
+        
+        // 이번 주 일요일 찾기
+        let weekday = gregorian.component(.weekday, from: today)
+        let daysFromSunday = weekday - 1
+        guard let sunday = gregorian.date(byAdding: .day, value: -daysFromSunday, to: today) else {
+            print("⚠️ 이번 주 일요일 계산 실패")
             return
         }
         
-        let startDate = monday.toAPIDateFormat()
+        let startDate = sunday.toAPIDateFormat()
         
         habitProvider.request(.getHabitsCheckWeekly(startDate: startDate)) { result in
             switch result {
             case .success(let response):
                 do {
-                    // 최상위 래퍼 DTO 디코딩
                     let wrapper = try JSONDecoder()
                         .decode(ApiResponseListHabitWeeklyChecksResponseDTO.self, from: response.data)
-                    // API로부터 받은 체크 리스트 → [String:Bool] 맵
+                    
                     let models = wrapper.data.map { dto -> MyHabitModel in
-                        // 월~일 7일치 날짜 문자열 배열
+                        // 일~토 날짜 배열
                         let weekDates: [String] = (0..<7).map { offset in
-                            isoCal
-                                .date(byAdding: .day, value: offset, to: monday)!
+                            gregorian
+                                .date(byAdding: .day, value: offset, to: sunday)!
                                 .toAPIDateFormat()
                         }
-                        // { "2025-08-04":true, ... }
                         let checkMap = Dictionary(uniqueKeysWithValues:
-                                                    dto.checkedAtList.map { ($0.checkedAt, $0.isChecked) }
+                            dto.checkedAtList.map { ($0.checkedAt, $0.isChecked) }
                         )
-                        // 7일치 Bool 배열 생성
                         let checks = weekDates.map { checkMap[$0] ?? false }
-                        // MyHabitModel로 변환
                         return MyHabitModel(
                             habitId:    dto.habitId,
                             title:      dto.title,
@@ -131,7 +137,7 @@ class CustomViewModel {
                             checks:     checks
                         )
                     }
-                    // UI 스레드에서 반영
+                    
                     DispatchQueue.main.async {
                         self.weeklyHabits = models
                     }

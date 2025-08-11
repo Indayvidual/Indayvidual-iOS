@@ -18,25 +18,42 @@ extension Date {
 
     func toAPIDateFormat() -> String {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter.string(from: self)
     }
     
+    func toYYMMDD() -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "yyMMdd"
+        return formatter.string(from: self)
+    }
+    
+    func toHHmm() -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ko_KR")
+        formatter.dateFormat = "HH:mm"
+        return formatter.string(from: self)
+    }
 }
 
 // MARK: - String 포맷
 extension String {
-    func asYYMMDD() -> String {
+    private func parseAPIDate() -> Date? {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "yyMMdd"
-        return formatter.string(from: Date())
+        formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSSSS"
+        return formatter.date(from: self)
+    }
+    
+    func asYYMMDD() -> String {
+        guard let date = parseAPIDate() else { return "" }
+        return date.toYYMMDD()
     }
     
     func asHHmm() -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ko_KR")
-        formatter.dateFormat = "HH:mm"
-        return formatter.string(from: Date())
+        guard let date = parseAPIDate() else { return "" }
+        return date.toHHmm()
     }
 }

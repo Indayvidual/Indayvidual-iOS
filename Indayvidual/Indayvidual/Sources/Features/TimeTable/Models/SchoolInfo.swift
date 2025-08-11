@@ -9,9 +9,11 @@ import Foundation
 
 struct SchoolInfo: Codable, Identifiable {
     let id = UUID()
+    let seq : String
     let name: String
 
     enum CodingKeys: String, CodingKey {
+        case seq
         case name = "schoolName"
     }
 }

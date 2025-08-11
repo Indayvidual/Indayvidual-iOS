@@ -77,6 +77,11 @@ extension TodoChecklistAPITarget : APITargetType{
     }
     
     var headers: [String : String]?{
-        return ["Content-Type" : "application/json"]
+        var headers: [String: String] = [:]
+        if let accessToken = UserDefaults.standard.string(forKey: "accessToken"), !accessToken.isEmpty {
+            headers["Authorization"] = "Bearer \(accessToken)"
+        }
+        headers["Content-Type"] = "application/json"
+        return headers
     }
 }

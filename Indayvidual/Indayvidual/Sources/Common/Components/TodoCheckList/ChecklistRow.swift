@@ -7,7 +7,10 @@ struct ChecklistRow: View {
     @ObservedObject var actionViewModel: TodoActionViewModel
     @State private var showActionSheet = false
     @State private var currentActionOption: TodoActionOption? = nil
-
+    @State private var localText: String = ""
+    @FocusState private var isFocused: Bool
+    @State private var didCommit = false
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center) {
@@ -19,7 +22,14 @@ struct ChecklistRow: View {
                 
             }
             .padding(.vertical, 3)
-            underLine
+            
+            if task.taskId == nil || isFocused {
+                Rectangle()
+                    .foregroundColor(.gray900)
+                    .frame(height: 1)
+                    .padding(.leading, 27)
+                    .padding(.trailing, 20)
+            }
         }
         .contentShape(Rectangle())
         .sheet(isPresented: $showActionSheet) {
@@ -27,6 +37,9 @@ struct ChecklistRow: View {
         }
         .sheet(isPresented: $actionViewModel.showDatePicker) {
             datePickerSheet
+        }
+        .onAppear {
+            localText = text
         }
     }
     
@@ -43,19 +56,11 @@ struct ChecklistRow: View {
                             .stroke(isChecked ? Color.grayWhite : Color.gray400, lineWidth: 1)
                     )
                 
-                if isChecked {
-                    Image(systemName: "checkmark")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 8, height: 8)
-                        .foregroundColor(.grayWhite)
-                } else {
-                    Image(systemName: "checkmark")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 8, height: 8)
-                        .foregroundColor(.gray400)
-                }
+                Image(systemName: "checkmark")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 8, height: 8)
+                    .foregroundColor(isChecked ? .grayWhite : .gray400)
             }
         }
         .buttonStyle(PlainButtonStyle())
@@ -63,21 +68,46 @@ struct ChecklistRow: View {
     
     private var textFieldSection: some View {
         ZStack(alignment: .leading) {
-            if text.isEmpty {
+            if localText.isEmpty {
                 Text("할 일 입력")
                     .font(.pretendSemiBold12)
                     .foregroundColor(.gray400)
             }
             
-            TextField("", text: $text)
+            TextField("", text: $localText)
                 .font(.pretendSemiBold12)
                 .foregroundColor(.black)
                 .disabled(isChecked)
-                .onChange(of: text) { oldValue, newValue in
+                .focused($isFocused)
+                .onChange(of: localText) { oldValue, newValue in
                     if newValue.count > 50 {
-                        text = String(newValue.prefix(50))
+                        localText = String(newValue.prefix(50))
                     }
                 }
+                .onSubmit { commitText() }
+                .onChange(of: isFocused) { wasFocused, isNowFocused in
+                    if wasFocused && !isNowFocused {
+                        commitText()
+                    }
+                }
+        }
+    }
+    
+    private func commitText() {
+        guard !didCommit else { return }
+        didCommit = true
+
+        let trimmed = localText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+
+        if task.taskId == nil {
+            actionViewModel.todoManager.addTask(
+                title: trimmed,
+                categoryId: task.categoryId,
+                date: task.date
+            )
+        } else {
+            actionViewModel.todoManager.updateTaskTitle(task, newTitle: trimmed)
         }
     }
     
@@ -85,17 +115,9 @@ struct ChecklistRow: View {
         Button {
             showActionSheet = true
         } label: {
-            Image("more-btn")
+            Image("more-btn-gray")
         }
         .buttonStyle(PlainButtonStyle())
-    }
-    
-    private var underLine: some View {
-        Rectangle()
-            .foregroundColor(.black)
-            .frame(height: 1)
-            .padding(.leading, 27)
-            .padding(.trailing, 20)
     }
     
     private var todoActionSheet: some View {
@@ -146,8 +168,8 @@ struct ChecklistRow: View {
             secondaryAction: {
                 actionViewModel.showDatePicker = false
                 currentActionOption = nil
-            },
-            ) {
+            }
+        ) {
             CalendarWrapperView(
                 initialSelectedDate: actionViewModel.selectedActionDate,
                 onDateSelected: { selectedDate in

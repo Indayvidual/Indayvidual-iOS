@@ -8,10 +8,12 @@
 import SwiftUI
 
 struct SignupEmailInputView: View {
-    @StateObject private var viewModel = LoginViewModel()
+    @EnvironmentObject var viewModel: SignupViewModel
     @FocusState private var isEmailFocused: Bool
     @Environment(\.dismiss) private var dismiss
     @State private var goToCodeView = false
+    @State private var isChecking = false
+    @State private var errorMessage: String? = nil
 
     var body: some View {
         VStack(spacing: 28) {
@@ -57,9 +59,20 @@ struct SignupEmailInputView: View {
             // 하단 버튼
             VStack {
                 HStack {
-                    NavigationLink(destination: SignupEmailCodeView(), isActive: $goToCodeView) {
+                    NavigationLink(destination: SignupEmailCodeView().environmentObject(viewModel), isActive: $goToCodeView) {
                         Button {
-                            goToCodeView = true
+                            isChecking = true
+                            errorMessage = nil
+                            
+                            viewModel.checkEmail { available in
+                                isChecking = false
+                                if available {
+                                    viewModel.sendVerificationCode()
+                                    goToCodeView = true
+                                } else {
+                                    errorMessage = "이미 가입된 이메일입니다."
+                                }
+                            }
                         } label: {
                             Text("다음")
                                 .font(.pretendSemiBold15)

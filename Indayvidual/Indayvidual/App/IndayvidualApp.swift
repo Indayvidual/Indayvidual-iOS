@@ -6,16 +6,32 @@
 //
 
 import SwiftUI
+import KakaoSDKCommon
+import KakaoSDKAuth
 
 @main
 struct IndayvidualApp: App {
+    @StateObject var userSession = UserSession()
     @StateObject private var alertService = AlertService()
-
-    var body: some Scene {
-        WindowGroup {
-            IndayvidualTabView()
-                .rootAlert()
-        }
-        .environmentObject(alertService)
+    
+    init() {
+        let kakaoNativeAppKey = (Bundle.main.infoDictionary?["KAKAO_NATIVE_APP_KEY"] as? String) ?? ""
+        KakaoSDK.initSDK(appKey: kakaoNativeAppKey)
     }
+    
+    var body: some Scene {
+        
+        WindowGroup {
+            ContentView()
+                .rootAlert()
+                .environmentObject(userSession)
+                .environmentObject(alertService)
+                .onOpenURL { url in
+                    if AuthApi.isKakaoTalkLoginUrl(url) {
+                        AuthController.handleOpenUrl(url: url)
+                    }
+                }
+        }
+    }
+    
 }

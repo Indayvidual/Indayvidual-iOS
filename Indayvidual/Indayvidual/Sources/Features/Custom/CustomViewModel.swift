@@ -86,6 +86,7 @@ class CustomViewModel {
         }
     }
     
+    // ✅ 일주일 습관 체크 내역 불러오기
     func loadWeeklyChecks() {
         // Gregorian 캘린더, 일요일이 주 시작
         var gregorian = Calendar(identifier: .gregorian)

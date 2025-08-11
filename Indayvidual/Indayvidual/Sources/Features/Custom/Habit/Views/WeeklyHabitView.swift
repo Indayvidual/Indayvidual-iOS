@@ -15,12 +15,10 @@ struct WeeklyHabitView: View {
     let days = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"]
 
     private var orderMap: [AnyHashable: Int] {
-        var m: [AnyHashable: Int] = [:]
-        for (idx, h) in sharedVM.habits.enumerated() {
-            if let hid = h.habitId { m[AnyHashable(hid)] = idx }
-            else { m[AnyHashable(h.id)] = idx }
-        }
-        return m
+        Dictionary(uniqueKeysWithValues: sharedVM.habits.enumerated().map { idx, h in
+            let key = h.habitId.map { AnyHashable($0) } ?? AnyHashable(h.id)
+            return (key, idx)
+        })
     }
 
     private var orderedWeeklyHabits: [MyHabitModel] {

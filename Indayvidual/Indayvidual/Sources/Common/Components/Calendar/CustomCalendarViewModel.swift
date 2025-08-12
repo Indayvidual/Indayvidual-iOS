@@ -16,10 +16,7 @@ struct Marker: Hashable {
 final class CustomCalendarViewModel: ObservableObject {
     private let calendar = Calendar.current  //Calendar.current를 반복적으로 호출하는 것을 방지하기 위해 프로퍼티로 선언
     
-    @Published var currentDate: Date = Date() // 오늘 날짜
     @Published var selectDate: Date = Date()
-    @Published var checkingDate: Date = Date()
-    @Published var popupDate: Bool = false
     @Published var calendarMode: CalendarMode = .month
     
     /// 각 날짜에 대한 마커 정보를 저장하는 딕셔너리
@@ -27,7 +24,7 @@ final class CustomCalendarViewModel: ObservableObject {
     /// 한 날짜에 최대 3개의 마커를 가질 수 있음
     @Published var dateMarkers: [Date: [Marker]] = [:]
     
-    /// 월 기준 날짜 (year, month 만 있는 Date, 시간은 00:00:00)
+    /// 월 기준 날짜 (1일)
     @Published var displayedMonthDate: Date = {
         let calendar = Calendar.current
         let components = calendar.dateComponents([.year, .month], from: Date())
@@ -36,7 +33,12 @@ final class CustomCalendarViewModel: ObservableObject {
     
     init(initialMode: CalendarMode = .month) {
         self.calendarMode = initialMode
+        let now = Date().startOfDay
+        self.selectDate = now
+        let components = calendar.dateComponents([.year, .month], from: now)
+        self.displayedMonthDate = calendar.date(from: components) ?? now
     }
+    
     
     // MARK: - 마커 관리
     
@@ -86,12 +88,6 @@ final class CustomCalendarViewModel: ObservableObject {
     }
     
     // MARK: - 캘린더 UI 및 날짜 계산 로직
-    
-    /// 연, 월 문자열 반환
-    func getYearAndMonthString(currentDate: Date) -> [String] {
-        return currentDate.toString(format: "yyyy.M").split(separator: ".").map { String($0) }
-    }
-    
     /// 월 이동
     func moveMonth(by value: Int) {
         if let newMonthDate = calendar.date(byAdding: .month, value: value, to: displayedMonthDate) {
@@ -129,11 +125,15 @@ final class CustomCalendarViewModel: ObservableObject {
     func updateSelectedDate(_ date: Date) {
         let startOfDay = date.startOfDay
         
-        selectDate = startOfDay
-        checkingDate = startOfDay
-        popupDate = true
+        // 선택된 날짜가 같으면 무시 (불필요한 뷰 리프레시 방지)
+        if selectDate == startOfDay { return }
         
-        let selectedComponents = calendar.dateComponents([.year, .month], from: startOfDay)
+        selectDate = startOfDay
+        print("선택 날짜 : \(selectDate)")
+        
+        // 선택된 날짜의 연월과 현재 표시중인 연월 비교 후 다르면 업데이트
+        var selectedComponents = calendar.dateComponents([.year, .month], from: startOfDay)
+        selectedComponents.day = 1
         let displayedComponents = calendar.dateComponents([.year, .month], from: displayedMonthDate)
         
         if selectedComponents.year != displayedComponents.year || selectedComponents.month != displayedComponents.month {
@@ -143,39 +143,87 @@ final class CustomCalendarViewModel: ObservableObject {
         }
     }
     
-    // 월 기준 날짜 배열 생성
-    func extractDate(baseDate: Date) -> [DateValue] {
-        /// baseDate에서 연,월 정보만 가져와 1일 0시 기준 날짜 생성
-        guard let firstOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: baseDate)) else {
-            return []
-        }
-        
-        /// 첫날 자정으로 보정 (시간까지 00:00:00)
-        let startOfFirstDay = firstOfMonth.startOfDay
-        
+    // MARK: - 달력 데이터 생성 (리팩토링된 핵심 로직)
+    /// 월간 캘린더 그리드를 구성하는 DateValue 배열을 생성합니다.
+    /// 이전/현재/다음 달의 날짜를 모두 포함하여 항상 일정한 개수의 배열을 반환합니다.
+    func extractDate() -> [DateValue] {
         var days: [DateValue] = []
         
-        /// 첫날의 요일 (1=일요일, 7=토요일)
-        let firstWeekday = calendar.component(.weekday, from: startOfFirstDay)
+        // 1. 현재 월의 정보 계산
+        let firstDay = firstDayOfMonth()
+        let firstWeekday = calendar.component(.weekday, from: firstDay) // 1(일) ~ 7(토)
+        let daysInMonth = numberOfDays(in: displayedMonthDate)
         
-        /// 월 달력 앞 공백 처리 (첫 요일 전까지)
-        for _ in 1..<firstWeekday {
-            days.append(DateValue(day: -1, date: .distantPast))
+        // 2. 이전 달 날짜 추가 (앞쪽 공백 채우기)
+        let leadingDays = (firstWeekday - calendar.firstWeekday + 7) % 7
+        
+        if leadingDays > 0 {
+            // 이전 달의 마지막 날을 계산합니다.
+            guard let lastDayOfPreviousMonth = calendar.date(byAdding: .day, value: -1, to: firstDay) else {
+                return []
+            }
+            
+            for i in (0..<leadingDays).reversed() {
+                if let date = calendar.date(byAdding: .day, value: -i, to: lastDayOfPreviousMonth) {
+                    let day = calendar.component(.day, from: date)
+                    days.append(DateValue(day: day, date: date, isCurrentMonth: false))
+                }
+            }
         }
         
-        /// 해당 월의 전체 일 수 (예: 31일)
-        guard let range = calendar.range(of: .day, in: .month, for: startOfFirstDay) else {
+        // 3. 현재 달 날짜 추가
+        for day in 1...daysInMonth {
+            if let date = calendar.date(bySetting: .day, value: day, of: firstDay) {
+                days.append(DateValue(day: day, date: date, isCurrentMonth: true))
+            }
+        }
+        
+        // 4. 다음 달 날짜 추가 (뒤쪽 공백 채우기)
+        let totalDays = 42 // 6주 * 7일 = 42개의 셀을 기준으로 고정
+        let remainingDays = totalDays - days.count
+        
+        if remainingDays > 0 {
+            guard let firstDayOfNextMonth = calendar.date(byAdding: .month, value: 1, to: firstDay) else {
+                return []
+            }
+            
+            for day in 1...remainingDays {
+                if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDayOfNextMonth) {
+                    days.append(DateValue(day: day, date: date, isCurrentMonth: false))
+                }
+            }
+        }
+        
+        return days
+    }
+    
+    // 주 기준 날짜 배열 생성
+    func getThisWeekDateValues() -> [DateValue] {
+        let calendar = Calendar.current
+        let selectedDate = selectDate
+        guard let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: selectedDate)) else {
             return []
         }
         
-        /// 날짜 데이터 생성
-        for day in range {
-            /// day-1일을 더해서 해당 날짜 생성
-            if let date = calendar.date(byAdding: .day, value: day - 1, to: startOfFirstDay) {
-                days.append(DateValue(day: day, date: date))
+        return (0..<7).compactMap { offset in
+            if let date = calendar.date(byAdding: .day, value: offset, to: startOfWeek) {
+                let day = calendar.component(.day, from: date)
+                let isCurrentMonth = calendar.isDate(date, equalTo: displayedMonthDate, toGranularity: .month)
+                return DateValue(day: day, date: date, isCurrentMonth: isCurrentMonth)
             }
+            return nil
         }
-        return days
+    }
+    
+    /// 현재 표시중인 월의 첫째 날 `Date`를 반환합니다.
+    private func firstDayOfMonth() -> Date {
+        let components = calendar.dateComponents([.year, .month], from: displayedMonthDate)
+        return calendar.date(from: components) ?? Date()
+    }
+    
+    /// 특정 월에 며칠이 있는지 반환합니다.
+    private func numberOfDays(in month: Date) -> Int {
+        return calendar.range(of: .day, in: .month, for: month)?.count ?? 0
     }
     
 }

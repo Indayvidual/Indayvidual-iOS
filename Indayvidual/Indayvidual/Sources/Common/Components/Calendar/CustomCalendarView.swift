@@ -66,7 +66,7 @@ struct CustomCalendarView: View {
         }
         .background(.white)
         .cornerRadius(20)
-        .shadow(color: .black.opacity(0.08), radius: 4.75, x: 2, y: 3)
+        .shadow(color: showShadow ? .black.opacity(0.08) : .clear, radius: 4.75, x: 2, y: 3)
         .overlay(
         RoundedRectangle(cornerRadius: 20)
         .inset(by: 0.04)

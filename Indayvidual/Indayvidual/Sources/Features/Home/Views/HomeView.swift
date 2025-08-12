@@ -30,23 +30,29 @@ struct HomeView: View {
                 enableSwipe: true
             )
             .padding(.top, 16)
-            .padding(.bottom, 33)
+            //.padding(.bottom, 33)
             .padding(.horizontal, 30)
             .onChange(of: calendarVm.selectDate) { oldDate, newDate in
                 homeVm.fetchSchedules(for: newDate)
                 homeVm.updateFilteredSchedules(for: newDate)
             }
                         
-            ScheduleListView(calendarVm: calendarVm, onEditSchedule: { schedule in
-                homeVm.presentScheduleSheet(
-                    for: schedule,
-                    on: schedule.startTime ?? calendarVm.selectDate,
-                    calendarViewModel: calendarVm
-                )
-            })
-            .environmentObject(homeVm)
+            if(homeVm.filteredSchedules.isEmpty){
+                EmptyScheduleView()
+            }else{
+                ScheduleListView(calendarVm: calendarVm, onEditSchedule: { schedule in
+                    homeVm.presentScheduleSheet(
+                        for: schedule,
+                        on: schedule.startTime ?? calendarVm.selectDate,
+                        calendarViewModel: calendarVm
+                    )
+                })
+                .environmentObject(homeVm)
+                
+            }
             
             Spacer()
+            
         }
         .onAppear {
             homeVm.setup(alertService: alertService)

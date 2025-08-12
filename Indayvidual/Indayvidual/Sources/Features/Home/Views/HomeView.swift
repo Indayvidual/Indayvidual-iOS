@@ -76,33 +76,36 @@ struct HomeView: View {
             homeVm.filteredSchedules = []
         }
         .floatingBtn {
-            homeVm.showDatePickerSheet.toggle()
+            homeVm.presentScheduleSheet(
+                on: calendarVm.selectDate,
+                calendarViewModel: calendarVm
+            )
         }
         
         /// 일정 선택 시트뷰
-        .sheet(isPresented: $homeVm.showDatePickerSheet) {
-            DatePickerSheetView(
-                showColorPickerSheet: $homeVm.showColorPickerSheet,
-                selectedColor: .constant(Color(.button)),                calendarVm: calendarVm,
-                onComplete: { selectedDate in
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                        homeVm.presentScheduleSheet(
-                            on: selectedDate,
-                            calendarViewModel: calendarVm
-                        )
-                    }
-                }
-            )
-            .presentationDragIndicator(.visible)
-            .presentationDetents([.fraction(0.65)])
-        }
+//        .sheet(isPresented: $homeVm.showDatePickerSheet) {
+//            DatePickerSheetView(
+//                showColorPickerSheet: $homeVm.showColorPickerSheet,
+//                selectedColor: .constant(Color(.button)),                calendarVm: calendarVm,
+//                onComplete: { selectedDate in
+//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+//                        homeVm.presentScheduleSheet(
+//                            on: selectedDate,
+//                            calendarViewModel: calendarVm
+//                        )
+//                    }
+//                }
+//            )
+//            .presentationDragIndicator(.visible)
+//            .presentationDetents([.fraction(0.65)])
+//        }
         
         /// 일정 등록 시트뷰
         .sheet(isPresented: $homeVm.showCreateScheduleSheet) {
             if let sheetViewModel = homeVm.createScheduleSheetViewModel {
                 CreateScheduleSheetView(viewModel: sheetViewModel)
                     .presentationDragIndicator(.visible)
-                    .presentationDetents([.fraction(0.83), .large])
+                    .presentationDetents([.fraction(0.9), .large])
                     .environmentObject(homeVm)
                     .environmentObject(alertService)
             }

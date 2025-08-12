@@ -50,7 +50,7 @@ struct CreateScheduleSheetView: View {
                         showShadow: false,
                         showNavigationButtons: false,
                         showMarkers: false,
-                        initialMode: .week
+                        initialMode: .month
                     )
                     
                     Divider()

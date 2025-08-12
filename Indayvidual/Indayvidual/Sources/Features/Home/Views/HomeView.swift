@@ -24,15 +24,19 @@ struct HomeView: View {
     var body: some View {
         VStack {
             Topbar()
-            
-            CustomCalendarView(calendarViewModel: calendarVm)
-                .onChange(of: calendarVm.selectDate) { oldDate, newDate in
-                    homeVm.fetchSchedules(for: newDate)
-                    homeVm.updateFilteredSchedules(for: newDate)
-                }
-            
-            Spacer().frame(height: 33)
-            
+                        
+            CustomCalendarView(
+                calendarViewModel: calendarVm,
+                enableSwipe: true
+            )
+            .padding(.top, 16)
+            .padding(.bottom, 33)
+            .padding(.horizontal, 30)
+            .onChange(of: calendarVm.selectDate) { oldDate, newDate in
+                homeVm.fetchSchedules(for: newDate)
+                homeVm.updateFilteredSchedules(for: newDate)
+            }
+                        
             ScheduleListView(calendarVm: calendarVm, onEditSchedule: { schedule in
                 homeVm.presentScheduleSheet(
                     for: schedule,

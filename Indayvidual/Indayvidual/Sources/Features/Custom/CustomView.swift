@@ -27,7 +27,7 @@ struct CustomView: View{
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Image("Indayvidual")
+                    Image(.indayvidual)
                 }
             }
         }

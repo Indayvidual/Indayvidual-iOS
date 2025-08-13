@@ -154,7 +154,7 @@ struct MyHabitView: View {
                 .fill(.white)
         )
         .padding(.horizontal, 44)
-        .padding(.vertical, 20)
+        .padding(.vertical, 8)
     }
     
     // selecteedMode = .daily일 때

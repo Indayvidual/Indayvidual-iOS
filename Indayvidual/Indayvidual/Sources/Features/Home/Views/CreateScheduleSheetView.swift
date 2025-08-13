@@ -48,9 +48,10 @@ struct CreateScheduleSheetView: View {
                         calendarViewModel: viewModel.sheetCalendarVm,
                         showToggleButton: false,
                         showShadow: false,
-                        showNavigationButtons: false,
+                        showNavigationButtons: true,
                         showMarkers: false,
-                        initialMode: .week
+                        initialMode: .month,
+                        enableSwipe: true
                     )
                     
                     Divider()
@@ -92,9 +93,10 @@ struct CreateScheduleSheetView: View {
                 selectedColor: $viewModel.selectedColor
             )
             .presentationDragIndicator(.visible)
-            .presentationDetents([.fraction(0.8)])
+            .presentationDetents([.large])
         }
     }
+    
 }
 
 #Preview {

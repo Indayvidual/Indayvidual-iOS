@@ -10,7 +10,6 @@ import Moya
 import SwiftUI
 
 class HomeViewModel: ObservableObject {
-    @Published var showDatePickerSheet = false
     @Published var showCreateScheduleSheet = false
     @Published var showColorPickerSheet = false
     

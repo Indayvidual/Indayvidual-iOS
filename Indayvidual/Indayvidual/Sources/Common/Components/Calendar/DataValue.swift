@@ -19,6 +19,8 @@ struct DateValue: Identifiable, Equatable {
     let day: Int
 
     let date: Date
+    
+    let isCurrentMonth: Bool
 
     // 두 날짜가 같은 날인지 비교하는 Equatable 구현
     // 시, 분, 초는 무시하고 연·월·일만 비교

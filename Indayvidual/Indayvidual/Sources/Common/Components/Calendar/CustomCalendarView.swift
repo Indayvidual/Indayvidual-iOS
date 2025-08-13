@@ -66,16 +66,13 @@ struct CustomCalendarView: View {
         }
         .background(.white)
         .cornerRadius(20)
-        .shadow(color: .black.opacity(0.08), radius: 4.75, x: 2, y: 3)
+        .shadow(color: showShadow ? .black.opacity(0.08) : .clear, radius: 4.75, x: 2, y: 3)
         .overlay(
-        RoundedRectangle(cornerRadius: 20)
-        .inset(by: 0.04)
-        .stroke(Color(red: 0.95, green: 0.96, blue: 0.96), lineWidth: 0.07781)
-
+            RoundedRectangle(cornerRadius: 20)
+                .inset(by: 0.04)
+                .stroke(Color(red: 0.95, green: 0.96, blue: 0.96), lineWidth: 0.07781)
+            
         )
-        .task {
-            calendarViewModel.calendarMode = initialMode
-        }
     }
     
     @ViewBuilder
@@ -177,7 +174,7 @@ struct WeekdayHeaderView: View {
                     .multilineTextAlignment(.center)
             }
         }
-        .padding(.bottom, 20)
+        .padding(.bottom, 30)
     }
 }
 
@@ -193,9 +190,10 @@ struct MonthlyCalendarView: View {
     private let itemHeight: CGFloat = 30
     
     var body: some View {
+        
         LazyVGrid(columns: columns) {
-            ForEach(calendarViewModel.extractDate(baseDate: calendarViewModel.displayedMonthDate)) { value in
-                if value.day != -1 {
+            ForEach(calendarViewModel.extractDate()) { value in
+                if value.isCurrentMonth {
                     let isToday = value.date.isToday
                     let isSelected = value.date.isSameDay(as: calendarViewModel.selectDate)
                     
@@ -210,7 +208,8 @@ struct MonthlyCalendarView: View {
                         markers: showMarkers ? (calendarViewModel.dateMarkers[value.date.startOfDay] ?? []) : []
                     )
                 } else {
-                    Color.clear.frame(width: 30, height: 30)
+                    // isCurrentMonth가 false이면(이전/다음 달) 투명한 빈 공간
+                    Color.clear.frame(height: 28)
                 }
             }
         }
@@ -230,7 +229,7 @@ struct WeeklyCalendarView: View {
     
     var body: some View {
         HStack(spacing: 0){
-            ForEach(getThisWeekDateValues()) { value in
+            ForEach(calendarViewModel.getThisWeekDateValues()) { value in
                 let isToday = value.date.isToday
                 let isSelected = value.date.isSameDay(as: calendarViewModel.selectDate)
                 
@@ -239,8 +238,10 @@ struct WeeklyCalendarView: View {
                     isToday: isToday,
                     isSelected: isSelected,
                     onSelectDate: {
+                        print("버튼 선택 날짜: \(value.date)")
                         calendarViewModel.updateSelectedDate(value.date)
                         onDateSelected?(value.date)
+                        print(isSelected)
                     },
                     markers: showMarkers ? (calendarViewModel.dateMarkers[value.date.startOfDay] ?? []) : []
                 )
@@ -249,21 +250,7 @@ struct WeeklyCalendarView: View {
         }
     }
     
-    private func getThisWeekDateValues() -> [DateValue] {
-        let calendar = Calendar.current
-        let selectedDate = calendarViewModel.selectDate
-        guard let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: selectedDate)) else {
-            return []
-        }
-        
-        return (0..<7).compactMap { offset in
-            if let date = calendar.date(byAdding: .day, value: offset, to: startOfWeek) {
-                let day = calendar.component(.day, from: date)
-                return DateValue(day: day, date: date)
-            }
-            return nil
-        }
-    }
+    
 }
 
 // 일자 버튼
@@ -282,7 +269,7 @@ struct DateButton: View {
                 Text("\(value.day)")
                     .font(.pretendMedium13)
                     .foregroundColor(isSelected ? .white : Color(.gray900))
-                    .frame(width: 30, height: 30)
+                    .frame(width: 30, height: 28)
                     .background(
                         Circle().fill(
                             isSelected ? .black :
@@ -355,7 +342,7 @@ struct DateButton: View {
  5. 버튼을 이용한 월/주 이동
  - 헤더의 좌우 화살표 버튼을 통해 이전/다음 월 또는 주로 이동합니다.
  - ViewModel의 moveCalendar(by:) 메서드로도 이동 가능.
-  
+ 
  6. 커스터마이징 가능한 옵션들
  - `showToggleButton` (기본값: `true`)
  → 헤더 우측에 있는 "월/주" 전환 토글 버튼의 표시 여부를 제어합니다.

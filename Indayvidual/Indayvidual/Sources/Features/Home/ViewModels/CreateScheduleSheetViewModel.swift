@@ -14,7 +14,7 @@ class CreateScheduleSheetViewModel: ObservableObject {
     @Published var startTime: Date = Date()
     @Published var endTime: Date = Date()
     @Published var isAllDay: Bool = false
-    @Published var showEndSection: Bool = true
+    @Published var showEndSection: Bool = false
     @Published var selectedColor: Color = .blue
     @Published var showColorPickerSheet: Bool = false
     
@@ -65,7 +65,7 @@ class CreateScheduleSheetViewModel: ObservableObject {
             self.startTime = calendar.date(bySettingHour: hour, minute: 0, second: 0, of: startOfDay) ?? selectedDate
             self.endTime = self.startTime.addingTimeInterval(3600)
             self.isAllDay = false
-            self.showEndSection = true
+            self.showEndSection = false
             self.selectedColor = .button // 기본 색상
         }
         

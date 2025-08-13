@@ -48,9 +48,10 @@ struct CreateScheduleSheetView: View {
                         calendarViewModel: viewModel.sheetCalendarVm,
                         showToggleButton: false,
                         showShadow: false,
-                        showNavigationButtons: false,
+                        showNavigationButtons: true,
                         showMarkers: false,
-                        initialMode: .month
+                        initialMode: .month,
+                        enableSwipe: true
                     )
                     
                     Divider()

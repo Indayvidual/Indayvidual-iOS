@@ -31,9 +31,8 @@ struct HomeView: View {
                     enableSwipe: true
                 )
                 .padding(.vertical, 18)
-                .onChange(of: calendarVm.selectDate) { oldDate, newDate in
-                    homeVm.fetchSchedules(for: newDate)
-                    homeVm.updateFilteredSchedules(for: newDate)
+                .onChange(of: calendarVm.selectDate) { _, newDate in
+                                   homeVm.fetchSchedules(for: newDate)
                 }
                 
                 if(homeVm.filteredSchedules.isEmpty){

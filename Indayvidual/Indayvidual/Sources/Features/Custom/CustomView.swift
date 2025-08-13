@@ -19,8 +19,6 @@ struct CustomView: View{
                             .edgesIgnoringSafeArea(.all)
                 VStack{
                     recordView
-                        .padding(.bottom, 40)
-                    Spacer()
                     myHabits
                 }
                 .padding(.horizontal)
@@ -56,10 +54,10 @@ struct CustomView: View{
     var recordView : some View {
         VStack {
             userRecord
-                .padding(.vertical, 24)
             if vm.memosCount == 0 {
                 Image("NoMemo")
-                    .padding(.vertical)
+                    .frame(minHeight: 180)
+                    .padding([.vertical, .bottom])
             }
             else {
                 ScrollView(.horizontal) {
@@ -82,7 +80,9 @@ struct CustomView: View{
                     }
                     .padding(.horizontal)
                 }
+                .frame(minHeight: 180)
                 .scrollIndicators(.automatic)
+                .padding(.bottom)
             }
         }
     }
@@ -113,6 +113,7 @@ struct CustomView: View{
                     ScrollView {
                         WeeklyHabitView(showTitle: false, showShadow: false, sharedVM: vm)
                     }
+                    .border(.black)
                 }
             }
             .padding(28)

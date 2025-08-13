@@ -47,9 +47,10 @@ struct CustomView: View{
                 Image(systemName: "chevron.right")
                     .bold()
             }
+            .padding(12)
         }
         .tint(.white)
-        .padding(.horizontal)
+        .padding()
     }
     
     var recordView : some View {

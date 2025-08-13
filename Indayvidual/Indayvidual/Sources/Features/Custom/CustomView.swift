@@ -18,13 +18,17 @@ struct CustomView: View{
                                startPoint: .top, endPoint: .bottom)
                             .edgesIgnoringSafeArea(.all)
                 VStack{
-                    Topbar()
                     recordView
                         .padding(.bottom, 40)
                     Spacer()
                     myHabits
                 }
                 .padding(.horizontal)
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Image("Indayvidual")
+                }
             }
         }
     }

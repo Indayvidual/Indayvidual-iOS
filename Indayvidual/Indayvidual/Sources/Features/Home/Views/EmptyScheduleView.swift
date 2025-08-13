@@ -27,9 +27,7 @@ struct EmptyScheduleView: View {
                 .font(.system(size: 12))
             Spacer()
         }
-        .padding()
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

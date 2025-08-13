@@ -24,35 +24,38 @@ struct HomeView: View {
     var body: some View {
         VStack {
             Topbar()
-                        
-            CustomCalendarView(
-                calendarViewModel: calendarVm,
-                enableSwipe: true
-            )
-            .padding(.top, 16)
-            //.padding(.bottom, 33)
-            .padding(.horizontal, 30)
-            .onChange(of: calendarVm.selectDate) { oldDate, newDate in
-                homeVm.fetchSchedules(for: newDate)
-                homeVm.updateFilteredSchedules(for: newDate)
-            }
-                        
-            if(homeVm.filteredSchedules.isEmpty){
-                EmptyScheduleView()
-            }else{
-                ScheduleListView(calendarVm: calendarVm, onEditSchedule: { schedule in
-                    homeVm.presentScheduleSheet(
-                        for: schedule,
-                        on: schedule.startTime ?? calendarVm.selectDate,
-                        calendarViewModel: calendarVm
-                    )
-                })
-                .environmentObject(homeVm)
+            
+            Group{
+                CustomCalendarView(
+                    calendarViewModel: calendarVm,
+                    enableSwipe: true
+                )
+                .padding(.vertical, 18)
+                .onChange(of: calendarVm.selectDate) { oldDate, newDate in
+                    homeVm.fetchSchedules(for: newDate)
+                    homeVm.updateFilteredSchedules(for: newDate)
+                }
                 
+                if(homeVm.filteredSchedules.isEmpty){
+                    EmptyScheduleView()
+                }else{
+                    ScheduleListView(calendarVm: calendarVm, onEditSchedule: { schedule in
+                        homeVm.presentScheduleSheet(
+                            for: schedule,
+                            on: schedule.startTime ?? calendarVm.selectDate,
+                            calendarViewModel: calendarVm
+                        )
+                    }
+                    )
+                    
+                    .environmentObject(homeVm)
+                }
             }
+            .padding(.horizontal, 28)
+            
+            
             
             Spacer()
-            
         }
         .onAppear {
             homeVm.setup(alertService: alertService)
@@ -82,30 +85,12 @@ struct HomeView: View {
             )
         }
         
-        /// 일정 선택 시트뷰
-//        .sheet(isPresented: $homeVm.showDatePickerSheet) {
-//            DatePickerSheetView(
-//                showColorPickerSheet: $homeVm.showColorPickerSheet,
-//                selectedColor: .constant(Color(.button)),                calendarVm: calendarVm,
-//                onComplete: { selectedDate in
-//                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-//                        homeVm.presentScheduleSheet(
-//                            on: selectedDate,
-//                            calendarViewModel: calendarVm
-//                        )
-//                    }
-//                }
-//            )
-//            .presentationDragIndicator(.visible)
-//            .presentationDetents([.fraction(0.65)])
-//        }
-        
         /// 일정 등록 시트뷰
         .sheet(isPresented: $homeVm.showCreateScheduleSheet) {
             if let sheetViewModel = homeVm.createScheduleSheetViewModel {
                 CreateScheduleSheetView(viewModel: sheetViewModel)
                     .presentationDragIndicator(.visible)
-                    .presentationDetents([.fraction(0.9), .large])
+                    .presentationDetents([.large])
                     .environmentObject(homeVm)
                     .environmentObject(alertService)
             }

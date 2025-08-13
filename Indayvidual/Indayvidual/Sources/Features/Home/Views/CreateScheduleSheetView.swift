@@ -92,9 +92,10 @@ struct CreateScheduleSheetView: View {
                 selectedColor: $viewModel.selectedColor
             )
             .presentationDragIndicator(.visible)
-            .presentationDetents([.fraction(0.8)])
+            .presentationDetents([.large])
         }
     }
+    
 }
 
 #Preview {

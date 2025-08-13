@@ -57,7 +57,7 @@ struct CustomView: View{
             if vm.memosCount == 0 {
                 Image("NoMemo")
                     .frame(minHeight: 180)
-                    .padding([.vertical, .bottom])
+                    .padding(.vertical)
             }
             else {
                 ScrollView(.horizontal) {

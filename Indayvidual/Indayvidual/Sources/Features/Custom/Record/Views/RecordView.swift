@@ -50,13 +50,13 @@ struct RecordView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("\(sharedVM.name)님의 기록")
-                    .padding(.top)
                     .font(.pretendBold24)
                     .foregroundStyle(.black)
                 Image("Customdot")
                     .offset(y: -9)
                 Spacer()
             }
+            .padding(.top)
             
             Text("총 \(sharedVM.memosCount)개")
                 .font(.pretendSemiBold18)

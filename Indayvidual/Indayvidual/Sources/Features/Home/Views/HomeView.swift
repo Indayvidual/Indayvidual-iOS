@@ -58,6 +58,7 @@ struct HomeView: View {
         }
         .onAppear {
             homeVm.setup(alertService: alertService)
+            
             // 기존 필터 업데이트
             homeVm.updateFilteredSchedules(for: calendarVm.selectDate)
             

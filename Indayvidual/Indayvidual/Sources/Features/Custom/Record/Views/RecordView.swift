@@ -20,7 +20,6 @@ struct RecordView: View {
             
             VStack(alignment: .leading, spacing: 20) {
                 nameAndnum
-                
             }
         }
         .floatingBtn {
@@ -57,6 +56,7 @@ struct RecordView: View {
                     .offset(y: -9)
                 Spacer()
             }
+            .padding(.top)
             
             Text("총 \(sharedVM.memosCount)개")
                 .font(.pretendSemiBold18)
@@ -66,7 +66,7 @@ struct RecordView: View {
             if sharedVM.memos.isEmpty {
                 Image(.noData)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                    .frame(height: 512)
+                    .frame(minHeight: 512)
             } else {
                 memos
             }
@@ -79,7 +79,7 @@ struct RecordView: View {
         ZStack {
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.white)
-                .frame(height: 512)
+                .frame(minHeight: 512)
             List {
                 ForEach(Array(sharedVM.memos.enumerated()), id: \.element.id) { index, memo in
                     NavigationLink {
@@ -121,9 +121,13 @@ struct RecordView: View {
                 .listRowBackground(Color.white)
             }
             .listStyle(.plain)
-            .frame(height: 512)
+            .frame(minHeight: 512)
             .scrollContentBackground(.hidden)
             .clipShape(RoundedRectangle(cornerRadius: 20))
         }
     }
+}
+
+#Preview {
+    RecordView(vm: MemoViewModel(sharedVM: CustomViewModel()), sharedVM: CustomViewModel())
 }

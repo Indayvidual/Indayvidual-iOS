@@ -18,13 +18,15 @@ struct CustomView: View{
                                startPoint: .top, endPoint: .bottom)
                             .edgesIgnoringSafeArea(.all)
                 VStack{
-                    Topbar()
                     recordView
-                        .padding(.bottom, 40)
-                    Spacer()
                     myHabits
                 }
                 .padding(.horizontal)
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Image(.indayvidual)
+                }
             }
         }
     }
@@ -43,17 +45,18 @@ struct CustomView: View{
                 Image(systemName: "chevron.right")
                     .bold()
             }
+            .padding(12)
         }
         .tint(.white)
-        .padding(.horizontal)
+        .padding()
     }
     
     var recordView : some View {
         VStack {
             userRecord
-                .padding(.vertical, 24)
             if vm.memosCount == 0 {
                 Image("NoMemo")
+                    .frame(minHeight: 180)
                     .padding(.vertical)
             }
             else {
@@ -77,7 +80,9 @@ struct CustomView: View{
                     }
                     .padding(.horizontal)
                 }
+                .frame(minHeight: 180)
                 .scrollIndicators(.automatic)
+                .padding(.bottom)
             }
         }
     }

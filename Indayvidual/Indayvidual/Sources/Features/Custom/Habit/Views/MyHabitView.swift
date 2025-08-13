@@ -165,7 +165,8 @@ struct MyHabitView: View {
                         showToggleButton: false,
                         initialMode: .week
                     )                                   // 현재 주차 캘린더 출력
-            .padding([.top, .horizontal])
+            .padding(.horizontal, 28)
+            .padding(.vertical, 18)
             completeView                                // 캘린더에서 선택한 날짜 및 완료 체크한 습관의 개수 출력
             habitsListView                              // 습관 리스트 뷰
         }
@@ -178,7 +179,8 @@ struct MyHabitView: View {
                 WeeklyHabitView(                        // 현재 주차에 실행한 습관에 대한 뷰 ( 습관 완료한 날엔 습관 컬러에 맞춘 색 출력 )
                     sharedVM: sharedVM
                 )
-                .padding(12)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 18)
             }
         }
     }
@@ -190,7 +192,8 @@ struct MyHabitView: View {
                         calendarViewModel: calendarViewModel,
                         showToggleButton: false,
                     )                                   // 해당 월 캘린더 출력
-            .padding([.top, .horizontal])
+            .padding(.horizontal, 28)
+            .padding(.vertical, 18)
             completeView                                // 캘린더에서 선택한 날짜 및 완료 체크한 습관의 개수 출력
             habitsListView                              // 습관 리스트 뷰
         }

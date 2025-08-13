@@ -38,6 +38,19 @@ class HomeViewModel: ObservableObject {
                         let decoded = try JSONDecoder().decode(CustomCalendarResponseDto.self, from: response.data)
                         if decoded.isSuccess {
                             print("✅ 캘린더 조회 성공: \(decoded.data.count)개의 날짜 데이터")
+                            
+                            // UI 업데이트
+                            calendarViewModel.clearAllMarkers()
+                            for item in decoded.data {
+                                if let date = item.date.toDate() {
+                                    let markerDate = Calendar.current.startOfDay(for: date)
+                                    for hexColor in item.colors {
+                                        if let color = Color(hex: hexColor) {
+                                            calendarViewModel.addMarker(for: markerDate, color: color)
+                                        }
+                                    }
+                                }
+                            }
                         } else {
                             print("⚠️ 캘린더 조회 실패: \(decoded.message)")
                             print("⚠️ 서버 응답: \(String(data: response.data, encoding: .utf8) ?? "")")
@@ -47,19 +60,6 @@ class HomeViewModel: ObservableObject {
                                 secondaryButton: .secondary(title: "취소", action: {})
                             )
                             return
-                        }
-                        
-                        // UI 업데이트
-                        calendarViewModel.clearAllMarkers()
-                        for item in decoded.data {
-                            if let date = item.date.toDate() {
-                                let markerDate = Calendar.current.startOfDay(for: date)
-                                for hexColor in item.colors {
-                                    if let color = Color(hex: hexColor) {
-                                        calendarViewModel.addMarker(for: markerDate, color: color)
-                                    }
-                                }
-                            }
                         }
                     } catch {
                         print("⚠️ 캘린더 데이터 처리 오류: \(error.localizedDescription)")
@@ -90,6 +90,18 @@ class HomeViewModel: ObservableObject {
                         let apiResponse = try JSONDecoder().decode(APIResponseDto<[EventResponseDto]>.self, from: response.data)
                         if apiResponse.isSuccess {
                             print("✅ 일정 조회 성공: \(apiResponse.data.count)개의 이벤트")
+                            
+                            // UI 업데이트
+                            let newSchedules = apiResponse.data.compactMap { dto -> ScheduleItem? in
+                                let startTime = dto.startTime?.toFullDate(on: date)
+                                let endTime = dto.endTime?.toFullDate(on: date)
+                                guard let color = Color(hex: dto.color) else { return nil }
+                                return ScheduleItem(id: dto.eventId, startTime: startTime, endTime: endTime, title: dto.title, color: color, isAllDay: dto.isAllDay)
+                            }
+                            
+                            self.schedules = newSchedules
+                            self.updateFilteredSchedules(for: date)
+                            
                         } else {
                             print("⚠️ 일정 조회 실패: \(apiResponse.message)")
                             print("⚠️ 서버 응답 데이터: \(apiResponse.data)")
@@ -98,19 +110,9 @@ class HomeViewModel: ObservableObject {
                                 primaryButton: .primary(title: "재시도", action: { self.fetchSchedules(for: date) }),
                                 secondaryButton: .secondary(title: "취소", action: {})
                             )
-                            return
+                            self.schedules = []
+                            self.updateFilteredSchedules(for: date)
                         }
-                        
-                        let newSchedules = apiResponse.data.compactMap { dto -> ScheduleItem? in
-                            let startTime = dto.startTime?.toFullDate(on: date)
-                            let endTime = dto.endTime?.toFullDate(on: date)
-                            guard let color = Color(hex: dto.color) else { return nil }
-                            return ScheduleItem(id: dto.eventId, startTime: startTime, endTime: endTime, title: dto.title, color: color, isAllDay: dto.isAllDay)
-                        }
-                        
-                        self.schedules = newSchedules
-                        self.updateFilteredSchedules(for: date)
-                        
                     } catch {
                         print("⚠️ 일정 데이터 처리 오류: \(error.localizedDescription)")
                         self.schedules = []

@@ -73,6 +73,9 @@ struct CustomCalendarView: View {
                 .stroke(Color(red: 0.95, green: 0.96, blue: 0.96), lineWidth: 0.07781)
             
         )
+        .task {
+                   calendarViewModel.calendarMode = initialMode
+               }
     }
     
     @ViewBuilder

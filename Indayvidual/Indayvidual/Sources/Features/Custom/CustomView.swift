@@ -113,7 +113,6 @@ struct CustomView: View{
                     ScrollView {
                         WeeklyHabitView(showTitle: false, showShadow: false, sharedVM: vm)
                     }
-                    .border(.black)
                 }
             }
             .padding(28)

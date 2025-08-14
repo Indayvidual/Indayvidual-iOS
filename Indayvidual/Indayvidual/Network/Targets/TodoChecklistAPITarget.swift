@@ -15,7 +15,7 @@ enum TodoChecklistAPITarget {
     case patchTitle (taskId : Int, title:String) //할 일 제목 수정
     case patchDueDate (taskId:Int, date : String) //할 일 날짜 수정
     case patchCheck (taskId:Int, isCompleted : Bool) //할 일 체크 및 해제
-    case patchOrder (categoryId:Int, taskOrder : [Int]) //할 일 순서 변경
+    case patchOrder (tasks: [TaskOrderInfo]) //할 일 순서 변경
     case deleteTasks (taskId:Int) // 할 일 삭제
 }
 
@@ -32,8 +32,8 @@ extension TodoChecklistAPITarget : APITargetType{
             return "/api/todo/tasks/\(taskId)/due-date"
         case .patchCheck(let taskId, _):
             return "/api/todo/tasks/\(taskId)/check"
-        case .patchOrder(let categoryId, _):
-            return "/api/todo/categories/\(categoryId)/tasks/order"
+        case .patchOrder(_):
+            return "/api/todo/tasks/order"
         case .deleteTasks(let taskId):
             return "/api/todo/tasks/\(taskId)"
         }
@@ -68,8 +68,8 @@ extension TodoChecklistAPITarget : APITargetType{
         case .patchCheck(_, let isCompleted):
             let dto = TaskUpdateCheckRequestDTO(isCompleted: isCompleted)
             return .requestJSONEncodable(dto)
-        case .patchOrder(_, let taskOrder):
-            let dto = TaskUpdateOrderRequestDTO(taskOrder: taskOrder)
+        case .patchOrder(let tasks):
+            let dto = TaskUpdateOrderRequestDTO(tasks: tasks)
             return .requestJSONEncodable(dto)
         case .deleteTasks(_):
             return .requestPlain

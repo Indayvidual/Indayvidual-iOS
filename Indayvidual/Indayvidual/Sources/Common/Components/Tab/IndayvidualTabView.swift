@@ -12,6 +12,7 @@ struct IndayvidualTabView: View{
     @State var tabcase: TabCase = .home
     @StateObject private var calendarVm = CustomCalendarViewModel()
     @StateObject private var todoViewModel = TodoViewModel()
+    @StateObject private var homveVm = HomeViewModel()
 
     init() {
         if let customFont = UIFont(name: "Pretendard-Regular", size: 12) {
@@ -62,7 +63,7 @@ struct IndayvidualTabView: View{
             case .home :
                 HomeView(calendarVm: calendarVm)
             case .todo :
-                TodoListView(viewModel: todoViewModel)
+                TodoListView(viewModel: todoViewModel, calendarViewModel: calendarVm, homeViewModel: homveVm)
             case .timetable :
                 TimetableView()
             case .custom :

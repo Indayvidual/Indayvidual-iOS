@@ -14,7 +14,6 @@ class TodoViewModel: ObservableObject {
     let categoryProvider = MoyaProvider<TodoCategoryAPITarget>()
     let taskProvider = MoyaProvider<TodoChecklistAPITarget>()
 
-    @Published var tasks: [String: [TodoTask]] = [:] // 날짜별로 관리
     @Published var selectedDate: String = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -23,13 +22,13 @@ class TodoViewModel: ObservableObject {
     @Published var categories: [Category] = [] // 카테고리 배열 추가
     @Published var errorMessage: String? = nil // 에러 메시지 추가
     
-    private var nextCategoryId: Int = 1
-    
     private let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
+
+    @Published var tasks: [String: [TodoTask]] = [:] // 날짜별로 관리
 
     // MARK: - Task 조회
     func tasks(for date: String) -> [TodoTask] {
@@ -50,80 +49,105 @@ class TodoViewModel: ObservableObject {
             fetchCategories()
             return
         }
+        
         let group = DispatchGroup()
         var hasError = false
+        var tempTasksForDate: [TodoTask] = []
+        let lock = NSLock()
 
         for category in categories {
             guard let categoryId = category.categoryId else { continue }
             group.enter()
-            fetchTasks(for: categoryId, date: date) { success in
-                if !success { hasError = true }
+            fetchTasks(for: categoryId, date: date) { fetchedTasks, success in
+                lock.lock()
+                defer { lock.unlock() }
+
+                if !success {
+                    hasError = true
+                } else {
+                    tempTasksForDate.append(contentsOf: fetchedTasks)
+                }
                 group.leave()
             }
         }
 
         group.notify(queue: .main) {
+            if !hasError {
+                self.tasks[date] = tempTasksForDate.sorted { $0.order < $1.order }
+            }
             completion?(!hasError)
         }
     }
 
     func loadTasks(for date: String, categoryId: Int, completion: ((Bool) -> Void)? = nil) {
-        fetchTasks(for: categoryId, date: date, completion: completion)
-    }
-
-    // MARK: - 단일 카테고리 할 일
-    func fetchTasks(for categoryId: Int, date: String, completion: ((Bool) -> Void)? = nil) {
-        errorMessage = nil
-        taskProvider.request(.getTasks(categoryId: categoryId, date: date)) { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let response):
-                    guard 200...299 ~= response.statusCode else {
-                        self?.errorMessage = "서버 에러: HTTP \(response.statusCode)"
-                        completion?(false)
-                        return
+        fetchTasks(for: categoryId, date: date) { fetchedTasks, success in
+            if success {
+                DispatchQueue.main.async {
+                    if self.tasks[date] == nil {
+                        self.tasks[date] = []
                     }
-                    do {
-                        let apiResponse = try JSONDecoder().decode(APIResponse<[TaskSpecificCategoryResponseDTO]>.self, from: response.data)
-                        if apiResponse.isSuccess {
-                            let fetchedTasks = apiResponse.data.map { dto in
-                                TodoTask(
-                                    taskId: dto.taskId,
-                                    categoryId: categoryId,
-                                    title: dto.title,
-                                    isCompleted: dto.isCompleted,
-                                    order: dto.order,
-                                    date: dto.date
-                                )
-                            }.sorted { $0.order < $1.order }
-                            if self?.tasks[date] == nil {
-                                self?.tasks[date] = []
-                            }
-                            self?.tasks[date]?.removeAll { $0.categoryId == categoryId }
-                            self?.tasks[date]?.append(contentsOf: fetchedTasks)
-                            self?.tasks[date]?.sort { $0.order < $1.order }
-                            completion?(true)
-                        } else {
-                            self?.errorMessage = apiResponse.message
-                            completion?(false)
-                        }
-                    } catch {
-                        self?.errorMessage = "파싱 에러: \(error.localizedDescription)"
-                        completion?(false)
-                    }
-                case .failure(let error):
-                    self?.errorMessage = "조회 실패: \(error.localizedDescription)"
-                    completion?(false)
+                    self.tasks[date]?.removeAll { $0.categoryId == categoryId }
+                    self.tasks[date]?.append(contentsOf: fetchedTasks)
+                    self.tasks[date]?.sort { $0.order < $1.order }
+                    completion?(true)
                 }
+            } else {
+                completion?(false)
             }
         }
     }
 
-    // 모든 카테고리 단일 fetch 
+    // 단일 카테고리 할 일 - 서버에서 데이터 로드
+    func fetchTasks(for categoryId: Int, date: String, completion: @escaping ([TodoTask], Bool) -> Void) {
+        errorMessage = nil
+        taskProvider.request(.getTasks(categoryId: categoryId, date: date)) { result in
+            switch result {
+            case .success(let response):
+                guard 200...299 ~= response.statusCode else {
+                    self.errorMessage = "서버 에러: HTTP \(response.statusCode)"
+                    completion([], false)
+                    return
+                }
+                do {
+                    let apiResponse = try JSONDecoder().decode(APIResponse<[TaskSpecificCategoryResponseDTO]>.self, from: response.data)
+                    if apiResponse.isSuccess {
+                        print("📥 [FETCH DEBUG] \(date) / 카테고리 \(categoryId) 서버 응답 순서:")
+                        for dto in apiResponse.data {
+                            print("    taskId:\(dto.taskId) order:\(dto.order) title:\(dto.title)")
+                        }
+                        
+                        let fetchedTasks = apiResponse.data.map { dto in
+                            TodoTask(
+                                taskId: dto.taskId,
+                                categoryId: categoryId,
+                                title: dto.title,
+                                isCompleted: dto.isCompleted,
+                                order: dto.order,
+                                date: dto.date
+                            )
+                        }.sorted { $0.order < $1.order }
+                        
+                        completion(fetchedTasks, true)
+                    } else {
+                        self.errorMessage = apiResponse.message
+                        completion([], false)
+                    }
+                } catch {
+                    self.errorMessage = "파싱 에러: \(error.localizedDescription)"
+                    completion([], false)
+                }
+            case .failure(let error):
+                self.errorMessage = "조회 실패: \(error.localizedDescription)"
+                completion([], false)
+            }
+        }
+    }
+
+    // 모든 카테고리 단일 fetch
     func fetchAllTasks(for date: String) {
         for category in categories {
             guard let categoryId = category.categoryId else { continue }
-            fetchTasks(for: categoryId, date: date)
+            loadTasks(for: date, categoryId: categoryId)
         }
     }
 
@@ -183,9 +207,6 @@ class TodoViewModel: ObservableObject {
                                     name: $0.name,
                                     color: Color(hex: $0.color) ?? .purple
                                 )
-                            }
-                            if let selectedDate = self?.selectedDate {
-                                self?.fetchAllTasks(for: selectedDate)
                             }
                         } else {
                             self?.errorMessage = apiResponse.message
@@ -394,41 +415,52 @@ class TodoViewModel: ObservableObject {
             }
         }
     }
+    
+    // MARK: - 카테고리별 순서 변경
+    func updateTaskOrderForCategory(date: String, taskOrderInfos: [TaskOrderInfo]) {
+        guard !taskOrderInfos.isEmpty,
+              let categoryId = taskOrderInfos.first?.categoryId else { return }
 
-    // 순서 변경
-    func moveTask(from source: IndexSet, to destination: Int, date: String) {
-        guard var taskList = tasks[date] else { return }
-        taskList.move(fromOffsets: source, toOffset: destination)
-
-        var updatedTasks: [TodoTask] = []
-        for (index, var task) in taskList.enumerated() {
-            if task.order != index {
-                task.order = index
-                taskList[index] = task
-            }
-            updatedTasks.append(task)
+        // 로컬 상태를 먼저 업데이트
+        var allTasksForDate = tasks[date] ?? []
+        allTasksForDate.removeAll { $0.categoryId == categoryId }
+        
+        let newCategoryTasks = taskOrderInfos.map { info in
+            // 기존 task 객체에 새로운 order 값만 반영
+            var task = self.tasks(for: date, categoryId: categoryId).first { $0.taskId == info.taskId } ??
+                       // 기존 task를 찾지 못할 경우를 대비하여 더미 생성
+                       TodoTask(taskId: info.taskId, categoryId: info.categoryId, title: "", isCompleted: false, order: info.order, date: date)
+            task.order = info.order
+            return task
         }
-        tasks[date] = taskList
-
-        let categoryGroups = Dictionary(grouping: updatedTasks) { $0.categoryId }
-        for (categoryId, categoryTasks) in categoryGroups {
-            let taskIds = categoryTasks.compactMap { $0.taskId }
-            updateTaskOrder(categoryId: categoryId, taskOrder: taskIds)
+        allTasksForDate.append(contentsOf: newCategoryTasks)
+        tasks[date] = allTasksForDate.sorted { $0.categoryId < $1.categoryId || ($0.categoryId == $1.categoryId && $0.order < $1.order) }
+        
+        print("🚀 [DEBUG] 서버로 전송되는 JSON 페이로드:")
+        let payload = ["tasks": taskOrderInfos]
+        do {
+            let jsonData = try JSONEncoder().encode(payload)
+            let jsonString = String(data: jsonData, encoding: .utf8) ?? "Invalid JSON"
+            print(jsonString)
+        } catch {
+            print("🔴 [DEBUG] JSON 인코딩 실패: \(error)")
         }
-    }
 
-    private func updateTaskOrder(categoryId: Int, taskOrder: [Int]) {
-        taskProvider.request(.patchOrder(categoryId: categoryId, taskOrder: taskOrder)) { result in
+        // 서버에 순서 변경 요청
+        taskProvider.request(.patchOrder(tasks: taskOrderInfos)) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
                     if 200...299 ~= response.statusCode {
-                        print("🟢 [SUCCESS] 할 일 순서 변경 성공: 카테고리 \(categoryId)")
+                        print("🟢 \(date) 카테고리 \(categoryId) 순서 변경 성공")
+                        self?.loadTasks(for: date, categoryId: categoryId)
                     } else {
-                        print("🔴 [ERROR] 할 일 순서 변경 실패: HTTP \(response.statusCode)")
+                        print("🔴 \(date) 카테고리 \(categoryId) 순서 변경 실패: HTTP \(response.statusCode)")
+                        self?.loadTasks(for: date, categoryId: categoryId)
                     }
                 case .failure(let error):
-                    print("🔴 [API ERROR] 할 일 순서 변경 실패: \(error)")
+                    print("🔴 \(date) 카테고리 \(categoryId) 순서 변경 실패: \(error)")
+                    self?.loadTasks(for: date, categoryId: categoryId)
                 }
             }
         }
@@ -457,9 +489,5 @@ class TodoViewModel: ObservableObject {
             date: date
         )
         tasks[date, default: []].append(tempTask)
-    }
-
-    private func findTaskIndex(_ task: TodoTask) -> Int? {
-        return tasks[task.date]?.firstIndex { $0.id == task.id }
     }
 }

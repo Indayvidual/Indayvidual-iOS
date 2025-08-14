@@ -35,8 +35,10 @@ struct CategoryRowView: View {
             
             // MARK: - Task List
             if isExpanded {
+                @State var categoryTasks = viewModel.tasks(for: date, categoryId: category.categoryId ?? 0)
+                
                 List {
-                    ForEach(viewModel.tasks(for: date, categoryId: category.categoryId ?? 0)) { task in
+                    ForEach(categoryTasks) { task in
                         ChecklistRowWrapper(task: task, viewModel: viewModel)
                             .listRowInsets(EdgeInsets())
                             .padding(.horizontal, 10)
@@ -45,15 +47,20 @@ struct CategoryRowView: View {
                             .listRowSeparator(.hidden)
                     }
                     .onMove { indices, newOffset in
-                        viewModel.moveTask(from: indices, to: newOffset, date: date)
+                        // moveCategoryTasks 메서드 호출
+                        moveCategoryTasks(from: indices, to: newOffset)
                     }
                 }
                 .listStyle(PlainListStyle())
-                .frame(height: CGFloat(viewModel.tasks(for: date, categoryId: category.categoryId ?? 0).count * 50))
+                .frame(height: CGFloat(categoryTasks.count * 50))
                 .transition(.opacity)
                 .clipped()
                 .refreshable {
                     await viewModel.loadTasksAsync(for: date, categoryId: category.categoryId ?? 0)
+                }
+                .onChange(of: viewModel.tasks(for: date, categoryId: category.categoryId ?? 0)) {
+                        oldTasks, newTasks in
+                        categoryTasks = newTasks
                 }
             }
         }
@@ -61,6 +68,49 @@ struct CategoryRowView: View {
             Task {
                 await viewModel.loadTasksAsync(for: date, categoryId: category.categoryId ?? 0)
             }
+        }
+    }
+    
+    private func moveCategoryTasks(from source: IndexSet, to destination: Int) {
+        guard let categoryId = category.categoryId else { return }
+        
+        // 현재 날짜 + 카테고리 task 가져오기
+        var currentCategoryTasks = viewModel.tasks(for: date, categoryId: categoryId)
+        
+        // 순서 변경
+        currentCategoryTasks.move(fromOffsets: source, toOffset: destination)
+        
+        // ✨ [수정] 순서 변경 후, 각 task의 order 값을 새로운 인덱스에 맞게 재할당
+        currentCategoryTasks = currentCategoryTasks.enumerated().map { index, task -> TodoTask in
+            var updatedTask = task
+            updatedTask.order = index
+            return updatedTask
+        }
+        
+        // ViewModel에 반영
+        var allTasksForDate = viewModel.tasks[date] ?? []
+        allTasksForDate.removeAll { $0.categoryId == categoryId }
+        allTasksForDate.append(contentsOf: currentCategoryTasks)
+        allTasksForDate.sort {
+            if $0.categoryId == $1.categoryId {
+                return $0.order < $1.order
+            }
+            return $0.categoryId < $1.categoryId
+        }
+        viewModel.tasks[date] = allTasksForDate
+        
+        // 서버에 전송
+        let taskOrderInfos = currentCategoryTasks.compactMap { task -> TaskOrderInfo? in
+            guard let taskId = task.taskId else { return nil }
+            return TaskOrderInfo(taskId: taskId, categoryId: categoryId, order: task.order)
+        }
+        
+        viewModel.updateTaskOrderForCategory(date: date, taskOrderInfos: taskOrderInfos)
+    
+        // 디버깅용
+        print("📌 [DEBUG] \(date) / 카테고리 \(categoryId) 순서 변경 결과:")
+        for t in viewModel.tasks(for: date, categoryId: categoryId).sorted(by: { $0.order < $1.order }) {
+            print("   order:\(t.order)  title:\(t.title)")
         }
     }
 

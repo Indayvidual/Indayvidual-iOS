@@ -18,7 +18,6 @@ struct TodoListView: View {
                 })
                 ScrollView {
                     VStack {
-                        Spacer().frame(height: 18)
                         CustomCalendarView(
                             calendarViewModel: calendarViewModel,
                             onDateSelected: { selectedDate in
@@ -34,8 +33,8 @@ struct TodoListView: View {
                                     }
                                 }
                             }
-                        )
-                        Spacer().frame(height: 20)
+                        ).padding(.horizontal,28)
+                        .padding(.vertical,26)
                         
                         if viewModel.categories.isEmpty {
                             VStack() {
@@ -78,6 +77,7 @@ struct TodoListView: View {
                 .refreshable {
                     await refreshAllData()
                 }
+                .scrollContentBackground(.hidden)
             }
             .onAppear {
                 refreshData()

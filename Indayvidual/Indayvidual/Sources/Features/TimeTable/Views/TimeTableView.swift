@@ -16,6 +16,7 @@ struct TimetableView: View {
             ZStack(alignment: .topTrailing) {
                 mainContent
                 
+                // 삭제 버튼
                 if timetableVm.showDeleteButton {
                     if let timetableId = timetableVm.currentTimetable?.timetableId {
                         Button(action: {
@@ -32,37 +33,30 @@ struct TimetableView: View {
                         .padding(.trailing, 13)
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .animation(.easeInOut, value: timetableVm.showDeleteButton)
-                    } else {
-                        EmptyView()
                     }
                 }
             }
             .onAppear {
                 Task {
-                    if !timetableVm.isLoading{
+                    if !timetableVm.isLoading {
                         await timetableVm.fetchTimetable()
                     }
                 }
             }
-                .floatingBtn { timetableVm.showImagePicker = true }
-                .photosPicker(
-                    isPresented: $timetableVm.showImagePicker,
-                    selection: $timetableVm.selectedPhotoItem,
-                    matching: .images
-                )
-                .background(Color(.gray50))
-                
-                // 학교/학기 설정 뷰
-                .navigationDestination(isPresented: $timetableVm.showSchoolSemesterSetup) {
-                    SchoolSemesterSetupView(
-                        timetableVm: timetableVm
-                    )
-                }
+            .floatingBtn { timetableVm.showImagePicker = true }
+            .photosPicker(
+                isPresented: $timetableVm.showImagePicker,
+                selection: $timetableVm.selectedPhotoItem,
+                matching: .images
+            )
+            .background(Color(.gray50))
+            .navigationDestination(isPresented: $timetableVm.showSchoolSemesterSetup) {
+                SchoolSemesterSetupView(timetableVm: timetableVm)
+            }
         }
-        
-        // 안내 팝업
         .overlay {
-            if !timetableVm.isSchoolRegistered && timetableVm.showNoticePopup { // 학교/학기 미등록 상태일 경우 안내 팝업창 뜸
+            // 학교 미등록 시 안내 팝업
+            if !timetableVm.isSchoolRegistered && timetableVm.showNoticePopup {
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
                     .onTapGesture { timetableVm.showNoticePopup = false }
@@ -90,56 +84,81 @@ struct TimetableView: View {
 
 private extension TimetableView {
     var mainContent: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Topbar(customAction: {
-                timetableVm.showDeleteButton.toggle()
-                print(timetableVm.showDeleteButton)
-            })
-            
-            Spacer().frame(height: 10)
-            
-            HStack(spacing: 12) {
+        ZStack(alignment: .bottom) {
+            VStack(alignment: .leading, spacing: 0) {
+                // 상단 바
+                Topbar(customAction: {
+                    timetableVm.showDeleteButton.toggle()
+                })
                 
-                Text(timetableVm.formattedSelection() ?? "학교/학기 선택")
-                    .font(.pretendRegular13)
-                    .foregroundStyle(timetableVm.formattedSelection() == nil ? Color(.gray500) : Color(.gray900))
-                    .lineLimit(1)
+                Spacer().frame(height: 10)
                 
-                Image(.mingcuteDownFill)
-            }
-            .padding(.horizontal, 12)
-            .frame(height: 28)
-            .background(Color.white)
-            .contentShape(Rectangle())
-            .onTapGesture {
-                timetableVm.showSchoolSemesterSetup = true
-            }
-            .padding(.horizontal, 15)
-            .zIndex(1)
-            
-            Spacer().frame(height: 22)
-            
-            HStack {
+                HStack(spacing: 12) {
+                    // 학교 선택
+                    SchoolSelectionBar(
+                        schoolName: .constant(timetableVm.selectedSchoolName),
+                        onTap: { timetableVm.showSchoolSemesterSetup = true }
+                    )
+                    
+                    // 학기 선택(드롭다운)
+                    SemesterSelectionBar(
+                        selection: Binding(
+                            get: { timetableVm.selectedSemester?.rawValue },
+                            set: { newValue in
+                                if let semester = Semester(rawValue: newValue ?? "") {
+                                    timetableVm.selectSemester(semester)
+                                }
+                            }
+                        )
+                    )
+                }
+                .padding(.leading, 25)
+                
+                Spacer().frame(height: 22)
+                
+                // 시간표 콘텐츠
+                HStack {
+                    Spacer()
+                    timetableContent()
+                    Spacer()
+                }
+                
                 Spacer()
-                timetableContent()
-                Spacer()
             }
-            
-            Spacer()
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     @ViewBuilder
     func timetableContent() -> some View {
+        // 선택된 이미지가 있으면 표시, 없으면 빈 시간표 표시
         if let selectedImage = timetableVm.selectedImage {
             Image(uiImage: selectedImage)
                 .resizable()
                 .scaledToFit()
                 .padding()
-        }  else {
-            // 이미지가 없을 때 보여줄 기본 뷰
+        } else {
             EmptyTimeTableView()
+        }
+    }
+    
+    // 학교 선택바
+    struct SchoolSelectionBar: View {
+        var cornerRadius: CGFloat = 4
+        @Binding var schoolName: String?
+        var onTap: () -> Void
+        
+        var body: some View {
+            Text(schoolName ?? "학교 선택")
+                .font(.pretendRegular13)
+                .foregroundColor(schoolName == nil ? Color.gray : Color.black)
+                .frame(height: 28)
+                .padding(.horizontal, 20)
+                .background(Color.white)
+                .cornerRadius(cornerRadius)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    onTap()
+                }
         }
     }
 }

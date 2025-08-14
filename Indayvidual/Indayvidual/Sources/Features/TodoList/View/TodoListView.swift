@@ -83,6 +83,7 @@ struct TodoListView: View {
                 .refreshable {
                     await refreshAllData()
                 }
+                .scrollContentBackground(.hidden)
             }
             .onAppear {
                 refreshData()

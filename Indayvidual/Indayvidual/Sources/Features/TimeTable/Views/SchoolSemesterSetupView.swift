@@ -10,10 +10,11 @@ import SwiftUI
 struct SchoolSemesterSetupView: View {
     @Environment(\.dismiss) private var dismiss
     
+    // State 변수들은 그대로 유지
     @State private var selectedSchoolName: String? = nil
     @State private var selectedSchoolSeq: String? = nil
     @State private var showSemesterPicker = false
-    @State private var selectedSemester: String? = nil
+    @State private var selectedSemester: Semester? = nil
     @State private var showSchoolSearchPopup = false
     
     @ObservedObject var timetableVm: TimetableViewModel
@@ -45,52 +46,55 @@ struct SchoolSemesterSetupView: View {
                                 .resizable()
                                 .frame(width: 24, height: 24)
                         }
+                        
                     )
                 }
             ) {
-                VStack {
-                    Text("학교 설정")
-                        .font(.pretendSemiBold18)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    Spacer().frame(height: 15)
-                    
-                    SelectionBar(
-                        title: selectedSchoolName ?? "소속 대학명을 검색 하세요",
-                        isSelected: selectedSchoolName != nil,
-                        iconName: "Group",
-                        onTap: { showSchoolSearchPopup = true }
-                    )
+                VStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: 15) {
+                        Text("학교 설정")
+                            .font(.system(size: 18, weight: .semibold))
+                        
+                        SelectionBar(
+                            title: selectedSchoolName ?? "소속 대학명을 검색 하세요",
+                            isSelected: selectedSchoolName != nil,
+                            iconName: "Group",
+                            onTap: { showSchoolSearchPopup = true }
+                        )
+                    }
                     
                     Spacer().frame(height: 50)
                     
-                    Text("학기 설정")
-                        .font(.pretendSemiBold18)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    SelectionBar(
-                        title: selectedSemester ?? "학기 선택",
-                        isSelected: selectedSemester != nil,
-                        iconName: showSemesterPicker ? "dropup" : "dropdown",
-                        onTap: {
-                            withAnimation { showSemesterPicker.toggle() }
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("학기 설정")
+                            .font(.pretendSemiBold18)
+                        
+                        Spacer().frame(height: 15)
+                        
+                        GeometryReader { geometry in
+                            SelectionBar(
+                                title: selectedSemester?.rawValue ?? "학기 선택",
+                                isSelected: selectedSemester != nil,
+                                iconName: showSemesterPicker ? "dropup" : "dropdown",
+                                onTap: { withAnimation { showSemesterPicker.toggle() } }
+                            )
+                            
+                            .overlay(alignment: .top) {
+                                if showSemesterPicker {
+                                    SemesterPickerView(selectedSemester: $selectedSemester)
+                                        .offset(y: geometry.size.height + 4)
+                                }
+                            }
                         }
-                    )
-                                        
-                    // 학기 선택 피커
-                    if showSemesterPicker {
-                        SemesterPickerView(selectedSemester: $selectedSemester)
-                            .transition(.opacity)
-                            .animation(.easeInOut, value: showSemesterPicker)
+                        .frame(height: 56)
                         
                     }
+                    .zIndex(1)
                     
+                    Spacer()
                 }
                 .padding(.horizontal, 20)
-                .background(Color.white)
-                .cornerRadius(12)
-                .frame(height: 282)
-                .frame(maxWidth: .infinity)
+                .padding(.top, 20)
             }
             
             // 학교 검색 팝업
@@ -103,29 +107,37 @@ struct SchoolSemesterSetupView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .ignoresSafeArea(.container, edges: .bottom)
     }
+}
+
+struct SemesterPickerView: View {
+    @Binding var selectedSemester: Semester?
     
-    struct SemesterPickerView: View {
-        @Binding var selectedSemester: String?
-        @State private var selectedIndex = 0
-        
-        private let semesters = (1...4).flatMap { year in
-            (1...2).map { semester in
-                "\(year)학년 \(semester)학기"
+    var body: some View {
+        // Picker가 Semester 타입을 직접 바인딩합니다.
+        Picker("학기 선택", selection: $selectedSemester) {
+            // ForEach는 Semester.allCases를 순회합니다.
+            ForEach(Semester.allCases) { semester in
+                Text(semester.rawValue).tag(semester as Semester?)
             }
         }
-        
-        var body: some View {
-            Picker("학기 선택", selection: $selectedIndex) {
-                ForEach(semesters.indices, id: \.self) { index in
-                    Text(semesters[index]).tag(index)
-                }
-            }
-            .pickerStyle(WheelPickerStyle())
-            .frame(height: 150)
-            .onChange(of: selectedIndex) {
-                selectedSemester = semesters[selectedIndex]
+        .pickerStyle(.wheel)
+        .frame(height: 150)
+        .frame(maxWidth: .infinity)
+        .background(Color(.gray50))
+        .cornerRadius(10)
+        // 처음에 기본값이 선택되도록 onAppear 추가
+        .onAppear {
+            if selectedSemester == nil {
+                selectedSemester = Semester.allCases.first
             }
         }
     }
+}
+
+
+#Preview {
+    // 이제 이 코드는 프로젝트에 이미 존재하는 실제 TimetableViewModel을 사용합니다.
+    SchoolSemesterSetupView(timetableVm: TimetableViewModel())
 }

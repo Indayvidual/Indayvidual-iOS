@@ -38,12 +38,15 @@ struct TodoCategorySelectView: View {
         }
         .sheet(isPresented: $showColorPicker) {
             colorPickerSheet
+                .presentationDragIndicator(.visible)
+                .presentationDetents([.large])
         }
+        
         .onAppear {
             todoViewModel.fetchCategories() // 뷰 등장 시 카테고리 목록 조회
         }
     }
-
+    
     // MARK: - Edit Mode View
     private var editModeView: some View {
         VStack(spacing: 0) {
@@ -58,7 +61,7 @@ struct TodoCategorySelectView: View {
                 SelectColorField(selectedColor: $selectedColor, showColorPicker: $showColorPicker)
                 statusView
                 Spacer().frame(height: 20)
-
+                
                 Button {
                     handleCategorySubmission()
                 } label: {
@@ -84,7 +87,7 @@ struct TodoCategorySelectView: View {
         .presentationDetents([.height(300), .medium])
         .presentationDragIndicator(.hidden)
     }
-
+    
     // MARK: - Normal Mode View
     private var normalModeView: some View {
         VStack(spacing: 14) {
@@ -122,7 +125,7 @@ struct TodoCategorySelectView: View {
             }
         }
     }
-
+    
     // MARK: - Status View
     private var statusView: some View {
         VStack(spacing: 8) {
@@ -135,7 +138,7 @@ struct TodoCategorySelectView: View {
             }
         }
     }
-
+    
     // MARK: - Color Picker Sheet
     private var colorPickerSheet: some View {
         CustomActionSheet(
@@ -154,30 +157,31 @@ struct TodoCategorySelectView: View {
                 colorViewModel.resetToDefault()
                 selectedColor = .purple05
                 showColorPicker = false
-            }
+            },
+            showBottomDivider: true
         ) {
-            VStack(alignment: .leading) {
+            VStack(spacing: 0) {
                 ColorGridView(viewModel: colorViewModel)
             }
         }
     }
-
+    
     // MARK: - 버튼 기능과 색상 변화
     private var isButtonDisabled: Bool { categoryName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
-
+    
     private var buttonBackgroundColor: Color {
         isButtonDisabled ? Color.gray300 : Color.gray900
     }
-
+    
     // MARK: - Methods
     private func handleCategorySubmission() {
         let trimmedName = categoryName.trimmingCharacters(in: .whitespacesAndNewlines)
-
+        
         if isEditMode {
             guard let targetCategory = categoryToUpdate else {
-               return
-           }
+                return
+            }
             todoViewModel.updateCategory(
                 targetCategory, newName: trimmedName,
                 newColor: selectedColor
@@ -208,7 +212,7 @@ struct TodoCategorySelectView: View {
 
 struct CustomPlaceholderTextField: View {
     @Binding var text: String
-
+    
     var body: some View {
         ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: 8)
@@ -238,7 +242,7 @@ struct CustomPlaceholderTextField: View {
 struct SelectColorField: View {
     @Binding var selectedColor: Color
     @Binding var showColorPicker: Bool
-
+    
     var body: some View {
         Button {
             showColorPicker = true

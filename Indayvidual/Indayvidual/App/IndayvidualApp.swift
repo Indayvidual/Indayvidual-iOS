@@ -22,7 +22,7 @@ struct IndayvidualApp: App {
     var body: some Scene {
         
         WindowGroup {
-            ContentView()
+            RootLaunchView()
                 .rootAlert()
                 .environmentObject(userSession)
                 .environmentObject(alertService)

@@ -26,7 +26,7 @@ struct MyPageView: View {
                 Spacer().frame(height: 10)
                 menuCards
             }
-            .background(Color("gray-50").ignoresSafeArea())
+            .background(Color("gray-50"))
             .navigationDestination(for: SettingsRoute.self) { route in
                 switch route {
                 case .passwordConfirm:

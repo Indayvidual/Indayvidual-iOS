@@ -12,7 +12,7 @@ struct SignupPasswordView: View {
     @State private var confirmPassword: String = ""
     @FocusState private var focusedField: Field?
     @State private var isPasswordEdited = false
-    @State private var goToCodeView = false
+    @State private var goToNickname = false
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var viewModel: SignupViewModel
 
@@ -38,7 +38,7 @@ struct SignupPasswordView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Image("back-icon")
+                    Image(systemName: "chevron.left")
                 }
                 Spacer()
             }
@@ -90,32 +90,32 @@ struct SignupPasswordView: View {
             
             // 하단 버튼
             VStack {
-                NavigationLink(destination: SignupNicknameView().environmentObject(viewModel), isActive: $goToCodeView) {
-                                Button {
-                                    viewModel.password = password
-                                    goToCodeView = true
-                                } label: {
+                Button {
+                    guard isPasswordValid && isConfirmMatched else { return }
+                    viewModel.password = password
+                    goToNickname = true                                  } label: {
                         Text("다음")
                             .font(.pretendSemiBold15)
                             .frame(maxWidth: .infinity)
                             .padding()
                             .background(isPasswordValid && isConfirmMatched ? Color.black : Color.gray.opacity(0.3))
                             .foregroundStyle(.white)
-                            .cornerRadius(12)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
                     .disabled(!(isPasswordValid && isConfirmMatched))
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
-                }
-                .background(.white)
-                .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: -5)
             }
+            .background(.white)
+            .shadow(color: .black.opacity(0.08), radius: 10, x: 0, y: -5)
             .padding(.top, 40)
-            .onTapGesture {
-                hideKeyboard()
-            }
+            .onTapGesture { hideKeyboard() }
         }
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $goToNickname) {
+            SignupNicknameView()
+                .environmentObject(viewModel)
+        }
     }
 
     private func hideKeyboard() {

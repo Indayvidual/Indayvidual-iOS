@@ -28,7 +28,7 @@ struct IndayvidualApp: App {
                 .environmentObject(alertService)
                 .onOpenURL { url in
                     if AuthApi.isKakaoTalkLoginUrl(url) {
-                        AuthController.handleOpenUrl(url: url)
+                        _ = AuthController.handleOpenUrl(url: url)
                     }
                 }
         }

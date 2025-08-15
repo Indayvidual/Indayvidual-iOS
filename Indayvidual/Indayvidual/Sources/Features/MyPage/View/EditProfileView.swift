@@ -56,7 +56,7 @@ struct EditProfileView: View {
                     Button {
                         dismiss()
                     } label: {
-                        Image("back-icon")
+                        Image(systemName: "chevron.left")
                     }
                     
                     Text("내 정보 수정")
@@ -146,7 +146,7 @@ struct EditProfileView: View {
                                         .frame(height: 48)
                                         .background(Color("gray-50"))
                                         .cornerRadius(8)
-                                        .onChange(of: nickname) { _ in
+                                        .onChange(of: nickname) { _, _ in
                                             isNicknameChanged = true
                                             isNicknameButtonEnabled = true
                                         }

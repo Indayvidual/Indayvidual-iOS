@@ -85,7 +85,7 @@ extension ProfileAPITarget: TargetType {
     var headers: [String: String]? {
 
         var h: [String: String] = [
-            "Accept": "application/json"
+            "Content-Type": "application/json"
         ]
 
         // 인증 토큰
@@ -106,7 +106,6 @@ extension ProfileAPITarget: TargetType {
                 print("⚠️ Missing X-Reauth-Token for getMyProfile")
                 #endif
             }
-            // GET이지만 일부 서버가 Content-Type을 요구할 수 있어 JSON으로 맞춰줌
             h["Content-Type"] = "application/json"
 
         case .updateNickname, .updatePassword, .verifyBeforeUpdate, .deleteAccount:

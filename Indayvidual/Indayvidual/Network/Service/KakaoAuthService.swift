@@ -8,71 +8,93 @@
 import Foundation
 import KakaoSDKAuth
 import KakaoSDKUser
+import UIKit
 
-enum KakaoLoginError: Error { case noToken }
+struct KakaoProfile {
+    let nickname: String?
+    let imageUrl: String?
+}
 
+enum KakaoLoginError: Error { case noToken, noProfile }
+
+@MainActor
 final class KakaoAuthService {
     static let shared = KakaoAuthService()
     private init() {}
 
+    // 액세스 토큰 얻기
     func getAccessToken() async throws -> String {
+
         let canUseTalk = UserApi.isKakaoTalkLoginAvailable()
-
         do {
-            let token: KakaoSDKAuth.OAuthToken  // KakaoSDKAuth.OAuthToken으로 명시적 타입 사용
-
+            let token: OAuthToken
             if canUseTalk {
-                // 카카오톡 로그인
-                token = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<KakaoSDKAuth.OAuthToken, Error>) in
-                    UserApi.shared.loginWithKakaoTalk { t, e in
-                        if let e = e {
-                            cont.resume(throwing: e)
-                            return
-                        }
-                        guard let t = t else {
-                            cont.resume(throwing: KakaoLoginError.noToken) // 토큰이 없으면 오류
-                            return
-                        }
-                        cont.resume(returning: t) // 토큰 반환
-                    }
-                }
+                token = try await loginWithKakaoTalk()
             } else {
-                // 카카오 계정 로그인
-                token = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<KakaoSDKAuth.OAuthToken, Error>) in
-                    UserApi.shared.loginWithKakaoAccount { t, e in
-                        if let e = e {
-                            cont.resume(throwing: e) // 오류가 발생하면 오류를 던짐
-                            return
-                        }
-                        guard let t = t else {
-                            cont.resume(throwing: KakaoLoginError.noToken) // 토큰이 없으면 오류
-                            return
-                        }
-                        cont.resume(returning: t) // 토큰 반환
-                    }
-                }
+                token = try await loginWithKakaoAccount()
             }
-
-            return token.accessToken // 액세스 토큰 반환
+            return token.accessToken
         } catch {
-            // 카카오톡 로그인 실패 → 계정 로그인으로 재시도
             if canUseTalk {
-                let token = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<KakaoSDKAuth.OAuthToken, Error>) in
-                    UserApi.shared.loginWithKakaoAccount { t, e in
-                        if let e = e {
-                            cont.resume(throwing: e) // 오류가 발생하면 오류를 던짐
-                            return
-                        }
-                        guard let t = t else {
-                            cont.resume(throwing: KakaoLoginError.noToken) // 토큰이 없으면 오류
-                            return
-                        }
-                        cont.resume(returning: t) // 토큰 반환
-                    }
-                }
-                return token.accessToken // 계정 로그인 후 얻은 토큰 반환
+                let t = try await loginWithKakaoAccount()
+                return t.accessToken
             }
-            throw error // 모든 시도 실패 시 오류 반환
+            throw error
+        }
+    }
+
+    // 프로필 요청 + 강제 에러 노출
+    func fetchKakaoProfile() async throws -> KakaoProfile {
+        return try await withCheckedThrowingContinuation { cont in
+            UserApi.shared.me { user, error in
+                if let error = error {
+                    cont.resume(throwing: error); return
+                }
+                guard let p = user?.kakaoAccount?.profile else {
+                    cont.resume(throwing: KakaoLoginError.noProfile); return
+                }
+                let prof = KakaoProfile(
+                    nickname: p.nickname,
+                    imageUrl: p.profileImageUrl?.absoluteString
+                )
+                cont.resume(returning: prof)
+            }
+        }
+    }
+
+    // MARK: - Private
+    private func loginWithKakaoTalk() async throws -> OAuthToken {
+        try await withCheckedThrowingContinuation { cont in
+            UserApi.shared.loginWithKakaoTalk { t, e in
+                if let e {
+                    cont.resume(throwing: e); return
+                }
+                guard let t else { cont.resume(throwing: KakaoLoginError.noToken); return }
+                cont.resume(returning: t)
+            }
+        }
+    }
+    private func loginWithKakaoAccount() async throws -> OAuthToken {
+        try await withCheckedThrowingContinuation { cont in
+            UserApi.shared.loginWithKakaoAccount { t, e in
+                if let e {
+                    cont.resume(throwing: e); return
+                }
+                guard let t else { cont.resume(throwing: KakaoLoginError.noToken); return }
+                cont.resume(returning: t)
+            }
+        }
+    }
+    private func waitForActiveScene(timeout: TimeInterval = 3) async {
+        func active() -> Bool {
+            UIApplication.shared.connectedScenes
+                .compactMap { $0 as? UIWindowScene }
+                .contains { $0.activationState == .foregroundActive }
+        }
+        if active() { return }
+        let end = Date().addingTimeInterval(timeout)
+        for await _ in NotificationCenter.default.notifications(named: UIScene.didActivateNotification) {
+            if active() || Date() > end { break }
         }
     }
 }

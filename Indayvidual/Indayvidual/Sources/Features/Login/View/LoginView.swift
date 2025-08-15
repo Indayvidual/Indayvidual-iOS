@@ -22,6 +22,7 @@ struct LoginView: View {
     @State private var autoLogin: Bool = false
     @State private var isPasswordVisible = false
     @State private var goToHome = false
+    @State private var goToSignupEmail = false
     @EnvironmentObject var userSession: UserSession
     @Environment(\.dismiss) private var dismiss
 
@@ -29,14 +30,7 @@ struct LoginView: View {
         NavigationStack {
             VStack(spacing: 28) {
                 HStack {
-                    Button {
-                        dismiss()
-                    } label: {
-                        Image("back-icon")
-                    }
-                    Spacer()
                 }
-
                 Text(selectedTab == .login
                      ? "인데이비주얼과 함께\n나만의 하루를 설계하기"
                      : "회원가입하고\n나만의 하루를 설계해 보세요!")
@@ -61,6 +55,13 @@ struct LoginView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 40)
+            .navigationDestination(isPresented: $goToHome) {
+                           IndayvidualTabView()
+                       }
+            .navigationDestination(isPresented: $goToSignupEmail) {
+                           SignupEmailInputView()
+                               .environmentObject(signupViewModel)
+                       }
         }
     }
 
@@ -94,66 +95,62 @@ struct LoginView: View {
                 Spacer()
             }
 
-            VStack(spacing: 40) {
-                NavigationLink(destination: IndayvidualTabView(), isActive: $goToHome) {
-                    EmptyView()
-                }
-
-                Button {
-                    viewModel.login(userSession: userSession)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        if viewModel.loginSuccess {
+            NavigationStack {
+                VStack(spacing: 40) {
+                    Button {
+                        viewModel.login(userSession: userSession)
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                            if viewModel.loginSuccess {
+                                goToHome = true
+                            }
+                        }
+                    } label: {
+                        Text("로그인")
+                            .font(.pretendSemiBold15)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(.black)
+                            .foregroundStyle(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                    }
+                    
+                    if let error = viewModel.errorMessage {
+                        Text(error)
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    
+                    HStack {
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundStyle(Color("gray-200"))
+                        Text("또는")
+                            .foregroundStyle(Color("gray-500"))
+                            .padding(.horizontal, 8)
+                        Rectangle()
+                            .frame(height: 1)
+                            .foregroundStyle(Color("gray-200"))
+                    }
+                    
+                    Button {
+                        Task {
+                            guard !viewModel.isLoggingIn else { return }
+                            await viewModel.loginWithKakaoToken(userSession: userSession)
+                            if viewModel.loginSuccess { goToHome = true }
                             goToHome = true
                         }
-                    }
-                } label: {
-                    Text("로그인")
-                        .font(.pretendSemiBold15)
+                    } label: {
+                        HStack {
+                            Image(systemName: "message.fill")
+                            Text("카카오로 시작하기")
+                                .font(.pretendSemiBold15)
+                        }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(.black)
-                        .foregroundStyle(.white)
-                        .cornerRadius(8)
-                }
-
-                if let error = viewModel.errorMessage {
-                    Text(error)
-                        .font(.system(size: 14))
-                        .foregroundColor(.red)
-                        .padding(.top, 4)
-                }
-
-                HStack {
-                    Rectangle()
-                        .frame(height: 1)
-                        .foregroundStyle(Color("gray-200"))
-                    Text("또는")
-                        .foregroundStyle(Color("gray-500"))
-                        .padding(.horizontal, 8)
-                    Rectangle()
-                        .frame(height: 1)
-                        .foregroundStyle(Color("gray-200"))
-                }
-
-                Button {
-                    Task {
-                        async let kakaoLogin = viewModel.loginWithKakao()
-                        async let tokenUpdate = viewModel.loginWithKakaoToken(userSession: userSession)
-                        await kakaoLogin
-                        await tokenUpdate
-                        goToHome = true 
+                        .background(Color("yellow-04"))
+                        .foregroundStyle(.black)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     }
-                } label: {
-                    HStack {
-                        Image(systemName: "message.fill")
-                        Text("카카오로 시작하기")
-                            .font(.pretendSemiBold15)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color("yellow-04"))
-                    .foregroundStyle(.black)
-                    .cornerRadius(8)
                 }
             }
             .padding(.top, 10)
@@ -162,7 +159,9 @@ struct LoginView: View {
 
     var signupIntro: some View {
         VStack(spacing: 50) {
-            NavigationLink(destination: SignupEmailInputView().environmentObject(signupViewModel)) {
+            Button {
+                 goToSignupEmail = true
+            } label: {
                 Text("이메일로 시작하기")
                     .font(.system(size: 15, weight: .semibold))
                     .frame(maxWidth: .infinity)
@@ -171,7 +170,7 @@ struct LoginView: View {
                     .foregroundStyle(.white)
                     .cornerRadius(12)
             }
-
+            
             HStack {
                 Rectangle()
                     .frame(height: 1)
@@ -185,7 +184,12 @@ struct LoginView: View {
             }
 
             Button {
-                // 카카오 회원가입
+                Task {
+                    guard !viewModel.isLoggingIn else { return }
+                    await viewModel.loginWithKakaoToken(userSession: userSession)
+                    if viewModel.loginSuccess { goToHome = true }
+                    goToHome = true
+                }
             } label: {
                 HStack {
                     Image(systemName: "message.fill")

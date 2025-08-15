@@ -32,15 +32,20 @@ struct MyPageView: View {
                 case .passwordConfirm:
                     PasswordConfirmView { profile in
                         path.append(.profileEdit(profile))
-                    }
-                case .profileEdit(let profile):
+                    }onKakaoVerified: { profile in
+                        path.append(.profileEdit(profile))
+                    }              case .profileEdit(let profile):
                     EditProfileView(profile: profile) {
-                        viewModel.refreshIfReauthValid()
+                        viewModel.refreshIfReauthValid(session: userSession)
                     }
                 }
             }
         }
-        .task { viewModel.refreshIfReauthValid() }
+        .onAppear {
+                    viewModel.preload(from: userSession)
+                    viewModel.refreshIfReauthValid(session: userSession)
+                }
+        .task { viewModel.refreshIfReauthValid(session: userSession) }
         .overlay(loadingOverlay)
         .alert("프로필 로드 실패",
                isPresented: .constant(viewModel.loadErrorMessage != nil)) {
@@ -52,7 +57,7 @@ struct MyPageView: View {
 
     private var header: some View {
         HStack {
-            Button { dismiss() } label: { Image("back-icon") }
+            Button { dismiss() } label: { Image(systemName: "chevron.left") }
             Text("마이페이지")
                 .font(.pretendSemiBold18)
                 .foregroundStyle(Color("gray-900"))

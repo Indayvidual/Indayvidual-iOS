@@ -146,5 +146,5 @@ struct HabitFormView: View {
 }
 
 #Preview {
-    HabitFormView(colorViewModel: ColorViewModel(), viewModel: MyHabitViewModel(sharedVM: CustomViewModel()))
+    HabitFormView(colorViewModel: ColorViewModel(), viewModel: MyHabitViewModel(sharedVM: CustomViewModel(userSession: UserSession())))
 }

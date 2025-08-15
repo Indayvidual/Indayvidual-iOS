@@ -36,11 +36,11 @@ struct TimetableView: View {
                     }
                 }
             }
-            .onAppear {
-                Task {
-                    if !timetableVm.isLoading {
-                        await timetableVm.fetchTimetable()
-                    }
+            .task {
+                timetableVm.loadSavedSchool()
+                
+                if !timetableVm.isLoading {
+                    await timetableVm.fetchTimetable()
                 }
             }
             .floatingBtn { timetableVm.showImagePicker = true }
@@ -105,15 +105,18 @@ private extension TimetableView {
                         selection: Binding(
                             get: { timetableVm.selectedSemester?.rawValue },
                             set: { newValue in
-                                if let semester = Semester(rawValue: newValue ?? "") {
+                                if let value = newValue,
+                                   let semester = Semester(rawValue: value) {
                                     timetableVm.selectSemester(semester)
                                 }
                             }
                         )
                     )
+
                 }
                 .padding(.leading, 25)
-                
+                .zIndex(10)
+            
                 Spacer().frame(height: 22)
                 
                 // 시간표 콘텐츠
@@ -130,8 +133,13 @@ private extension TimetableView {
     
     @ViewBuilder
     func timetableContent() -> some View {
-        // 선택된 이미지가 있으면 표시, 없으면 빈 시간표 표시
-        if let selectedImage = timetableVm.selectedImage {
+        if timetableVm.isLoading {          // 로딩 인디케이터
+            VStack{
+                Spacer()
+                ProgressView("이미지 로딩중..")
+                Spacer()
+            }
+        } else if let selectedImage = timetableVm.selectedImage { // 선택된 이미지가 있으면 표시, 없으면 빈 시간표 표시
             Image(uiImage: selectedImage)
                 .resizable()
                 .scaledToFit()

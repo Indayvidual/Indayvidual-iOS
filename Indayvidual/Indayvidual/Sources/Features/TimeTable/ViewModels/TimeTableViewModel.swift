@@ -47,10 +47,27 @@ class TimetableViewModel: ObservableObject {
     init(alertService: AlertService? = nil) {
         self.isSchoolRegistered = false
         self.alertService = alertService
+        loadSavedSchool() // 앱 시작 시 UserDefaults에서 불러오기
     }
     
     func setup(alertService: AlertService) {
         self.alertService = alertService
+    }
+    
+    // MARK: - UserDefaults에서 저장된 학교/학기 불러오기
+    func loadSavedSchool() {
+        let defaults = UserDefaults.standard
+        if let savedSeq = defaults.string(forKey: "savedSchoolSeq"),
+           let savedName = defaults.string(forKey: "savedSchoolName"),
+           let savedSemesterRaw = defaults.string(forKey: "savedSemester"),
+           let savedSemester = Semester(rawValue: savedSemesterRaw) {
+            self.selectedSchoolSeq = savedSeq
+            self.selectedSchoolName = savedName
+            self.selectedSemester = savedSemester
+            self.isSchoolRegistered = true
+            self.showNoticePopup = false
+            print("UserDefaults에서 불러온 학교: \(savedName) (\(savedSeq))")
+        }
     }
     
     // MARK: - 이미지 처리
@@ -90,6 +107,7 @@ class TimetableViewModel: ObservableObject {
     func postTimetable(imageData: Data, completion: ((Bool) -> Void)? = nil) {
         guard !isPosting,
               let schoolId = selectedSchoolSeq,
+              let schoolName = selectedSchoolName,
               let semester = selectedSemester?.rawValue
         else {
             print("API 호출에 필요한 정보(학교/학기)가 부족합니다.")
@@ -99,7 +117,7 @@ class TimetableViewModel: ObservableObject {
         
         isPosting = true
         
-        timetableProvider.request(.postTimetable(schoolId: schoolId, semester: semester, image: imageData)) { [weak self] result in
+        timetableProvider.request(.postTimetable(schoolId: schoolId, schoolName: schoolName, semester: semester, image: imageData)) { [weak self] result in
             DispatchQueue.main.async {
                 self?.isPosting = false
                 switch result {
@@ -191,31 +209,24 @@ class TimetableViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     if (200...299).contains(response.statusCode) {
-                        self.alertService?.showAlert(message: "시간표가 성공적으로 삭제되었습니다.", primaryButton: .primary(title: "확인"))
-                        self.clearSelectionAfterDelete()
+                        print("✅ 시간표 삭제 성공 (ID: \(timetableId))")
+                        self.selectedImage = nil
                         completion?(true)
+                        
                     } else {
                         let responseBody = String(data: response.data, encoding: .utf8) ?? "No readable response body"
                         print("🟡 시간표 삭제 실패 [\(response.statusCode)]: \(responseBody)")
                         self.alertService?.showAlert(message: "시간표 삭제 실패 (서버 에러): 코드 \(response.statusCode)", primaryButton: .primary(title: "확인"))
                         completion?(false)
                     }
+                    
                 case .failure(let error):
-                    print("🔴 Moya Failure: \(error.localizedDescription)")
+                    print("🔴 시간표 삭제 요청 실패 (네트워크 에러): \(error.localizedDescription)")
                     self.alertService?.showAlert(message: "네트워크 에러: \(error.localizedDescription)", primaryButton: .primary(title: "확인"))
                     completion?(false)
                 }
             }
         }
-    }
-    
-    private func clearSelectionAfterDelete() {
-        self.isLoading = false
-        self.showNoticePopup = true
-        self.selectedImage = nil
-        self.selectedSchoolName = nil
-        self.selectedSchoolSeq = nil
-        self.selectedSemester = nil
     }
     
     // MARK: - 최신 시간표 설정
@@ -235,19 +246,26 @@ class TimetableViewModel: ObservableObject {
             self.selectedSchoolName = timetable.schoolName
             
             if let url = URL(string: timetable.imageUrl) {
+                isLoading = true
+                
                 _Concurrency.Task {
                     do {
                         let (data, _) = try await URLSession.shared.data(from: url)
                         DispatchQueue.main.async {
                             self.selectedImage = UIImage(data: data)
+                            self.isLoading = false
                         }
                     } catch {
                         print("이미지 다운로드 실패: \(error.localizedDescription)")
-                        DispatchQueue.main.async { self.selectedImage = nil }
+                        DispatchQueue.main.async {
+                            self.selectedImage = nil
+                            self.isLoading = false
+                        }
                     }
                 }
             } else {
                 self.selectedImage = nil
+                self.isLoading = false
             }
         }
     }
@@ -262,27 +280,52 @@ class TimetableViewModel: ObservableObject {
         self.showSchoolSemesterSetup = false
         self.selectedImage = nil
         self.isLoading = true
+        
+        // UserDefaults에 저장
+        let defaults = UserDefaults.standard
+        defaults.set(schoolSeq, forKey: "savedSchoolSeq")
+        defaults.set(schoolName, forKey: "savedSchoolName")
+        defaults.set(semester.rawValue, forKey: "savedSemester")
+        
         print("저장된 학교 seq: \(schoolSeq), 이름: \(schoolName), 학기: \(semester.rawValue)")
-    }
-    
-    // MARK: - 학년-학기 포맷
-    func formattedSelection() -> String? {
-        guard let school = selectedSchoolName, let semester = selectedSemester else { return nil }
-        let pattern = #"(\d)학년\s*(\d)학기"#
-        if let regex = try? NSRegularExpression(pattern: pattern),
-           let match = regex.firstMatch(in: semester.rawValue, range: NSRange(semester.rawValue.startIndex..., in: semester.rawValue)) {
-            if let yearRange = Range(match.range(at: 1), in: semester.rawValue),
-               let semRange = Range(match.range(at: 2), in: semester.rawValue) {
-                let year = semester.rawValue[yearRange]
-                let sem = semester.rawValue[semRange]
-                return "\(school) \(year)-\(sem)"
-            }
-        }
-        return "\(school) \(semester.rawValue)"
     }
     
     func selectSemester(_ semester: Semester) {
         self.selectedSemester = semester
         self.showSemesterDropdown = false
+        
+        // 선택한 학기의 시간표 찾기
+        if let timetables = timeTable,
+           let matched = timetables.first(where: { $0.semester == semester.rawValue }) {
+            self.currentTimetable = matched
+            
+            // 이미지 로드
+            if let url = URL(string: matched.imageUrl) {
+                isLoading = true
+                _Concurrency.Task {
+                    do {
+                        let (data, _) = try await URLSession.shared.data(from: url)
+                        DispatchQueue.main.async {
+                            self.selectedImage = UIImage(data: data)
+                            self.isLoading = false
+                        }
+                    } catch {
+                        print("이미지 다운로드 실패: \(error.localizedDescription)")
+                        DispatchQueue.main.async {
+                            self.selectedImage = nil
+                            self.isLoading = false
+                        }
+                    }
+                }
+            } else {
+                self.selectedImage = nil
+                self.isLoading = false
+            }
+        } else {
+            self.currentTimetable = nil
+            self.selectedImage = nil
+            self.isLoading = false
+        }
     }
+
 }

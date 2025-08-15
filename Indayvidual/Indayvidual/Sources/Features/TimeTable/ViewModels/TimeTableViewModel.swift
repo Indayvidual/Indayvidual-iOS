@@ -8,6 +8,7 @@
 import SwiftUI
 import PhotosUI
 import Moya
+import Kingfisher
 
 @MainActor
 class TimetableViewModel: ObservableObject {
@@ -23,7 +24,8 @@ class TimetableViewModel: ObservableObject {
     @Published var isPosting: Bool = false
     @Published var isLoading: Bool = false
     @Published var isSchoolRegistered: Bool
-    @Published var selectedImage: UIImage?
+    
+    @Published var selectedImageURL: URL?   
     
     // MARK: - 뷰 상태
     @Published var showSchoolSearchPopup = false
@@ -81,9 +83,7 @@ class TimetableViewModel: ObservableObject {
                     return
                 }
                 
-                self.selectedImage = UIImage(data: imageData)
-                print("selectedImage가 성공적으로 할당되었습니다.")
-                
+                print("selectedImageData 준비 완료") // 디버깅용
                 self.postTimetable(imageData: imageData) { success in
                     if success {
                         print("시간표 등록 성공! 🎉")
@@ -210,16 +210,19 @@ class TimetableViewModel: ObservableObject {
                 case .success(let response):
                     if (200...299).contains(response.statusCode) {
                         print("✅ 시간표 삭제 성공 (ID: \(timetableId))")
-                        self.selectedImage = nil
-                        completion?(true)
+                        if let index = self.timeTable?.firstIndex(where: { $0.timetableId == timetableId }) {
+                                                self.timeTable?.remove(at: index)
+                                            }
                         
+                        self.selectedImageURL = nil
+                        self.currentTimetable = nil
+                        completion?(true)
                     } else {
                         let responseBody = String(data: response.data, encoding: .utf8) ?? "No readable response body"
                         print("🟡 시간표 삭제 실패 [\(response.statusCode)]: \(responseBody)")
                         self.alertService?.showAlert(message: "시간표 삭제 실패 (서버 에러): 코드 \(response.statusCode)", primaryButton: .primary(title: "확인"))
                         completion?(false)
                     }
-                    
                 case .failure(let error):
                     print("🔴 시간표 삭제 요청 실패 (네트워크 에러): \(error.localizedDescription)")
                     self.alertService?.showAlert(message: "네트워크 에러: \(error.localizedDescription)", primaryButton: .primary(title: "확인"))
@@ -229,46 +232,28 @@ class TimetableViewModel: ObservableObject {
         }
     }
     
-    // MARK: - 최신 시간표 설정
+    // MARK: - 최신 시간표 설정 (Kingfisher 적용 + 로딩)
     func setLatestTimetable(from timetables: [TimetableDto]?) {
         guard let timetables = timetables, !timetables.isEmpty else {
-            print("INFO: 시간표 리스트가 비어있어 최신 항목을 설정할 수 없습니다.")
             self.currentTimetable = nil
-            self.selectedImage = nil
+            self.selectedImageURL = nil
             return
         }
         
         let latestTimetable = timetables.max { $0.timetableId < $1.timetableId }
         self.currentTimetable = latestTimetable
         
-        if let timetable = latestTimetable {
+        if let timetable = latestTimetable,
+           let url = URL(string: timetable.imageUrl) {
             self.selectedSemester = Semester(rawValue: timetable.semester)
             self.selectedSchoolName = timetable.schoolName
             
-            if let url = URL(string: timetable.imageUrl) {
-                isLoading = true
-                
-                _Concurrency.Task {
-                    do {
-                        let (data, _) = try await URLSession.shared.data(from: url)
-                        DispatchQueue.main.async {
-                            self.selectedImage = UIImage(data: data)
-                            self.isLoading = false
-                        }
-                    } catch {
-                        print("이미지 다운로드 실패: \(error.localizedDescription)")
-                        DispatchQueue.main.async {
-                            self.selectedImage = nil
-                            self.isLoading = false
-                        }
-                    }
-                }
-            } else {
-                self.selectedImage = nil
-                self.isLoading = false
-            }
+            self.selectedImageURL = url
+        } else {
+            self.selectedImageURL = nil
         }
     }
+    
     
     // MARK: - 학교/학기 등록
     func saveSchoolSemester(schoolSeq: String, schoolName: String, semester: Semester) {
@@ -278,8 +263,10 @@ class TimetableViewModel: ObservableObject {
         self.isSchoolRegistered = true
         self.showNoticePopup = false
         self.showSchoolSemesterSetup = false
-        self.selectedImage = nil
-        self.isLoading = true
+        
+        self.timeTable = nil
+        self.currentTimetable = nil
+        self.selectedImageURL = nil
         
         // UserDefaults에 저장
         let defaults = UserDefaults.standard
@@ -290,41 +277,19 @@ class TimetableViewModel: ObservableObject {
         print("저장된 학교 seq: \(schoolSeq), 이름: \(schoolName), 학기: \(semester.rawValue)")
     }
     
+    // MARK: - 학기 선택
     func selectSemester(_ semester: Semester) {
         self.selectedSemester = semester
         self.showSemesterDropdown = false
         
-        // 선택한 학기의 시간표 찾기
         if let timetables = timeTable,
-           let matched = timetables.first(where: { $0.semester == semester.rawValue }) {
+           let matched = timetables.first(where: { $0.semester == semester.rawValue }),
+           let url = URL(string: matched.imageUrl) {
             self.currentTimetable = matched
-            
-            // 이미지 로드
-            if let url = URL(string: matched.imageUrl) {
-                isLoading = true
-                _Concurrency.Task {
-                    do {
-                        let (data, _) = try await URLSession.shared.data(from: url)
-                        DispatchQueue.main.async {
-                            self.selectedImage = UIImage(data: data)
-                            self.isLoading = false
-                        }
-                    } catch {
-                        print("이미지 다운로드 실패: \(error.localizedDescription)")
-                        DispatchQueue.main.async {
-                            self.selectedImage = nil
-                            self.isLoading = false
-                        }
-                    }
-                }
-            } else {
-                self.selectedImage = nil
-                self.isLoading = false
-            }
+            self.selectedImageURL = url
         } else {
             self.currentTimetable = nil
-            self.selectedImage = nil
-            self.isLoading = false
+            self.selectedImageURL = nil
         }
     }
 

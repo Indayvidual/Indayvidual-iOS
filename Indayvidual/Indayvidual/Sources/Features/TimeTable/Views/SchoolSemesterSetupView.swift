@@ -55,10 +55,10 @@ struct SchoolSemesterSetupView: View {
                             .font(.pretendSemiBold18)
                         
                         SelectionBar(
-                            title: timetableVm.selectedSchoolName ?? "소속 대학명을 검색 하세요",
+                            title: selectedSchoolName ?? "소속 대학명을 검색 하세요",
                             isSelected: selectedSchoolName != nil,
                             iconName: "Group",
-                            onTap: { showSchoolSearchPopup = true }
+                            onTap: {}
                         )
                     }
                     
@@ -105,6 +105,11 @@ struct SchoolSemesterSetupView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .task {
+                    self.selectedSchoolName = timetableVm.selectedSchoolName
+                    self.selectedSchoolSeq = timetableVm.selectedSchoolSeq
+                    self.selectedSemester = timetableVm.selectedSemester
+                }
     }
 }
 

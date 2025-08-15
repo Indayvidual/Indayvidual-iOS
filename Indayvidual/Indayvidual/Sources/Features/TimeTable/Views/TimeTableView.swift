@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import PhotosUI
+import Kingfisher
 
 struct TimetableView: View {
     @StateObject private var timetableVm = TimetableViewModel()
@@ -96,7 +96,7 @@ private extension TimetableView {
                 HStack(spacing: 12) {
                     // 학교 선택
                     SchoolSelectionBar(
-                        schoolName: .constant(timetableVm.selectedSchoolName),
+                        schoolName: $timetableVm.selectedSchoolName,
                         onTap: { timetableVm.showSchoolSemesterSetup = true }
                     )
                     
@@ -112,12 +112,12 @@ private extension TimetableView {
                             }
                         )
                     )
-
+                    
                 }
                 .padding(.leading, 25)
                 .zIndex(10)
-            
-                Spacer().frame(height: 22)
+                
+                Spacer().frame(height: 20)
                 
                 // 시간표 콘텐츠
                 HStack {
@@ -139,8 +139,8 @@ private extension TimetableView {
                 ProgressView("이미지 로딩중..")
                 Spacer()
             }
-        } else if let selectedImage = timetableVm.selectedImage { // 선택된 이미지가 있으면 표시, 없으면 빈 시간표 표시
-            Image(uiImage: selectedImage)
+        } else if let imageURL = timetableVm.selectedImageURL {
+            KFImage(imageURL)
                 .resizable()
                 .scaledToFit()
                 .padding()

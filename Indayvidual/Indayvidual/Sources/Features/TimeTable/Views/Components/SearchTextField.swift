@@ -28,9 +28,11 @@ struct SearchTextField: View {
                 }) {
                     Image("ic_remove")
                         .resizable()
-                        .frame(width: 20, height: 20)
+                        .frame(width: 12, height: 12)
+                        .padding(5)
                         .foregroundColor(Color(.gray500))
                         .background(Color(.gray50))
+                        .clipShape(Circle())
                 }
             }
             

@@ -10,6 +10,7 @@ import Foundation
 struct TimetableDto: Codable {
     let timetableId: Int
     let schoolId: String
+    let schoolName: String
     let semester: String
     let imageUrl: String
 }

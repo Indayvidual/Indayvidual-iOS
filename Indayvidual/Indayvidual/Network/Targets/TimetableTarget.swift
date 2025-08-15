@@ -9,7 +9,7 @@ import Foundation
 import Moya
 
 enum TimetableTarget {
-    case postTimetable(schoolId: String, semester: String, image: Data)
+    case postTimetable(schoolId: String, schoolName: String, semester: String, image: Data)
     case getTimetable
     case deleteTimetable(timetableId: Int)
 }
@@ -39,7 +39,7 @@ extension TimetableTarget: APITargetType{
     
     var task: Task {
            switch self {
-           case .postTimetable(let schoolId, let semester, let image):
+           case .postTimetable(let schoolId, let schoolName, let semester, let image):
                let formData = MultipartFormData(
                    provider: .data(image),
                    name: "image",
@@ -49,6 +49,7 @@ extension TimetableTarget: APITargetType{
                
                let params: [String: Any] = [
                    "schoolId": schoolId,
+                   "schoolName" : schoolName,
                    "semester": semester
                ]
                

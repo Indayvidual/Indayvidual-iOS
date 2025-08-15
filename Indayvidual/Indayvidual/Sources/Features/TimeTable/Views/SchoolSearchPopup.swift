@@ -60,12 +60,14 @@ struct SchoolSearchPopup: View {
                                 .frame(maxHeight: 210) // 검색창 등 제외한 나머지 높이
                         }
                     }
-                    .padding(.horizontal, 20)
                     .background(Color.white)
                 }
-                .frame(maxWidth: 350)
+
                 .background(Color.white)
                 .cornerRadius(15)
+                .frame(height: 425)
+                .padding(.horizontal, 22)
+                
                 Spacer()
             }
         }
@@ -129,7 +131,7 @@ struct SchoolSearchPopup: View {
                     .font(.pretendMedium14)
                     .foregroundStyle(Color(.gray900))
             }
-            .padding(.vertical, 20)
+            .padding(.vertical, 10)
             .contentShape(Rectangle())
             .onTapGesture {
                 selectedSchool = school

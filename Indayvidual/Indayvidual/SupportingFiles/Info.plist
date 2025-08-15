@@ -11,10 +11,12 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>https://dev.indayvidual.shop/oauth</string>
+				<string>kakao08df6cd151dfcc1143fc4748a66f2259</string>
 			</array>
 		</dict>
 	</array>
+	<key>KAKAO_NATIVE_APP_KEY</key>
+	<string>${KAKAO_NATIVE_APP_KEY}</string>
 	<key>KAKAO_REST_API_KEY</key>
 	<string>${KAKAO_REST_API_KEY}</string>
 	<key>LSApplicationQueriesSchemes</key>

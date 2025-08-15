@@ -26,12 +26,12 @@ struct SignupEmailCodeView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Image("back-icon")
+                    Image(systemName: "chevron.left")
                 }
                 Spacer()
             }
             .padding(.horizontal, 20)
-
+            
             // 타이틀
             Text("메일로 전송된\n인증번호를 입력해주세요")
                 .font(.pretendBold24)
@@ -39,13 +39,13 @@ struct SignupEmailCodeView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 20)
                 .padding(.horizontal, 20)
-
+            
             // 인증번호 입력
             VStack(spacing: 8) {
                 Text("인증번호")
                     .font(.pretendMedium13)
                     .frame(maxWidth: .infinity, alignment: .leading)
-
+                
                 HStack(spacing: 8) {
                     ZStack(alignment: .trailing) {
                         TextField("1234", text: $code)
@@ -58,8 +58,7 @@ struct SignupEmailCodeView: View {
                             )
                             .font(.system(size: 16))
                             .focused($isCodeFocused)
-                            .onChange(of: code) { _ in validateCode() }
-
+                        
                         if countdown > 0 {
                             Text("\(countdown / 60):\(String(format: "%02d", countdown % 60))")
                                 .font(.system(size: 14))
@@ -67,7 +66,7 @@ struct SignupEmailCodeView: View {
                                 .padding(.trailing, 12)
                         }
                     }
-
+                    
                     Button {
                         timer?.invalidate()
                         viewModel.sendVerificationCode()
@@ -85,47 +84,45 @@ struct SignupEmailCodeView: View {
                 }
             }
             .padding(.horizontal, 20)
-
+            
             Spacer()
-
+            
             // 하단 버튼
             VStack {
-                NavigationLink(destination: SignupPasswordView().environmentObject(viewModel), isActive: $goToNextStep) {
-                       Button {
-                           isVerifying = true
-                           viewModel.code = code
-                           viewModel.verifyCode { verified in
-                               isVerifying = false
-                               if verified {
-                                   goToNextStep = true
-                               } else {
-                                   errorMessage = "인증번호가 올바르지 않거나 만료되었습니다."
-                               }
-                           }
-                       } label: {
-                            Text(isVerifying ? "확인 중..." : "다음")
-                                .font(.pretendSemiBold15)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(code.count == 4 ? Color.black : Color.gray.opacity(0.3))
-                                .foregroundStyle(.white)
-                                .cornerRadius(12)
+                Button {
+                    isVerifying = true
+                    viewModel.code = code
+                    viewModel.verifyCode { verified in
+                        isVerifying = false
+                        if verified {
+                            goToNextStep = true
+                        } else {
+                            errorMessage = "인증번호가 올바르지 않거나 만료되었습니다."
                         }
-                        .disabled(code.count != 4 || isVerifying)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 20)
                     }
-
-                    if let errorMessage = errorMessage {
-                        Text(errorMessage)
-                            .foregroundColor(.red)
-                            .font(.system(size: 14))
-                            .padding(.top, 8)
-                    }
+                } label: {
+                    Text(isVerifying ? "확인 중..." : "다음")
+                        .font(.pretendSemiBold15)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(code.count == 4 ? Color.black : Color.gray.opacity(0.3))
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
+                .disabled(code.count != 4 || isVerifying)
+                .padding(.horizontal, 20)
+                .padding(.top, 20)
+                
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.system(size: 14))
+                        .padding(.top, 8)
+                }
+            }
             .background(Color.white)
             .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: -1)
-
+            
         }
         .navigationBarBackButtonHidden(true)
         .animation(.easeOut(duration: 0.25), value: isCodeFocused)
@@ -137,6 +134,11 @@ struct SignupEmailCodeView: View {
         }
         .onDisappear {
             timer?.invalidate()
+        }
+        
+        .navigationDestination(isPresented: $goToNextStep) {
+            SignupPasswordView()
+                .environmentObject(viewModel)
         }
     }
 

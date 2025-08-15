@@ -22,13 +22,13 @@ struct IndayvidualApp: App {
     var body: some Scene {
         
         WindowGroup {
-            ContentView()
+            RootLaunchView()
                 .rootAlert()
                 .environmentObject(userSession)
                 .environmentObject(alertService)
                 .onOpenURL { url in
                     if AuthApi.isKakaoTalkLoginUrl(url) {
-                        AuthController.handleOpenUrl(url: url)
+                        _ = AuthController.handleOpenUrl(url: url)
                     }
                 }
         }

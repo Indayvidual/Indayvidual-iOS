@@ -9,7 +9,9 @@ import Foundation
 import UIKit
 import Moya
 import KakaoSDKUser
+import AuthenticationServices
 
+@MainActor
 class LoginViewModel: ObservableObject {
     @Published var email: String = ""
     @Published var password: String = ""
@@ -57,7 +59,13 @@ class LoginViewModel: ObservableObject {
                         return
                     }
 
+                    let nameToShow = loginResponse.data?.nickname
                     userSession.updateSession(token: token)
+                    userSession.provider = .email
+                    userSession.displayName = nameToShow ?? ""
+                    UserDefaults.standard.set(nameToShow, forKey: "nickname")
+                    userSession.avatarURL = nil
+                    
                     DispatchQueue.main.async {
                         self?.loginSuccess = true
                     }
@@ -72,79 +80,75 @@ class LoginViewModel: ObservableObject {
     }
 
     func loginWithKakaoToken(userSession: UserSession, onSuccess: (() -> Void)? = nil) async {
+        isLoggingIn = true
+        do {
+            // 1) 카카오 SDK 토큰
+            let kakaoAT = try await KakaoAuthService.shared.getAccessToken()
 
-            do {
-                let kakaoAT = try await KakaoAuthService.shared.getAccessToken()
-
-                provider.request(.kakaoLogin(accessToken: kakaoAT)) { [weak self] result in
-                    guard let self = self else { return }
-                    self.isLoggingIn = false
-
+            // 2) /api/auth/kakao 호출을 async로 래핑
+            let response: Response = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Response, Error>) in
+                provider.request(.kakaoLogin(accessToken: kakaoAT)) { result in
                     switch result {
-                    case .success(let response):
-                        do {
-                            let kakaoResp = try JSONDecoder().decode(KakaoLoginResponseDTO.self, from: response.data)
-                            guard kakaoResp.isSuccess, let data = kakaoResp.data else {
-                                self.errorMessage = kakaoResp.message
-                                return
-                            }
-
-                            let tokenInfo = TokenInfo(
-                                accessToken: data.accessToken,
-                                refreshToken: data.refreshToken,
-                                userId: data.userId,
-                                email: data.email ?? "",
-                                nickname: data.username ?? "",
-                                role: data.role ?? ""
-                            )
-                            userSession.updateSession(token: tokenInfo)
-
-                            self.loginSuccess = true
-                            onSuccess?()  // 로그인 성공 후 네비게이션 처리
-                        } catch {
-                            self.errorMessage = "디코딩 실패: \(error.localizedDescription)"
-                        }
-
-                    case .failure(let error):
-                        self.errorMessage = "카카오 로그인 실패: \(error.localizedDescription)"
+                    case .success(let r): cont.resume(returning: r)
+                    case .failure(let e): cont.resume(throwing: e)
                     }
                 }
-            } catch {
-                DispatchQueue.main.async {
+            }
+
+            // 3) 디코드
+            let kakaoResp = try JSONDecoder().decode(KakaoLoginResponseDTO.self, from: response.data)
+            guard kakaoResp.isSuccess, let data = kakaoResp.data else {
+                await MainActor.run {
                     self.isLoggingIn = false
-                    self.errorMessage = "카카오 인증 실패: \(error.localizedDescription)"
+                    self.errorMessage = kakaoResp.message
                 }
+                return
+            }
+
+            // 4) 카카오 프로필 (async)
+            let profile = try await KakaoAuthService.shared.fetchKakaoProfile()
+
+            // 5) 메인에서 세션/캐시 반영
+            await MainActor.run {
+                userSession.accessToken  = data.accessToken
+                userSession.refreshToken = data.refreshToken
+                userSession.userId       = data.userId
+                userSession.email        = data.email ?? ""
+                userSession.provider     = .kakao
+                userSession.displayName  = data.username ?? profile.nickname ?? ""
+                userSession.avatarURL    = profile.imageUrl
+
+                let nameToShow = data.username ?? profile.nickname ?? ""
+                UserDefaults.standard.set(nameToShow, forKey: "nickname")
+                UserDefaults.standard.set(profile.imageUrl, forKey: "avatarURL")
+                
+                self.isLoggingIn = false
+                self.loginSuccess = true
+                onSuccess?()
+            }
+        } catch {
+            await MainActor.run {
+                self.isLoggingIn = false
+                self.errorMessage = "카카오 로그인 실패: \(error.localizedDescription)"
             }
         }
-    
-    func loginWithKakao() {
-            let clientId = (Bundle.main.infoDictionary?["KAKAO_REST_API_KEY"] as? String) ?? ""
-            let redirectUri = "kakao763c58aead41a5eee8261f4761f38625://oauth"
-            let authURL = "https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=\(clientId)&redirect_uri=\(redirectUri)"
+    }
 
-            // 카카오 로그인 URL로 리디렉션
-            if let url = URL(string: authURL) {
-                UIApplication.shared.open(url)
-            }
+    
+    func loginWithKakao(userSession: UserSession) async {
+            await loginWithKakaoToken(userSession: userSession)
         }
 
     // 로그아웃
     func logout(userSession: UserSession) {
         provider.request(.logout) { result in
-            switch result {
-            case .success(let response):
-                print("✅ 서버 로그아웃 성공: \(response.statusCode)")
-            case .failure(let error):
-                print("❌ 서버 로그아웃 실패: \(error.localizedDescription)")
-            }
-
+            UserApi.shared.logout { _ in }
             userSession.clear()
             UserDefaults.standard.removeObject(forKey: "refreshToken")
             print("🧹 로컬 토큰 삭제 완료")
 
-            DispatchQueue.main.async {
-                // 로그인 화면으로 이동 등의 작업
-            }
+            UserDefaults.standard.removeObject(forKey: "displayName")
+                    UserDefaults.standard.removeObject(forKey: "avatarURL")
         }
     }
 }

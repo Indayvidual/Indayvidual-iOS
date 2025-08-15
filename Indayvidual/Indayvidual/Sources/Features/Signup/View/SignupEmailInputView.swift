@@ -14,7 +14,7 @@ struct SignupEmailInputView: View {
     @State private var goToCodeView = false
     @State private var isChecking = false
     @State private var errorMessage: String? = nil
-
+    
     var body: some View {
         VStack(spacing: 28) {
             // 상단 네비게이션
@@ -22,12 +22,12 @@ struct SignupEmailInputView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Image("back-icon")
+                    Image(systemName: "chevron.left")
                 }
                 Spacer()
             }
             .padding(.horizontal, 20)
-
+            
             // 타이틀
             Text("이메일을\n입력해주세요")
                 .font(.pretendBold24)
@@ -35,13 +35,13 @@ struct SignupEmailInputView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.top, 20)
                 .padding(.horizontal, 20)
-
+            
             // 이메일 입력
             VStack(spacing: 5) {
                 Text("이메일")
                     .font(.pretendMedium13)
                     .frame(maxWidth: .infinity, alignment: .leading)
-
+                
                 CustomTextField(
                     placeholder: "이메일",
                     text: $viewModel.email,
@@ -50,42 +50,37 @@ struct SignupEmailInputView: View {
                     errorMessage: "올바른 이메일 형식이 아닙니다.",
                     showToggleSecure: false
                 )
-                .focused($isEmailFocused)  // 포커스 적용
+                .focused($isEmailFocused)
             }
             .padding(.horizontal, 20)
-
+            
             Spacer()
-
+            
             // 하단 버튼
             VStack {
-                HStack {
-                    NavigationLink(destination: SignupEmailCodeView().environmentObject(viewModel), isActive: $goToCodeView) {
-                        Button {
-                            isChecking = true
-                            errorMessage = nil
-                            
-                            viewModel.checkEmail { available in
-                                isChecking = false
-                                if available {
-                                    viewModel.sendVerificationCode()
-                                    goToCodeView = true
-                                } else {
-                                    errorMessage = "이미 가입된 이메일입니다."
-                                }
-                            }
-                        } label: {
-                            Text("다음")
-                                .font(.pretendSemiBold15)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(viewModel.isValidEmail ? Color.black : Color.gray.opacity(0.3))
-                                .foregroundStyle(.white)
-                                .cornerRadius(12)
+                Button {
+                    isChecking = true
+                    errorMessage = nil
+                    
+                    viewModel.checkEmail { available in
+                        isChecking = false
+                        if available {
+                            viewModel.sendVerificationCode()
+                            goToCodeView = true
+                        } else {
+                            errorMessage = "이미 가입된 이메일입니다."
                         }
-                        .disabled(!viewModel.isValidEmail)
                     }
+                } label: {
+                    Text(isChecking ? "확인 중..." : "다음")
+                        .font(.pretendSemiBold15)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(viewModel.isValidEmail ? Color.black : Color.gray.opacity(0.3))
+                        .foregroundStyle(.white)
+                        .cornerRadius(12)
                 }
-                .frame(maxWidth: .infinity)
+                .disabled(!viewModel.isValidEmail || isChecking)
                 .padding(.horizontal, 20)
                 .padding(.top, 20)
             }
@@ -93,6 +88,10 @@ struct SignupEmailInputView: View {
             .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: -1)
         }
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $goToCodeView) {
+            SignupEmailCodeView()
+                .environmentObject(viewModel)
+        }
     }
 
     // 키보드 내리기 (터치 시)
@@ -100,7 +99,6 @@ struct SignupEmailInputView: View {
         UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
     }
 }
-
 
 #Preview {
     SignupEmailInputView()

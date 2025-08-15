@@ -10,15 +10,17 @@ import SwiftUI
 
 struct PasswordConfirmView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var userSession: UserSession
     @StateObject private var viewModel = PasswordConfirmViewModel()
-
+    
     @State private var password: String = ""
     @State private var showError: Bool = false
     @State private var errorText: String = "비밀번호가 일치하지 않거나 재인증에 실패했습니다."
     @State private var isVerifying = false
-
-    let onSuccess: (Profile) -> Void
-
+    
+    let onEmailVerified: (Profile) -> Void
+    let onKakaoVerified: (Profile) -> Void
+    
     var body: some View {
         VStack(spacing: 0) {
             // 헤더
@@ -35,23 +37,23 @@ struct PasswordConfirmView: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 13)
             .frame(height: 52)
-
+            
             Spacer().frame(height: 34)
-
+            
             Image("lock-icon").resizable().frame(width: 54, height: 58)
-
+            
             Spacer().frame(height: 16)
-
+            
             Text("비밀번호를 입력해주세요").font(.pretendSemiBold22)
-
+            
             Spacer().frame(height: 12)
-
+            
             Text("개인정보 보호를 위해 비밀번호 확인이 필요합니다.")
                 .font(.pretendRegular14)
                 .foregroundStyle(Color("gray-500"))
-
+            
             Spacer().frame(height: 50)
-
+            
             CustomTextField(
                 placeholder: "비밀번호",
                 text: $password,
@@ -59,11 +61,23 @@ struct PasswordConfirmView: View {
                 showToggleSecure: true
             )
             .textInputAutocapitalization(.never)
-
+            
             Spacer().frame(height: 30)
-
+            
             Button {
-                verify()
+                Task {
+                    isVerifying = true
+                    let profile = await viewModel.verifyPasswordAndFetchProfile(password)
+                    isVerifying = false
+                    
+                    if let profile {
+                        onEmailVerified(profile)
+                        dismiss()
+                    } else {
+                        showError = true
+                        errorText = viewModel.errorMessage ?? "재인증에 실패했어요."
+                    }
+                }
             } label: {
                 Text(isVerifying ? "확인 중..." : "다음")
                     .font(.system(size: 16, weight: .semibold))
@@ -74,17 +88,17 @@ struct PasswordConfirmView: View {
                     .cornerRadius(12)
             }
             .disabled(isVerifying || password.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-
+            
             if showError {
                 Text(errorText)
                     .font(.pretendRegular13)
                     .foregroundColor(.red)
                     .padding(.top, 8)
             }
-
+            
             Spacer()
-
-            // 소셜 로그인 섹션(필요하면 유지)
+            
+            // 소셜 로그인 섹션
             VStack(spacing: 30) {
                 HStack {
                     Rectangle().frame(height: 1).foregroundStyle(Color("gray-200"))
@@ -95,7 +109,23 @@ struct PasswordConfirmView: View {
                         .fixedSize(horizontal: true, vertical: false)
                     Rectangle().frame(height: 1).foregroundStyle(Color("gray-200"))
                 }
-                Button(action: { /* TODO */ }) {
+                Button{
+                    Task {
+                        isVerifying = true
+                        let profile = await viewModel.kakaoReauthAndFetchProfile {
+                            try await KakaoAuthService.shared.getAccessToken()
+                        }
+                        isVerifying = false
+                        
+                        if let profile {
+                            onKakaoVerified(profile)
+                            dismiss()
+                        } else {
+                            showError = true
+                            errorText = viewModel.errorMessage ?? "재인증에 실패했어요."
+                        }
+                    }
+                } label: {
                     HStack {
                         Image(systemName: "message.fill")
                         Text("카카오로 확인하기").font(.pretendMedium15)
@@ -125,25 +155,4 @@ struct PasswordConfirmView: View {
             }
         }
     }
-
-    private func verify() {
-        isVerifying = true
-        showError = false
-        let trimmed = password.trimmingCharacters(in: .whitespacesAndNewlines)
-        viewModel.verifyPassword(trimmed) { profile in
-            DispatchQueue.main.async {
-                isVerifying = false
-                if let profile {
-                    onSuccess(profile)
-                } else {
-                    showError = true
-                    errorText = "비밀번호가 일치하지 않거나 재인증에 실패했습니다."
-                }
-            }
-        }
-    }
-}
-
-#Preview {
-    PasswordConfirmView(onSuccess: { _ in })
 }

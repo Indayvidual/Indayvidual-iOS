@@ -13,7 +13,7 @@ struct SignupNicknameView: View {
     @FocusState private var isNicknameFocused: Bool
     private let maxLength = 10
     @Environment(\.dismiss) private var dismiss
-    @State private var goToCodeView = false
+    @State private var goToNextStep = false
 
     var isNicknameValid: Bool {
         !nickname.isEmpty && nickname.count <= maxLength
@@ -26,7 +26,7 @@ struct SignupNicknameView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Image("back-icon")
+                    Image(systemName: "chevron.left")
                 }
                 Spacer()
             }
@@ -62,15 +62,14 @@ struct SignupNicknameView: View {
             
             // 하단 버튼
             VStack {
-                NavigationLink(destination: SignupCompleteView().environmentObject(SignupViewModel()), isActive: $goToCodeView) {
                     Button {
                         viewModel.nickname = nickname
                         viewModel.signup { success in
                             if success {
-                                print("🎉 회원가입 성공!")
-                                goToCodeView = true
+                                print("회원가입 성공")
+                                goToNextStep = true
                             } else {
-                                print("❌ 회원가입 실패")
+                                print("회원가입 실패")
                             }
                         }
                     }
@@ -90,8 +89,11 @@ struct SignupNicknameView: View {
                 .background(Color.white)
                 .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: -1)
             }
-        }
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(isPresented: $goToNextStep) {
+            SignupCompleteView()
+                .environmentObject(viewModel)
+        }
     }
 
     private func hideKeyboard() {

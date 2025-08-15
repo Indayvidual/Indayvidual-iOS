@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct SignupCompleteView: View {
-    @State private var goToMainTabView = false
+    @State private var goToLogin = false
     
     var body: some View {
         VStack(spacing: 34) {
@@ -38,13 +38,9 @@ struct SignupCompleteView: View {
             
             // 하단 버튼
             VStack {
-                NavigationLink(
-                    destination: LoginView(),
-                    isActive: $goToMainTabView
-                ) {
-                    Button {
-                        // TODO: 시작하기 동작
-                    } label: {
+                Button {
+                    goToLogin = true
+                } label: {
                         Text("시작하기")
                             .font(.pretendSemiBold15)
                             .frame(maxWidth: .infinity)
@@ -63,9 +59,11 @@ struct SignupCompleteView: View {
             .background(.white)
             .ignoresSafeArea()
             .navigationBarBackButtonHidden(true)
+            .navigationDestination(isPresented: $goToLogin) {
+                LoginView()
+            }
         }
     }
-}
 
 #Preview {
     SignupCompleteView()

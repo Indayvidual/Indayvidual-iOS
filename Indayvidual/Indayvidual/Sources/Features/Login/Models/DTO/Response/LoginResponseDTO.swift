@@ -19,7 +19,7 @@ struct TokenInfo: Decodable {
     let refreshToken: String
     let userId: Int
     let email: String
-    let nickname: String?
+    let nickname: String
     let role: String
     
     enum CodingKeys: String, CodingKey {

@@ -14,6 +14,7 @@ enum AuthAPITarget {
     case refresh(refreshToken: String)
     case logout
     case verifyPassword(provider: String, password: String?)
+    case kakaoReauth(kakaoAccessToken: String)
 }
 
 extension AuthAPITarget: TargetType {
@@ -32,13 +33,19 @@ extension AuthAPITarget: TargetType {
         case .refresh: return "/api/auth/refresh"
         case .logout: return "/api/auth/logout"
         case .verifyPassword: return "/api/auth/re-auth/password"
+        case .kakaoReauth: return "/api/auth/re-auth/kakao"
         }
     }
 
     var method: Moya.Method {
         return .post
     }
+    
+    struct KakaoReauthBody: Encodable {
+            let kakaoAccessToken: String
+        }
 
+    
     var task: Task {
         switch self {
         case .login(email: let email, password: let password):
@@ -55,6 +62,8 @@ extension AuthAPITarget: TargetType {
                     params["password"] = password
                 }
                 return .requestParameters(parameters: params, encoding: JSONEncoding.default)
+        case .kakaoReauth(let at):
+                    return .requestJSONEncodable(KakaoReauthBody(kakaoAccessToken: at))
         }
     }
 
@@ -72,6 +81,9 @@ extension AuthAPITarget: TargetType {
                         headers["Authorization"] = "Bearer \(token)"
                     }
                     return headers
+            
+        case .kakaoReauth:
+                    return ["Content-Type": "application/json"]
             
         default:
             return ["Content-Type": "application/json"]

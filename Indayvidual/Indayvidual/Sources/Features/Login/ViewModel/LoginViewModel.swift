@@ -121,6 +121,8 @@ class LoginViewModel: ObservableObject {
                 let nameToShow = data.username ?? profile.nickname ?? ""
                 UserDefaults.standard.set(nameToShow, forKey: "nickname")
                 UserDefaults.standard.set(profile.imageUrl, forKey: "avatarURL")
+                UserDefaults.standard.set(data.accessToken,  forKey: "accessToken")
+                UserDefaults.standard.set(data.refreshToken, forKey: "refreshToken")
                 
                 self.isLoggingIn = false
                 self.loginSuccess = true

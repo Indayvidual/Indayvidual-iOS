@@ -22,6 +22,8 @@ final class MyPageViewModel: ObservableObject {
     @Published var isLoading = false
     @Published var loadErrorMessage: String?
     @Published var errorState: MyPageError = .none
+    @Published var isDeleting = false
+    @Published var deleteErrorMessage: String?
     
     private let provider = MoyaProvider<ProfileAPITarget>()
     init() {}
@@ -60,77 +62,79 @@ final class MyPageViewModel: ObservableObject {
         let now = Date().timeIntervalSince1970
         return !token.isEmpty && exp > 0 && now < exp
     }
+
     
     func fetchMyProfile() {
         isLoading = true
         loadErrorMessage = nil
         errorState = .none
-        
+
         provider.request(.getMyProfile) { [weak self] result in
             guard let self else { return }
             self.isLoading = false
-            
+
             switch result {
             case .success(let response):
-                let raw = String(data: response.data, encoding: .utf8) ?? "nil"
-#if DEBUG
+    #if DEBUG
                 print("📡 /profile status:", response.statusCode)
-                print("📦 /profile raw:", raw)
-#endif
-                
-                // 1) 상태코드 확인
+                if let raw = String(data: response.data, encoding: .utf8) {
+                    print("📦 /profile raw:", raw)
+                }
+    #endif
                 guard (200...299).contains(response.statusCode) else {
                     if response.statusCode == 401 {
                         self.errorState = .reauthRequired
                         self.loadErrorMessage = "로그인이 만료되었어요. 재인증이 필요합니다."
                     } else {
                         self.errorState = .other("서버 오류(\(response.statusCode))")
-                        self.loadErrorMessage = "서버 오류(\(response.statusCode))\n\(raw)"
+                        self.loadErrorMessage = "서버 오류(\(response.statusCode))"
                     }
                     return
                 }
-                
-                // 2) 본문 비었는지 확인
+
                 guard !response.data.isEmpty else {
                     self.errorState = .other("서버 응답이 비어 있습니다.")
                     self.loadErrorMessage = "서버 응답이 비어 있습니다."
                     return
                 }
-                
-                // 3) 안전 디코드 (서버가 문자열만 보낼 수도 있음)
+
                 do {
-                    let dto = try JSONDecoder().decode(ProfileResponseDTO.self, from: response.data)
-                    
-                    if case let .message(msg)? = dto.data, msg.contains("재인증") {
-                        self.errorState = .reauthRequired
+                    let env = try JSONDecoder().decode(ProfileResponseDTO.self, from: response.data)
+                    guard env.isSuccess else {
+                        self.errorState = .other(env.message)
+                        self.loadErrorMessage = env.message
                         return
                     }
-                    
-                    guard dto.isSuccess else {
-                        self.errorState = .other(dto.message)
-                        self.loadErrorMessage = dto.message
+
+                    guard case let .object(profile)? = env.data else {
+                        if case let .message(msg)? = env.data {
+                            self.errorState = .other(msg)
+                            self.loadErrorMessage = msg
+                        } else {
+                            self.errorState = .other("프로필 데이터가 없습니다.")
+                            self.loadErrorMessage = "프로필 데이터가 없습니다."
+                        }
                         return
                     }
-                    
-                    if case let .object(p)? = dto.data {
-                        self.email = p.email
-                        self.nickname = (p.nickname?.isEmpty == false)
-                        ? p.nickname!
-                        : (p.email.split(separator: "@").first.map(String.init) ?? p.email)
-                        self.imageUrl = p.imageUrl
-                    } else {
-                        self.errorState = .other("프로필 데이터가 없습니다.")
-                        self.loadErrorMessage = "프로필 데이터가 없습니다."
-                    }
+
+                    // 프로필 값 적용
+                    self.email = profile.email ?? ""
+                    self.nickname = profile.displayName   // displayName은 nickname → email 순
+                    self.imageUrl = profile.imageUrl
+
+                    // 캐싱
+                    UserDefaults.standard.set(self.nickname, forKey: "nickname")
+
                 } catch {
                     self.errorState = .other("디코딩 실패")
-                    self.loadErrorMessage = "디코딩 실패(\(response.statusCode)): \(error.localizedDescription)\nraw: \(raw)"
+                    self.loadErrorMessage = "디코딩 실패(\(response.statusCode)): \(error.localizedDescription)"
                 }
-                
+
             case .failure(let error):
                 self.errorState = .other("네트워크 오류")
                 self.loadErrorMessage = "네트워크 오류: \(error.localizedDescription)"
             }
         }
     }
+
 }

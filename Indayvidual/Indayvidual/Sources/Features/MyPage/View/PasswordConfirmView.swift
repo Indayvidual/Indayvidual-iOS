@@ -17,6 +17,7 @@ struct PasswordConfirmView: View {
     @State private var showError: Bool = false
     @State private var errorText: String = "비밀번호가 일치하지 않거나 재인증에 실패했습니다."
     @State private var isVerifying = false
+    @State private var didNavigate = false
     
     let onEmailVerified: (Profile) -> Void
     let onKakaoVerified: (Profile) -> Void
@@ -65,14 +66,15 @@ struct PasswordConfirmView: View {
             Spacer().frame(height: 30)
             
             Button {
+                guard !isVerifying, !didNavigate else { return }
                 Task {
                     isVerifying = true
                     let profile = await viewModel.verifyPasswordAndFetchProfile(password)
                     isVerifying = false
                     
                     if let profile {
+                        didNavigate = true
                         onEmailVerified(profile)
-                        dismiss()
                     } else {
                         showError = true
                         errorText = viewModel.errorMessage ?? "재인증에 실패했어요."
@@ -110,16 +112,19 @@ struct PasswordConfirmView: View {
                     Rectangle().frame(height: 1).foregroundStyle(Color("gray-200"))
                 }
                 Button{
+                    guard !isVerifying, !didNavigate else { return }
                     Task {
                         isVerifying = true
+                        
                         let profile = await viewModel.kakaoReauthAndFetchProfile {
                             try await KakaoAuthService.shared.getAccessToken()
                         }
                         isVerifying = false
                         
                         if let profile {
+                            didNavigate = true   
                             onKakaoVerified(profile)
-                            dismiss()
+                            
                         } else {
                             showError = true
                             errorText = viewModel.errorMessage ?? "재인증에 실패했어요."

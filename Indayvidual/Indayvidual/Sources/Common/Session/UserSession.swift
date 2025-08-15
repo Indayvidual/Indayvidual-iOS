@@ -18,6 +18,9 @@ class UserSession: ObservableObject {
     @Published var provider: LoginProvider = .email
     @Published var displayName: String = ""
     @Published var avatarURL: String? = nil
+    
+    @Published var reauthToken: String = ""
+    @Published var reauthExpiry: Date = .distantPast
 
     init() {
         self.accessToken = UserDefaults.standard.string(forKey: "accessToken") ?? ""
@@ -43,6 +46,11 @@ class UserSession: ObservableObject {
         UserDefaults.standard.set(nickname, forKey: "nickname")
     }
 
+    func clearReauth() {
+        reauthToken = ""
+        reauthExpiry = .distantPast
+    }
+    
     func clear() {
         accessToken = ""
         refreshToken = ""

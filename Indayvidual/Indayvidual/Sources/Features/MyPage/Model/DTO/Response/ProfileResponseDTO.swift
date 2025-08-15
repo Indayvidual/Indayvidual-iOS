@@ -32,13 +32,23 @@ enum ProfileDataOrMessage: Decodable, Hashable {
 
 struct Profile: Decodable, Hashable {              
     let userId: Int
-    let email: String
+    let email: String?
     let nickname: String?
     let imageUrl: String?
 
     enum CodingKeys: String, CodingKey {
         case userId, email, imageUrl
         case nickname = "username"
+    }
+    
+    var displayName: String {
+        if let nickname, !nickname.isEmpty {
+            return nickname
+        }
+        if let email, !email.isEmpty {
+            return email.split(separator: "@").first.map(String.init) ?? email
+        }
+        return "사용자"
     }
 }
 

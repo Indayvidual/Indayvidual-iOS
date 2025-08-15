@@ -17,6 +17,7 @@ class EditProfileViewModel: ObservableObject {
     @Published var isEditingPassword: Bool = false
     @Published var errorMessage: String?
     @Published var isLoading: Bool = false
+    @Published var deleteErrorMessage: String? 
 
     private let provider = MoyaProvider<ProfileAPITarget>()
 
@@ -61,7 +62,7 @@ class EditProfileViewModel: ObservableObject {
         }
 
         isLoading = true
-        provider.request(.updatePassword(password: password)) { [weak self] result in
+        provider.request(.updatePassword(newPassword: password)) { [weak self] result in
             switch result {
             case .success(let response):
                 do {
@@ -106,25 +107,30 @@ class EditProfileViewModel: ObservableObject {
     }
 
     // 회원 탈퇴 API 호출
-    func deleteAccount(hardDelete: Bool = false) {
+    func deleteAccount(hard: Bool, completion: @escaping (Bool) -> Void) {
         isLoading = true
-        provider.request(.deleteAccount) { [weak self] result in
+        provider.request(.deleteAccount(hard: hard)) { [weak self] result in // hardDelete → hard로 수정
             switch result {
             case .success(let response):
                 do {
                     let responseData = try JSONDecoder().decode(ResponseDTO.self, from: response.data)
                     if responseData.isSuccess {
                         self?.errorMessage = nil
+                        completion(true) // 탈퇴 성공 시 true 반환
                     } else {
                         self?.errorMessage = responseData.message
+                        completion(false) // 탈퇴 실패 시 false 반환
                     }
                 } catch {
                     self?.errorMessage = "회원 탈퇴 실패: \(error.localizedDescription)"
+                    completion(false)
                 }
             case .failure(let error):
                 self?.errorMessage = "서버 오류: \(error.localizedDescription)"
+                completion(false)
             }
             self?.isLoading = false
         }
     }
+
 }

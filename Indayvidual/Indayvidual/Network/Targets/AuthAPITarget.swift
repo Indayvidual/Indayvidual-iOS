@@ -13,8 +13,7 @@ enum AuthAPITarget {
     case kakaoLogin(accessToken: String)
     case refresh(refreshToken: String)
     case logout
-    case verifyPassword(provider: String, password: String?)
-    case kakaoReauth(kakaoAccessToken: String)
+    case deleteAccount(hard: Bool)
 }
 
 extension AuthAPITarget: TargetType {
@@ -25,26 +24,33 @@ extension AuthAPITarget: TargetType {
         }
         return url
     }
-
+    
     var path: String {
         switch self {
         case .login: return "/api/auth/login"
         case .kakaoLogin: return "/api/auth/kakao"
         case .refresh: return "/api/auth/refresh"
         case .logout: return "/api/auth/logout"
-        case .verifyPassword: return "/api/auth/re-auth/password"
-        case .kakaoReauth: return "/api/auth/re-auth/kakao"
+        case .deleteAccount: return "/api/mypage/delete"
         }
     }
-
+    
     var method: Moya.Method {
         return .post
     }
     
-    struct KakaoReauthBody: Encodable {
-            let kakaoAccessToken: String
+    var headers: [String: String]? {
+        switch self {
+        case let .refresh(refreshToken):
+            return [
+                "Content-Type": "application/json",
+                "Refresh-Token": refreshToken
+            ]
+            
+        default:
+            return ["Content-Type": "application/json"]
         }
-
+    }
     
     var task: Task {
         switch self {
@@ -56,38 +62,8 @@ extension AuthAPITarget: TargetType {
             return .requestJSONEncodable(["refreshToken": refreshToken])
         case .logout:
             return .requestPlain
-        case let .verifyPassword(provider, password):
-                var params: [String: Any] = ["provider": provider]
-                if let password = password {
-                    params["password"] = password
-                }
-                return .requestParameters(parameters: params, encoding: JSONEncoding.default)
-        case .kakaoReauth(let at):
-                    return .requestJSONEncodable(KakaoReauthBody(kakaoAccessToken: at))
-        }
-    }
-
-    var headers: [String: String]? {
-        switch self {
-        case let .refresh(refreshToken):
-            return [
-                "Content-Type": "application/json",
-                "Refresh-Token": refreshToken
-            ]
-            
-        case .verifyPassword:
-                    var headers = ["Content-Type": "application/json"]
-                    if let token = UserDefaults.standard.string(forKey: "accessToken") {
-                        headers["Authorization"] = "Bearer \(token)"
-                    }
-                    return headers
-            
-        case .kakaoReauth:
-                    return ["Content-Type": "application/json"]
-            
-        default:
-            return ["Content-Type": "application/json"]
+        case let .deleteAccount(hard):
+            return .requestParameters(parameters: ["hard": hard], encoding: JSONEncoding.default)
         }
     }
 }
-

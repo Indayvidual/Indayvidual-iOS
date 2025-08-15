@@ -19,13 +19,17 @@ struct EditProfileView: View {
     
     @State private var isNicknameChanged: Bool = false
     @State private var isNicknameButtonEnabled: Bool = false
+    
+    @State private var showDeleteConfirm = false
+    @State private var showDeleteResult = false
+    @State private var deleteResultMessage: String = "" 
 
     // 저장 성공 시 상위에서 갱신하고 싶으면 콜백
     var onSaved: (() -> Void)?
 
     init(profile: Profile, onSaved: (() -> Void)? = nil) {
         _nickname = State(initialValue: profile.nickname ?? "")
-        _email    = State(initialValue: profile.email)
+        _email    = State(initialValue: profile.email ?? "")
         _imageUrl = State(initialValue: profile.imageUrl)
         self.onSaved = onSaved
     }
@@ -252,8 +256,18 @@ struct EditProfileView: View {
                         // 하단 로그아웃 / 회원탈퇴
                         HStack(spacing: 120 ) {
                             Button("로그아웃") { userSession.clear() }               .foregroundStyle(Color("gray-500"))
-                            Button("회원탈퇴") {}
-                                .foregroundStyle(Color("gray-900"))
+                            Button("탈퇴", role: .destructive) {
+                                viewModel.deleteAccount(hard: false) { ok in // hard: false로 변경
+                                    if ok {
+                                        userSession.clear()
+                                        deleteResultMessage = "탈퇴가 완료되었습니다."
+                                    } else {
+                                        deleteResultMessage = viewModel.deleteErrorMessage ?? "탈퇴 실패"
+                                    }
+                                    showDeleteResult = true
+                                }
+                            }
+                            .foregroundStyle(Color("gray-900"))
                         }
                         .font(.pretendMedium14)
                         .padding(.horizontal, 50)

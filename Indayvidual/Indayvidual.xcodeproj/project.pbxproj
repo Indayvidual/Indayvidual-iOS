@@ -7,12 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		079E80862E4F21F200BA1804 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 079E80852E4F21F200BA1804 /* Kingfisher */; };
 		CB6A3DD12E489E1A00BFBBE4 /* KakaoSDK in Frameworks */ = {isa = PBXBuildFile; productRef = CB6A3DD02E489E1A00BFBBE4 /* KakaoSDK */; };
 		CB6A3DD32E489E1A00BFBBE4 /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = CB6A3DD22E489E1A00BFBBE4 /* KakaoSDKAuth */; };
 		CB6A3DD52E489E1A00BFBBE4 /* KakaoSDKCert in Frameworks */ = {isa = PBXBuildFile; productRef = CB6A3DD42E489E1A00BFBBE4 /* KakaoSDKCert */; };
 		CB6A3DD72E489E1A00BFBBE4 /* KakaoSDKCertCore in Frameworks */ = {isa = PBXBuildFile; productRef = CB6A3DD62E489E1A00BFBBE4 /* KakaoSDKCertCore */; };
 		CB6A3DD92E489E1A00BFBBE4 /* KakaoSDKCommon in Frameworks */ = {isa = PBXBuildFile; productRef = CB6A3DD82E489E1A00BFBBE4 /* KakaoSDKCommon */; };
-		CB719CD92E4EDFAC00E9EAF1 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = CB719CD82E4EDFAC00E9EAF1 /* Kingfisher */; };
 		CBEFAF372E30CF6B009255F9 /* Moya in Frameworks */ = {isa = PBXBuildFile; productRef = CBEFAF362E30CF6B009255F9 /* Moya */; };
 /* End PBXBuildFile section */
 
@@ -48,7 +48,7 @@
 			files = (
 				CBEFAF372E30CF6B009255F9 /* Moya in Frameworks */,
 				CB6A3DD12E489E1A00BFBBE4 /* KakaoSDK in Frameworks */,
-				CB719CD92E4EDFAC00E9EAF1 /* Kingfisher in Frameworks */,
+				079E80862E4F21F200BA1804 /* Kingfisher in Frameworks */,
 				CB6A3DD72E489E1A00BFBBE4 /* KakaoSDKCertCore in Frameworks */,
 				CB6A3DD32E489E1A00BFBBE4 /* KakaoSDKAuth in Frameworks */,
 				CB6A3DD92E489E1A00BFBBE4 /* KakaoSDKCommon in Frameworks */,
@@ -109,7 +109,7 @@
 				CB6A3DD42E489E1A00BFBBE4 /* KakaoSDKCert */,
 				CB6A3DD62E489E1A00BFBBE4 /* KakaoSDKCertCore */,
 				CB6A3DD82E489E1A00BFBBE4 /* KakaoSDKCommon */,
-				CB719CD82E4EDFAC00E9EAF1 /* Kingfisher */,
+				079E80852E4F21F200BA1804 /* Kingfisher */,
 			);
 			productName = Indayvidual;
 			productReference = CB09CFC12E14D2BA0095ECDC /* Indayvidual.app */;
@@ -142,7 +142,7 @@
 			packageReferences = (
 				CBEFAEB22E30C32D009255F9 /* XCRemoteSwiftPackageReference "Moya" */,
 				CB6A3DCF2E489E1A00BFBBE4 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
-				CB719CD72E4EDFAC00E9EAF1 /* XCRemoteSwiftPackageReference "Kingfisher" */,
+				079E80842E4F21F200BA1804 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = CB09CFC22E14D2BA0095ECDC /* Products */;
@@ -399,20 +399,20 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		079E80842E4F21F200BA1804 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.5.0;
+			};
+		};
 		CB6A3DCF2E489E1A00BFBBE4 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/kakao/kakao-ios-sdk";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 2.24.6;
-			};
-		};
-		CB719CD72E4EDFAC00E9EAF1 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.5.0;
 			};
 		};
 		CBEFAEB22E30C32D009255F9 /* XCRemoteSwiftPackageReference "Moya" */ = {
@@ -426,6 +426,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		079E80852E4F21F200BA1804 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 079E80842E4F21F200BA1804 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
 		CB6A3DD02E489E1A00BFBBE4 /* KakaoSDK */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = CB6A3DCF2E489E1A00BFBBE4 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
@@ -450,11 +455,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = CB6A3DCF2E489E1A00BFBBE4 /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
 			productName = KakaoSDKCommon;
-		};
-		CB719CD82E4EDFAC00E9EAF1 /* Kingfisher */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = CB719CD72E4EDFAC00E9EAF1 /* XCRemoteSwiftPackageReference "Kingfisher" */;
-			productName = Kingfisher;
 		};
 		CBEFAF362E30CF6B009255F9 /* Moya */ = {
 			isa = XCSwiftPackageProductDependency;

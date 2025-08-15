@@ -13,7 +13,7 @@ struct SchoolSemesterSetupView: View {
     @State private var selectedSchoolName: String? = nil
     @State private var selectedSchoolSeq: String? = nil
     @State private var showSemesterPicker = false
-    @State private var selectedSemester: Semester? = nil
+    @State private var selectedSemester: Semester?
     @State private var showSchoolSearchPopup = false
     
     @ObservedObject var timetableVm: TimetableViewModel
@@ -106,10 +106,10 @@ struct SchoolSemesterSetupView: View {
         }
         .navigationBarBackButtonHidden(true)
         .task {
-                    self.selectedSchoolName = timetableVm.selectedSchoolName
-                    self.selectedSchoolSeq = timetableVm.selectedSchoolSeq
-                    self.selectedSemester = timetableVm.selectedSemester
-                }
+            self.selectedSchoolName = timetableVm.selectedSchoolName
+            self.selectedSchoolSeq = timetableVm.selectedSchoolSeq
+            self.selectedSemester = timetableVm.selectedSemester
+        }
     }
 }
 
@@ -129,10 +129,13 @@ struct SemesterPickerView: View {
         .frame(maxWidth: .infinity)
         .background(Color(.gray50))
         .cornerRadius(10)
-        .task {
+        .onAppear {
             if selectedSemester == nil {
                 selectedSemester = Semester.allCases.first
             }
+        }
+        .onDisappear {
+            selectedSemester = nil
         }
     }
 }

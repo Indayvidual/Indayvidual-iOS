@@ -135,7 +135,7 @@ private extension TimetableView {
         if timetableVm.isLoading {          // 로딩 인디케이터
             VStack{
                 Spacer()
-                ProgressView("이미지 로딩중..")
+                ProgressView("시간표를 불러오는 중..")
                 Spacer()
             }
         } else if let imageURL = timetableVm.selectedImageURL {

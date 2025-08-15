@@ -45,8 +45,8 @@ struct SemesterSelectionBar: View {
                         .offset(y: 28 + 4)
                 }
             }
-            // 다른 UI 요소들보다 항상 위에 보이도록 z-index 설정
-            .zIndex(1)
+            .zIndex(100)
+        
     }
 
     private var dropdownList: some View {

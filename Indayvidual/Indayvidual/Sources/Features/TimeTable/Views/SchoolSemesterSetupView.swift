@@ -10,7 +10,6 @@ import SwiftUI
 struct SchoolSemesterSetupView: View {
     @Environment(\.dismiss) private var dismiss
     
-    // State 변수들은 그대로 유지
     @State private var selectedSchoolName: String? = nil
     @State private var selectedSchoolSeq: String? = nil
     @State private var showSemesterPicker = false
@@ -53,10 +52,10 @@ struct SchoolSemesterSetupView: View {
                 VStack(spacing: 0) {
                     VStack(alignment: .leading, spacing: 15) {
                         Text("학교 설정")
-                            .font(.system(size: 18, weight: .semibold))
+                            .font(.pretendSemiBold18)
                         
                         SelectionBar(
-                            title: selectedSchoolName ?? "소속 대학명을 검색 하세요",
+                            title: timetableVm.selectedSchoolName ?? "소속 대학명을 검색 하세요",
                             isSelected: selectedSchoolName != nil,
                             iconName: "Group",
                             onTap: { showSchoolSearchPopup = true }
@@ -91,10 +90,9 @@ struct SchoolSemesterSetupView: View {
                     }
                     .zIndex(1)
                     
-                    Spacer()
                 }
                 .padding(.horizontal, 20)
-                .padding(.top, 20)
+                .padding(.vertical, 20)
             }
             
             // 학교 검색 팝업
@@ -107,7 +105,6 @@ struct SchoolSemesterSetupView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .ignoresSafeArea(.container, edges: .bottom)
     }
 }
 
@@ -138,6 +135,5 @@ struct SemesterPickerView: View {
 
 
 #Preview {
-    // 이제 이 코드는 프로젝트에 이미 존재하는 실제 TimetableViewModel을 사용합니다.
     SchoolSemesterSetupView(timetableVm: TimetableViewModel())
 }

@@ -44,7 +44,7 @@ struct SchoolSearchPopup: View {
                     secondaryAction: {
                         isPresented = false
                     },
-                    showDivider: false,
+                    showTopDivider: false,
                     primaryButtonColor: searchText == "" ? .gray100 : .gray900
                 ) {
                     VStack(spacing: 0) {

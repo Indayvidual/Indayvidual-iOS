@@ -58,7 +58,7 @@ struct SchoolSemesterSetupView: View {
                             title: selectedSchoolName ?? "소속 대학명을 검색 하세요",
                             isSelected: selectedSchoolName != nil,
                             iconName: "Group",
-                            onTap: {}
+                            onTap: { showSchoolSearchPopup = true }
                         )
                     }
                     
@@ -129,8 +129,7 @@ struct SemesterPickerView: View {
         .frame(maxWidth: .infinity)
         .background(Color(.gray50))
         .cornerRadius(10)
-        // 처음에 기본값이 선택되도록 onAppear 추가
-        .onAppear {
+        .task {
             if selectedSemester == nil {
                 selectedSemester = Semester.allCases.first
             }

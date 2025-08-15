@@ -38,7 +38,7 @@ struct TimetableView: View {
             }
             .task {
                 timetableVm.loadSavedSchool()
-                
+
                 if !timetableVm.isLoading {
                     await timetableVm.fetchTimetable()
                 }
@@ -59,7 +59,6 @@ struct TimetableView: View {
             if !timetableVm.isSchoolRegistered && timetableVm.showNoticePopup {
                 Color.black.opacity(0.4)
                     .ignoresSafeArea()
-                    .onTapGesture { timetableVm.showNoticePopup = false }
                 
                 VStack {
                     Spacer()
@@ -97,7 +96,7 @@ private extension TimetableView {
                     // 학교 선택
                     SchoolSelectionBar(
                         schoolName: $timetableVm.selectedSchoolName,
-                        onTap: { timetableVm.showSchoolSemesterSetup = true }
+                        onTap: {}
                     )
                     
                     // 학기 선택(드롭다운)

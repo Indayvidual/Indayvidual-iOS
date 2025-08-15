@@ -63,27 +63,6 @@ struct AddMemoView: View {
 #Preview {
     // 신규 메모
     NavigationStack {
-        AddMemoView(vm: MemoViewModel(sharedVM: CustomViewModel()))
+        AddMemoView(vm: MemoViewModel(sharedVM: CustomViewModel(userSession: UserSession())))
     }
-}
-
-#Preview {
-    // 수정 예시
-    let customVM = CustomViewModel()
-    customVM.memos.append(
-        MemoModel(
-            title: "샘플 메모",
-            content: "내용",
-            date: "250719",
-            time: "12:00"
-        )
-    )
-    return AddMemoView(
-        vm: MemoViewModel(
-            sharedVM: customVM,
-            memo: customVM.memos[0],
-            index: 0
-        )
-    )
-
 }

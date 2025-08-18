@@ -32,7 +32,6 @@ struct HomeView: View {
                     onDateSelected: { selectedDate in
                         // 날짜 선택 시 실행할 코드
                         homeVm.fetchSchedules(for: selectedDate)
-                        homeVm.updateFilteredSchedules(for: selectedDate)
                         
                         // 서버에서 해당 월 마커 정보 불러오기
                         let year = Calendar.current.component(.year, from: selectedDate)

@@ -54,15 +54,11 @@ struct HomeView: View {
                             on: schedule.startTime ?? calendarVm.selectDate,
                             calendarViewModel: calendarVm
                         )
-                    }
-                    )
-                    
+                    })
                     .environmentObject(homeVm)
                 }
             }
             .padding(.horizontal, 28)
-            
-            
             
             Spacer()
         }
@@ -70,7 +66,6 @@ struct HomeView: View {
             homeVm.setup(alertService: alertService)
             
             // 기존 필터 업데이트
-            homeVm.updateFilteredSchedules(for: calendarVm.selectDate)
             homeVm.fetchSchedules(for: calendarVm.selectDate)
             
             // 서버에서 해당 월의 마커 정보 불러오기

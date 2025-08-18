@@ -26,7 +26,7 @@ class HomeViewModel: ObservableObject {
         self.alertService = alertService
     }
     
-    // MARK: - 캘린더 조회
+    // MARK: - 월별 캘린더 색상 조회 API
     func fetchHomeCalendar(year: Int, month: Int, calendarViewModel: CustomCalendarViewModel) {
         calendarProvider.request(.getHomeCalendar(year: year, month: month)) { [weak self] result in
             guard let self = self else { return }
@@ -76,7 +76,7 @@ class HomeViewModel: ObservableObject {
         }
     }
     
-    // MARK: - 일일 스케줄 조회
+    // MARK: - 일별 일정 조회 API
     func fetchSchedules(for date: Date) {
         let dateString = date.toString(format: "yyyy-MM-dd")
         
@@ -132,7 +132,7 @@ class HomeViewModel: ObservableObject {
         }
     }
     
-    // MARK: - 일정 삭제
+    // MARK: - 일정 삭제 API
     func deleteSchedule(_ schedule: ScheduleItem, calendarViewModel: CustomCalendarViewModel) {
         evnetProvider.request(.deleteEvent(eventId: schedule.id)) { [weak self] result in
             guard let self = self else { return }
@@ -163,6 +163,8 @@ class HomeViewModel: ObservableObject {
     }
     
     // MARK: - 로컬 데이터 및 UI 업데이트
+    
+    /// 일정  업데이트 (필터 적용)
     func updateFilteredSchedules(for selectedDate: Date) {
         filteredSchedules = schedules.filter { schedule in
             if schedule.isAllDay { return true }
@@ -172,6 +174,7 @@ class HomeViewModel: ObservableObject {
         print("📅 UI 일정 업데이트 완료 (\(filteredSchedules.count)개)")
     }
     
+    /// 일정 추가
     func addSchedule(_ schedule: ScheduleItem, calendarViewModel: CustomCalendarViewModel) {
         print("➕ 일정 추가: \(schedule.title)")
         schedules.append(schedule)
@@ -183,6 +186,7 @@ class HomeViewModel: ObservableObject {
         updateFilteredSchedules(for: calendarViewModel.selectDate)
     }
     
+    /// 일정 업데이트
     func updateSchedule(_ updated: ScheduleItem, from oldSchedule: ScheduleItem, calendarViewModel: CustomCalendarViewModel) {
         print("✏️ 일정 수정: \(oldSchedule.title) → \(updated.title)")
         guard let index = schedules.firstIndex(where: { $0.id == updated.id }) else { return }
@@ -199,6 +203,7 @@ class HomeViewModel: ObservableObject {
         updateFilteredSchedules(for: calendarViewModel.selectDate)
     }
     
+    /// 일정 삭제
     private func handleScheduleDeletion(_ schedule: ScheduleItem, calendarViewModel: CustomCalendarViewModel) {
         print("🗑️ 로컬 일정 제거: \(schedule.title)")
         schedules.removeAll { $0.id == schedule.id }

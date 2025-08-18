@@ -18,6 +18,7 @@ final class CustomCalendarViewModel: ObservableObject {
     
     @Published var selectDate: Date = Date()
     @Published var calendarMode: CalendarMode = .month
+    @Published var previousMonth: Int = Calendar.current.component(.month, from: Date())
     
     /// 각 날짜에 대한 마커 정보를 저장하는 딕셔너리
     /// 키는 `Date` (년, 월, 일만 고려), 값은 `Marker` 배열
@@ -30,7 +31,7 @@ final class CustomCalendarViewModel: ObservableObject {
         let components = calendar.dateComponents([.year, .month], from: Date())
         return calendar.date(from: components) ?? Date()
     }()
-    
+        
     init(initialMode: CalendarMode = .month) {
         self.calendarMode = initialMode
         let now = Date().startOfDay
@@ -61,6 +62,7 @@ final class CustomCalendarViewModel: ObservableObject {
         }
         markers.append(newMarker)
         dateMarkers[dayKey] = markers
+        print("마커 정보 \(dateMarkers)")
     }
     
     /// 특정 날짜의 특정 색상 마커를 제거
@@ -84,32 +86,32 @@ final class CustomCalendarViewModel: ObservableObject {
     
     // MARK: - 캘린더 UI 및 날짜 계산 로직
     /// 월 이동
-    func moveMonth(by value: Int) {
-        if let newMonthDate = calendar.date(byAdding: .month, value: value, to: displayedMonthDate) {
-            displayedMonthDate = newMonthDate.startOfDay
+    private func moveMonth(by value: Int, onDateSelected: ((Date) -> Void)?) {
+            if let newMonthDate = calendar.date(byAdding: .month, value: value, to: displayedMonthDate) {
+                displayedMonthDate = newMonthDate.startOfDay
+            }
+            
+            if let newSelectedDate = calendar.date(byAdding: .month, value: value, to: selectDate) {
+                updateSelectedDate(newSelectedDate, onDateSelected: onDateSelected)
+            }
         }
-        
-        if let newSelectedDate = calendar.date(byAdding: .month, value: value, to: selectDate) {
-            selectDate = newSelectedDate.startOfDay
-        }
-    }
     
     /// 주 단위 이동 (selectDate만)
-    func moveWeek(byWeeks value: Int) {
-        if let newDate = calendar.date(byAdding: .day, value: value * 7, to: selectDate) {
-            updateSelectedDate(newDate)
-        }
-    }
+    private func moveWeek(byWeeks value: Int, onDateSelected: ((Date) -> Void)?) {
+           if let newDate = calendar.date(byAdding: .day, value: value * 7, to: selectDate) {
+               updateSelectedDate(newDate, onDateSelected: onDateSelected)
+           }
+       }
     
     /// 캘린더 모드에 따라 이동
-    func moveCalendar(by value: Int) {
-        switch calendarMode {
-        case .month:
-            moveMonth(by: value)
-        case .week:
-            moveWeek(byWeeks: value)
+    func moveCalendar(by value: Int, onDateSelected: ((Date) -> Void)?) {
+            switch calendarMode {
+            case .month:
+                moveMonth(by: value, onDateSelected: onDateSelected)
+            case .week:
+                moveWeek(byWeeks: value, onDateSelected: onDateSelected)
+            }
         }
-    }
     
     /// 모드 전환
     func toggleCalendarMode() {
@@ -117,27 +119,32 @@ final class CustomCalendarViewModel: ObservableObject {
     }
     
     //// 날짜 선택 및 월 동기화
-    func updateSelectedDate(_ date: Date) {
+    func updateSelectedDate(_ date: Date, onDateSelected: ((Date) -> Void)?) {
         let startOfDay = date.startOfDay
         
-        // 선택된 날짜가 같으면 무시 (불필요한 뷰 리프레시 방지)
         if selectDate == startOfDay { return }
         
         selectDate = startOfDay
-        print("선택 날짜 : \(selectDate)")
         
-        // 선택된 날짜의 연월과 현재 표시중인 연월 비교 후 다르면 업데이트
+        let newMonth = calendar.component(.month, from: startOfDay)
+        if newMonth != previousMonth {
+            previousMonth = newMonth
+        }
+        
+        // 날짜별 일정 호출
+        onDateSelected?(startOfDay)
+        
+        // displayedMonthDate 동기화
         var selectedComponents = calendar.dateComponents([.year, .month], from: startOfDay)
         selectedComponents.day = 1
         let displayedComponents = calendar.dateComponents([.year, .month], from: displayedMonthDate)
-        
         if selectedComponents.year != displayedComponents.year || selectedComponents.month != displayedComponents.month {
             if let newDisplayedDate = calendar.date(from: selectedComponents) {
                 displayedMonthDate = newDisplayedDate
             }
         }
     }
-    
+
     // MARK: - 달력 데이터 생성 (리팩토링된 핵심 로직)
     /// 월간 캘린더 그리드를 구성하는 DateValue 배열을 생성합니다.
     /// 이전/현재/다음 달의 날짜를 모두 포함하여 항상 일정한 개수의 배열을 반환합니다.
@@ -199,12 +206,10 @@ final class CustomCalendarViewModel: ObservableObject {
     
     // 주 기준 날짜 배열 생성
     func getThisWeekDateValues() -> [DateValue] {
-        let calendar = Calendar.current
-        let selectedDate = selectDate
-        guard let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: selectedDate)) else {
+        guard let startOfWeek = calendar.date(from: calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: selectDate)) else {
             return []
         }
-        
+
         return (0..<7).compactMap { offset in
             if let date = calendar.date(byAdding: .day, value: offset, to: startOfWeek) {
                 let day = calendar.component(.day, from: date)
@@ -214,7 +219,14 @@ final class CustomCalendarViewModel: ObservableObject {
             return nil
         }
     }
-    
+
+    // 주간 모드에서 주 전체 날짜의 마커 반환
+    func getMarkersForThisWeek() -> [[Marker]] {
+        return getThisWeekDateValues().map { dateValue in
+            dateMarkers[dateValue.date.startOfDay] ?? []
+        }
+    }
+
     /// 현재 표시중인 월의 첫째 날 `Date`를 반환합니다.
     private func firstDayOfMonth() -> Date {
         let components = calendar.dateComponents([.year, .month], from: displayedMonthDate)

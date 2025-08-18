@@ -130,5 +130,7 @@ struct TodoCategoryEditView: View {
     }
 }
 #Preview {
-    TodoCategoryEditView(viewModel: TodoViewModel())
+    let alertService = AlertService()
+    let todoViewModel = TodoViewModel(alertService: alertService)
+    return TodoCategoryEditView(viewModel: todoViewModel)
 }

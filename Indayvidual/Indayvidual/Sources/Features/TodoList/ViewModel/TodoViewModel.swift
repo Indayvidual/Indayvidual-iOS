@@ -13,7 +13,9 @@ import Moya
 class TodoViewModel: ObservableObject {
     let categoryProvider = MoyaProvider<TodoCategoryAPITarget>()
     let taskProvider = MoyaProvider<TodoChecklistAPITarget>()
-
+    
+    var alertService: AlertService
+    init(alertService: AlertService) {
         self.alertService = alertService
     }
     

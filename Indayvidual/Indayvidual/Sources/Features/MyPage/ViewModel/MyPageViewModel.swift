@@ -26,8 +26,10 @@ final class MyPageViewModel: ObservableObject {
     @Published var deleteErrorMessage: String?
     
     private let provider = MoyaProvider<ProfileAPITarget>()
-    init() {}
     
+    init() {}
+
+    // 세션을 이용한 초기화
     func preload(from session: UserSession) {
         // 이메일/닉네임
         if nickname.isEmpty {
@@ -47,15 +49,18 @@ final class MyPageViewModel: ObservableObject {
         }
         
         if imageUrl == nil {
+            // 카카오 로그인 시 세션에서 프로필 이미지를 할당
             imageUrl = (session.provider == .kakao) ? session.avatarURL : nil
         }
     }
     
+    // 재인증 여부 확인 및 프로필 정보 갱신
     func refreshIfReauthValid(session: UserSession) {
         guard session.provider == .kakao || isReauthValid() else { return }
-        fetchMyProfile()
+        fetchMyProfile() // 카카오 프로필 정보 갱신
     }
     
+    // 재인증 유효성 체크
     private func isReauthValid() -> Bool {
         let token = UserDefaults.standard.string(forKey: "reauthToken") ?? ""
         let exp = UserDefaults.standard.double(forKey: "reauthTokenExp")
@@ -63,14 +68,14 @@ final class MyPageViewModel: ObservableObject {
         return !token.isEmpty && exp > 0 && now < exp
     }
 
-    
+    // 카카오 프로필 가져오기
     func fetchMyProfile() {
         isLoading = true
         loadErrorMessage = nil
         errorState = .none
 
         provider.request(.getMyProfile) { [weak self] result in
-            guard let self else { return }
+            guard let self = self else { return }
             self.isLoading = false
 
             switch result {
@@ -120,10 +125,11 @@ final class MyPageViewModel: ObservableObject {
                     // 프로필 값 적용
                     self.email = profile.email ?? ""
                     self.nickname = profile.displayName   // displayName은 nickname → email 순
-                    self.imageUrl = profile.imageUrl
+                    self.imageUrl = profile.imageUrl      // 프로필 이미지 URL을 업데이트
 
                     // 캐싱
                     UserDefaults.standard.set(self.nickname, forKey: "nickname")
+                    UserDefaults.standard.set(self.imageUrl, forKey: "imageUrl")
 
                 } catch {
                     self.errorState = .other("디코딩 실패")
@@ -136,5 +142,4 @@ final class MyPageViewModel: ObservableObject {
             }
         }
     }
-
 }

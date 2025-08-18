@@ -172,36 +172,6 @@ struct MyPageView: View {
         .padding(.horizontal, 20)
     }
 
-//    private var deleteCard: some View {
-//        VStack(spacing: 0) {
-//            Button {
-//                // 재인증 토큰 없거나 만료 → 재인증 화면으로
-//                if userSession.reauthToken.isEmpty || Date() >= userSession.reauthExpiry {
-//                    path.append(.passwordConfirm)
-//                } else {
-//                    // 바로 알럿 띄워서 진행
-//                    showDeleteConfirm = true
-//                }
-//            } label: {
-//                HStack {
-//                    Image(systemName: "trash")
-//                        .foregroundStyle(.red)
-//                    Text("회원 탈퇴")
-//                        .font(.pretendSemiBold16)
-//                        .foregroundStyle(.red)
-//                    Spacer()
-//                    Image(systemName: "chevron.right")
-//                        .foregroundStyle(.red.opacity(0.7))
-//                }
-//                .padding(20)
-//                .background(Color("gray-white"))
-//            }
-//        }
-//        .clipShape(RoundedRectangle(cornerRadius: 12))
-//        .padding(.horizontal, 20)
-//        .padding(.top, 10)
-//    }
-
     private var loadingOverlay: some View {
         Group {
             if viewModel.isLoading {
@@ -215,28 +185,6 @@ struct MyPageView: View {
             }
         }
     }
-
-    // MARK: - Actions
-
-//    private func performDelete(hard: Bool) {
-//        let token = userSession.reauthToken
-//        guard !token.isEmpty, Date() < userSession.reauthExpiry else {
-//            // 토큰 없거나 만료 → 재인증 화면으로 유도
-//            deleteResultMessage = "재인증이 필요합니다. 비밀번호 또는 카카오로 재인증을 진행해 주세요."
-//            showDeleteResult = true
-//            path.append(.passwordConfirm)
-//            return
-//        }
-//        viewModel.deleteAccount(hard: hard) { ok in
-//            if ok {
-//                userSession.clear()
-//                deleteResultMessage = "탈퇴가 완료되었습니다."
-//            } else {
-//                deleteResultMessage = viewModel.deleteErrorMessage ?? "탈퇴 실패"
-//            }
-//            showDeleteResult = true
-//        }
-//    }
 }
 
 #Preview { MyPageView() }

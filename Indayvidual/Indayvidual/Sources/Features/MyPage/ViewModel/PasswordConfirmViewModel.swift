@@ -76,7 +76,6 @@ final class PasswordConfirmViewModel: ObservableObject {
     }
 
     // MARK: - Private
-
     private func requestReauthToken(password: String) async -> Bool {
         do {
             let response: Response = try await withCheckedThrowingContinuation { cont in
@@ -148,7 +147,6 @@ final class PasswordConfirmViewModel: ObservableObject {
                 return nil
             }
 
-            // ✅ enum 스위칭으로 Profile 꺼내기
             guard case let .object(p)? = env.data else {
                 // 서버가 data에 문자열 메시지를 넣어 보낼 때 대비
                 if case let .message(msg)? = env.data {
@@ -158,9 +156,7 @@ final class PasswordConfirmViewModel: ObservableObject {
                 }
                 return nil
             }
-
-            // p는 너가 정의한 Profile( email: String?, nickname: String?, imageUrl: String? )
-            // 필요하면 표시용 닉네임은 p.displayName 사용 가능
+            
             return p
 
         } catch {

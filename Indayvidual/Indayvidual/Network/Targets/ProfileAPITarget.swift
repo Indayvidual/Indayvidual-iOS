@@ -8,28 +8,27 @@
 import Foundation
 import Moya
 
-// 재인증용 바디
 private struct KakaoReauthBody: Encodable {
     let kakaoAccessToken: String
 }
 
 enum ProfileAPITarget {
     // 마이페이지
-    case getMyProfile
-    case updateNickname(nickname: String)
-    case updatePassword(newPassword: String)
-    case updateProfileImage(imageData: Data)
+    case getMyProfile                                        // GET /api/mypage/profile
+    case checkUsername(username: String)                     // GET /api/mypage/username/check?username=
+    case updateUsername(username: String)                    // PATCH /api/mypage/update_username
+    case updatePassword(currentPassword: String, newPassword: String) // PATCH /api/mypage/update_password
+    case uploadProfileImage(data: Data, fileName: String, mimeType: String) // PATCH /api/mypage/profile-image (multipart name=image)
 
     // 재인증
-    case reauthPassword(currentPassword: String)
-    case reauthKakao(kakaoAccessToken: String)
+    case reauthPassword(currentPassword: String)             // POST /api/auth/re-auth/password
+    case reauthKakao(kakaoAccessToken: String)               // POST /api/auth/re-auth/kakao
 
     // 탈퇴
-    case deleteAccount(hard: Bool)
+    case deleteAccount(hard: Bool)                           // DELETE /api/mypage/delete
 }
 
 extension ProfileAPITarget: TargetType {
-    // MARK: - Base URL
     var baseURL: URL {
         guard let urlString = Bundle.main.infoDictionary?["BASE_URL"] as? String,
               let url = URL(string: urlString) else {
@@ -38,103 +37,83 @@ extension ProfileAPITarget: TargetType {
         return url
     }
 
-    // MARK: - Path
     var path: String {
         switch self {
-        case .getMyProfile:              return "/api/mypage/profile"
-        case .updateNickname:            return "/api/mypage/update_username"
-        case .updatePassword:            return "/api/mypage/update_password"
-        case .updateProfileImage:        return "/api/mypage/profile-image"
-
-        case .reauthPassword:            return "/api/auth/re-auth/password"
-        case .reauthKakao:               return "/api/auth/re-auth/kakao"
-
-        case .deleteAccount:             return "/api/mypage/delete"
+        case .getMyProfile: return "/api/mypage/profile"
+        case .checkUsername: return "/api/mypage/username/check"
+        case .updateUsername: return "/api/mypage/update_username"
+        case .updatePassword: return "/api/mypage/update_password"
+        case .uploadProfileImage: return "/api/mypage/profile-image"
+        case .reauthPassword: return "/api/auth/re-auth/password"
+        case .reauthKakao: return "/api/auth/re-auth/kakao"
+        case .deleteAccount: return "/api/mypage/delete"
         }
     }
 
-    // MARK: - Method
     var method: Moya.Method {
         switch self {
-        case .getMyProfile:              return .get
-        case .updateNickname,
-             .updatePassword,
-             .updateProfileImage:        return .patch
-
-        case .reauthPassword,
-             .reauthKakao:               return .post
-
-        case .deleteAccount:             return .delete
+        case .getMyProfile, .checkUsername: return .get
+        case .updateUsername, .updatePassword, .uploadProfileImage: return .patch
+        case .reauthPassword, .reauthKakao: return .post
+        case .deleteAccount: return .delete
         }
     }
 
-    // MARK: - Task
     var task: Task {
         switch self {
         case .getMyProfile:
             return .requestPlain
 
-        case let .updateNickname(nickname):
-            return .requestJSONEncodable(["nickname": nickname])
+        case let .checkUsername(username):
+            return .requestParameters(parameters: ["username": username],
+                                      encoding: URLEncoding.queryString)
 
-        case let .updatePassword(newPassword):
-            // 서버 스펙에 맞게 키 이름 확인 (예: "password" or "newPassword")
-            return .requestJSONEncodable(["password": newPassword])
+        case let .updateUsername(username):
+            return .requestJSONEncodable(["username": username])
 
-        case let .updateProfileImage(imageData):
-            // multipart/form-data (Moya가 Content-Type 자동 설정)
-            let part = MultipartFormData(
-                provider: .data(imageData),
-                name: "profileImage",
-                fileName: "profile.jpg",
-                mimeType: "image/jpeg"
-            )
+        case let .updatePassword(currentPassword, newPassword):
+            return .requestJSONEncodable([
+                "currentPassword": currentPassword,
+                "newPassword": newPassword
+            ])
+
+        case let .uploadProfileImage(data, fileName, mimeType):
+            let part = MultipartFormData(provider: .data(data),
+                                         name: "image",
+                                         fileName: fileName,
+                                         mimeType: mimeType)
             return .uploadMultipart([part])
 
         case let .reauthPassword(currentPassword):
-            return .requestParameters(
-                            parameters: ["currentPassword": currentPassword],
-                            encoding: JSONEncoding.default
-                        )
+            return .requestJSONEncodable(["currentPassword": currentPassword])
 
         case let .reauthKakao(kakaoAccessToken):
             return .requestJSONEncodable(KakaoReauthBody(kakaoAccessToken: kakaoAccessToken))
 
         case let .deleteAccount(hard):
-            // DELETE with JSON body { "hard": Bool }
-            return .requestParameters(parameters: ["hard": hard],
-                                      encoding: JSONEncoding.default)
+            return .requestParameters(parameters: ["hard": hard], encoding: JSONEncoding.default)
         }
     }
 
-    // MARK: - Headers
-    var headers: [String: String]? {
-        // 공통
+    var headers: [String : String]? {
         var h: [String: String] = [:]
 
-        // Authorization (필요 시)
-        if let accessToken = UserDefaults.standard.string(forKey: "accessToken"),
-           !accessToken.isEmpty {
+        if let accessToken = UserDefaults.standard.string(forKey: "accessToken"), !accessToken.isEmpty {
             h["Authorization"] = "Bearer \(accessToken)"
         }
 
-        // Reauth가 필요한 엔드포인트에만 X-Reauth-Token 부착
+        // 재인증 필요한 엔드포인트만 X-Reauth-Token
         let needsReauth: Bool = {
             switch self {
-            case .updateNickname,
-                 .updatePassword,
-                 .updateProfileImage,
-                 .deleteAccount:
+            case .updateUsername, .updatePassword, .uploadProfileImage, .deleteAccount:
                 return true
-            case .getMyProfile,
-                    .reauthPassword, .reauthKakao:
+            default:
                 return false
             }
         }()
 
         if needsReauth {
-            if let rt = UserDefaults.standard.string(forKey: "reauthToken"),
-               !rt.isEmpty {
+            if let rt = UserDefaults.standard.string(forKey: "reauthToken"), !rt.isEmpty {
                 h["X-Reauth-Token"] = rt
             } else {
 #if DEBUG
@@ -143,11 +122,9 @@ extension ProfileAPITarget: TargetType {
             }
         }
 
-        // Content-Type
         switch self {
-        case .updateProfileImage:
-            // multipart/form-data는 Moya가 자동으로 설정하므로 지정하지 않음
-            break
+        case .uploadProfileImage:
+            h["Accept"] = "*/*" // multipart는 Moya가 Content-Type 자동 지정
         default:
             h["Content-Type"] = "application/json"
             h["Accept"] = "*/*"
@@ -156,6 +133,5 @@ extension ProfileAPITarget: TargetType {
         return h
     }
 
-    // MARK: - Sample
     var sampleData: Data { Data() }
 }

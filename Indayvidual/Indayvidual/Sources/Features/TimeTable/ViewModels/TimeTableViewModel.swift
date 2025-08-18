@@ -300,4 +300,8 @@ class TimetableViewModel: ObservableObject {
         }
     }
     
+    /// 시간표 등록 여부 확인
+    var hasRegisteredTimetable: Bool {
+        return !(timeTable?.isEmpty ?? true)
+    }
 }

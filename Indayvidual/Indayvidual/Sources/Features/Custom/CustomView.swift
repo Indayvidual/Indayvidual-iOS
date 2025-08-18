@@ -7,8 +7,15 @@
 
 import SwiftUI
 
-struct CustomView: View{
-    @State private var vm = CustomViewModel()
+struct CustomView: View {
+    @EnvironmentObject private var userSession: UserSession
+    var body: some View {
+        CustomViewContent(vm: CustomViewModel(userSession: userSession))
+    }
+}
+
+struct CustomViewContent: View{
+    @State var vm: CustomViewModel
     @State private var showAdd : Bool = false
     
     var body: some View{
@@ -122,4 +129,5 @@ struct CustomView: View{
 
 #Preview{
     CustomView()
+        .environmentObject(UserSession())
 }

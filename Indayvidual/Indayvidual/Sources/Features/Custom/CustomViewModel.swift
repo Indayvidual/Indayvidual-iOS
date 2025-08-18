@@ -12,8 +12,11 @@ import Observation
 
 @Observable
 class CustomViewModel {
-    // TODO: 이름 User정보에서 불러오기
-    var name: String = "인데비"
+    var userSession: UserSession
+    
+    var name: String {
+        return userSession.nickname
+    }
     
     // MARK: - 메모
     var memos: [MemoModel] = []
@@ -33,7 +36,9 @@ class CustomViewModel {
     private let memoProvider = MoyaProvider<MemoAPITarget>()
     private let habitProvider = MoyaProvider<HabitAPITarget>()
     
-    init() {
+    init(userSession: UserSession) {
+        self.userSession = userSession
+        
         loadMemos()
         loadHabits()
         loadWeeklyChecks()

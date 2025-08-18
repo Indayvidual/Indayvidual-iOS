@@ -8,7 +8,8 @@ struct CustomActionSheet<Content: View>: View {
     let primaryAction: () -> Void
     let secondaryAction: (() -> Void)?
     let content: Content
-    let showDivider: Bool
+    let showTopDivider: Bool
+    let showBottomDivider: Bool
     let headerRightButton: (() -> AnyView)?
     let headerLeftButton: (() -> AnyView)? 
 
@@ -29,7 +30,8 @@ struct CustomActionSheet<Content: View>: View {
         secondaryButtonTitle: String? = "취소",
         primaryAction: @escaping () -> Void = { print("기본 액션") },
         secondaryAction: (() -> Void)? = { print("취소 액션") },
-        showDivider: Bool = true,
+        showTopDivider: Bool = true,
+        showBottomDivider: Bool = false,
         primaryButtonColor: Color = .gray900,
         primaryButtonTextColor: Color = .grayWhite,
         secondaryButtonColor: Color = .grayWhite,
@@ -48,7 +50,8 @@ struct CustomActionSheet<Content: View>: View {
         self.secondaryButtonTitle = secondaryButtonTitle
         self.primaryAction = primaryAction
         self.secondaryAction = secondaryAction
-        self.showDivider = showDivider
+        self.showTopDivider = showTopDivider
+        self.showBottomDivider = showBottomDivider
         self.primaryButtonColor = primaryButtonColor
         self.primaryButtonTextColor = primaryButtonTextColor
         self.secondaryButtonColor = secondaryButtonColor
@@ -87,7 +90,7 @@ struct CustomActionSheet<Content: View>: View {
             .padding(.top, 30.58)
             .padding(.bottom, 17.69)
             .padding(.horizontal, 15.4)
-            if showDivider {
+            if showBottomDivider {
                 Divider()
                     .padding(.horizontal, 15.4)
                     .padding(.bottom, 20)
@@ -95,6 +98,13 @@ struct CustomActionSheet<Content: View>: View {
 
             content.padding(.horizontal, 15)
             Spacer()
+            
+            if showTopDivider {
+                Divider()
+                    .padding(.horizontal, 15.4)
+                    .padding(.bottom, 20)
+            }
+            
             HStack(spacing: 12) {
                 if let secondaryButtonTitle = secondaryButtonTitle,
                    let secondaryAction = secondaryAction {

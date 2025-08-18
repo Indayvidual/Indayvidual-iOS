@@ -25,6 +25,7 @@ struct HabitFormView: View {
             .sheet(isPresented: $showColorTable) {
                 sheetView
                     .presentationDragIndicator(.visible)
+                    .presentationDetents([.large])
             }.menuIndicator(.visible)
         }
         .navigationBarBackButtonHidden(true)
@@ -134,9 +135,10 @@ struct HabitFormView: View {
                 if let firstColor = colorViewModel.colors.first {
                     colorViewModel.colorSelection(for: firstColor.id)
                 }
-            }
+            },
+            showBottomDivider: true
         ) {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(spacing: 0) {
                 ColorGridView(viewModel: colorViewModel)
             }
         }
@@ -144,5 +146,5 @@ struct HabitFormView: View {
 }
 
 #Preview {
-    HabitFormView(colorViewModel: ColorViewModel(), viewModel: MyHabitViewModel(sharedVM: CustomViewModel()))
+    HabitFormView(colorViewModel: ColorViewModel(), viewModel: MyHabitViewModel(sharedVM: CustomViewModel(userSession: UserSession())))
 }

@@ -129,5 +129,5 @@ struct RecordView: View {
 }
 
 #Preview {
-    RecordView(vm: MemoViewModel(sharedVM: CustomViewModel()), sharedVM: CustomViewModel())
+    RecordView(vm: MemoViewModel(sharedVM: CustomViewModel(userSession: UserSession())), sharedVM: CustomViewModel(userSession: UserSession()))
 }

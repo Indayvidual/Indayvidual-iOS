@@ -58,9 +58,8 @@ struct ScheduleListView: View {
                 .cornerRadius(15)
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets()) // 리스트 기본 Insets 제거
-                .padding(.bottom, 14)
-                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                .listRowInsets(EdgeInsets(top: 7, leading: 0, bottom: 7, trailing: 0))
+                .swipeActions(edge: .trailing) {
                     Button(role: .destructive) {
                         homeVm.deleteSchedule(schedule, calendarViewModel: calendarVm)
                     } label: {

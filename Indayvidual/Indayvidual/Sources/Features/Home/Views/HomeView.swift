@@ -28,12 +28,22 @@ struct HomeView: View {
             Group{
                 CustomCalendarView(
                     calendarViewModel: calendarVm,
-                    enableSwipe: true
+                    enableSwipe: true,
+                    onDateSelected: { selectedDate in
+                        // 날짜 선택 시 실행할 코드
+                        homeVm.fetchSchedules(for: selectedDate)
+                        
+                        // 서버에서 해당 월 마커 정보 불러오기
+                        let year = Calendar.current.component(.year, from: selectedDate)
+                        let month = Calendar.current.component(.month, from: selectedDate)
+                        homeVm.fetchHomeCalendar(
+                            year: year,
+                            month: month,
+                            calendarViewModel: calendarVm
+                        )
+                    }
                 )
                 .padding(.vertical, 18)
-                .onChange(of: calendarVm.selectDate) { _, newDate in
-                                   homeVm.fetchSchedules(for: newDate)
-                }
                 
                 if(homeVm.filteredSchedules.isEmpty){
                     EmptyScheduleView()
@@ -44,15 +54,11 @@ struct HomeView: View {
                             on: schedule.startTime ?? calendarVm.selectDate,
                             calendarViewModel: calendarVm
                         )
-                    }
-                    )
-                    
+                    })
                     .environmentObject(homeVm)
                 }
             }
             .padding(.horizontal, 28)
-            
-            
             
             Spacer()
         }
@@ -60,7 +66,7 @@ struct HomeView: View {
             homeVm.setup(alertService: alertService)
             
             // 기존 필터 업데이트
-            homeVm.updateFilteredSchedules(for: calendarVm.selectDate)
+            homeVm.fetchSchedules(for: calendarVm.selectDate)
             
             // 서버에서 해당 월의 마커 정보 불러오기
             let year = Calendar.current.component(.year, from: calendarVm.selectDate)
@@ -71,8 +77,6 @@ struct HomeView: View {
                 month: month,
                 calendarViewModel: calendarVm
             )
-            
-            homeVm.fetchSchedules(for: calendarVm.selectDate)
         }
         
         .onDisappear {

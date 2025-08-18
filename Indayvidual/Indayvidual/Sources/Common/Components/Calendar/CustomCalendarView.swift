@@ -43,7 +43,8 @@ struct CustomCalendarView: View {
                 CalendarHeaderView(
                     calendarViewModel: calendarViewModel,
                     showToggleButton: showToggleButton,
-                    showNavigationButtons: showNavigationButtons
+                    showNavigationButtons: showNavigationButtons,
+                    onDateSelected: onDateSelected
                 )
                 WeekdayHeaderView()
                 calendarContentView
@@ -55,10 +56,10 @@ struct CustomCalendarView: View {
                     let threshold: CGFloat = 50 // 최소 스와이프 거리
                     if value.translation.width > threshold {
                         // 오른쪽 스와이프 → 이전
-                        calendarViewModel.moveCalendar(by: -1)
+                        calendarViewModel.moveCalendar(by: -1, onDateSelected: onDateSelected)
                     } else if value.translation.width < -threshold {
                         // 왼쪽 스와이프 → 다음
-                        calendarViewModel.moveCalendar(by: 1)
+                        calendarViewModel.moveCalendar(by: 1, onDateSelected: onDateSelected)
                     }
                 }
                 : nil
@@ -74,8 +75,8 @@ struct CustomCalendarView: View {
             
         )
         .task {
-                   calendarViewModel.calendarMode = initialMode
-               }
+            calendarViewModel.calendarMode = initialMode
+        }
     }
     
     @ViewBuilder
@@ -98,6 +99,7 @@ struct CalendarHeaderView: View {
     @ObservedObject var calendarViewModel: CustomCalendarViewModel
     var showToggleButton: Bool = true      // 월/주 버튼 표시 여부
     var showNavigationButtons: Bool = true // 달(month)이동 버튼 표시 여부
+    var onDateSelected: ((Date) -> Void)? = nil
     
     private var yearAndMonth: (year: String, month: String) {
         let date = calendarViewModel.displayedMonthDate
@@ -130,7 +132,7 @@ struct CalendarHeaderView: View {
             }
         }
         .padding(.horizontal, 10)
-        .padding(.bottom, 20)
+        .padding(.bottom, 15.97)
     }
     
     private var toggleButton: some View {
@@ -148,15 +150,15 @@ struct CalendarHeaderView: View {
     
     private var previousButton: some View {
         Button(action: {
-            calendarViewModel.moveCalendar(by: -1)
+            calendarViewModel.moveCalendar(by: -1, onDateSelected: onDateSelected)
         }) {
             Image(.mingcuteLeftFill)
         }
     }
-    
+
     private var nextButton: some View {
         Button(action: {
-            calendarViewModel.moveCalendar(by: 1)
+            calendarViewModel.moveCalendar(by: 1, onDateSelected: onDateSelected)
         }) {
             Image(.mingcuteRightFill)
         }
@@ -177,7 +179,7 @@ struct WeekdayHeaderView: View {
                     .multilineTextAlignment(.center)
             }
         }
-        .padding(.bottom, 30)
+        .padding(.bottom, 17.73)
     }
 }
 
@@ -188,9 +190,6 @@ struct MonthlyCalendarView: View {
     var onDateSelected: ((Date) -> Void)?
     
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
-    
-    private let rowCount: CGFloat = 6
-    private let itemHeight: CGFloat = 30
     
     var body: some View {
         
@@ -205,22 +204,16 @@ struct MonthlyCalendarView: View {
                         isToday: isToday,
                         isSelected: isSelected,
                         onSelectDate: {
-                            calendarViewModel.updateSelectedDate(value.date)
-                            onDateSelected?(value.date)
+                            calendarViewModel.updateSelectedDate(value.date, onDateSelected: onDateSelected)
                         },
                         markers: showMarkers ? (calendarViewModel.dateMarkers[value.date.startOfDay] ?? []) : []
                     )
                 } else {
                     // isCurrentMonth가 false이면(이전/다음 달) 투명한 빈 공간
-                    Color.clear.frame(height: 28)
+                    Color.clear
                 }
             }
         }
-        .frame(height: calculateMaxHeight())
-    }
-    
-    private func calculateMaxHeight() -> CGFloat {
-        (itemHeight * rowCount) + (rowCount - 1)
     }
 }
 
@@ -231,30 +224,24 @@ struct WeeklyCalendarView: View {
     var onDateSelected: ((Date) -> Void)?
     
     var body: some View {
-        HStack(spacing: 0){
-            ForEach(calendarViewModel.getThisWeekDateValues()) { value in
-                let isToday = value.date.isToday
-                let isSelected = value.date.isSameDay(as: calendarViewModel.selectDate)
-                
+        let weekDates = calendarViewModel.getThisWeekDateValues()
+        let weekMarkers = calendarViewModel.getMarkersForThisWeek() // 항상 ViewModel에서 가져오기
+
+        HStack(spacing: 0) {
+            ForEach(Array(zip(weekDates.indices, weekDates)), id: \.1.id) { index, value in
                 DateButton(
                     value: value,
-                    isToday: isToday,
-                    isSelected: isSelected,
-                    onSelectDate: {
-                        print("버튼 선택 날짜: \(value.date)")
-                        calendarViewModel.updateSelectedDate(value.date)
-                        onDateSelected?(value.date)
-                        print(isSelected)
-                    },
-                    markers: showMarkers ? (calendarViewModel.dateMarkers[value.date.startOfDay] ?? []) : []
+                    isToday: value.date.isToday,
+                    isSelected: value.date.isSameDay(as: calendarViewModel.selectDate),
+                    onSelectDate: { calendarViewModel.updateSelectedDate(value.date, onDateSelected: onDateSelected) },
+                    markers: showMarkers ? weekMarkers[index] : []
                 )
                 .frame(maxWidth: .infinity)
             }
         }
     }
-    
-    
 }
+
 
 // 일자 버튼
 struct DateButton: View {

@@ -28,6 +28,7 @@ struct ColorPickerSheetView: View {
             secondaryAction: {
                 colorVm.resetToDefault()
             },
+            showBottomDivider: true,
             primaryButtonColor: .gray900,
             primaryButtonTextColor: .white,
             secondaryButtonColor: .white,
@@ -35,7 +36,7 @@ struct ColorPickerSheetView: View {
             secondaryButtonBorderColor: .gray200,
             buttonHeight: 55
         ) {
-            VStack(alignment: .center, spacing: 0) {
+            VStack(spacing: 0) {
                 ColorGridView(viewModel: colorVm)
             }
         }

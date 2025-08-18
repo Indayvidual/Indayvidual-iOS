@@ -233,5 +233,5 @@ struct MyHabitView: View {
 }
 
 #Preview {
-    MyHabitView(sharedVM: CustomViewModel.init())
+    MyHabitView(sharedVM: CustomViewModel.init(userSession: UserSession()))
 }

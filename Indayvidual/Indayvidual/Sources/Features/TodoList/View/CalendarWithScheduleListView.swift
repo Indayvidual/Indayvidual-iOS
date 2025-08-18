@@ -21,6 +21,15 @@ struct CalendarWithScheduleListView: View {
                 onDateSelected: { date in
                     homeViewModel.fetchSchedules(for: date)
                     onDateSelected?(date) // 외부에도 전달
+                    
+                    // 서버에서 해당 월 마커 정보 불러오기
+                    let year = Calendar.current.component(.year, from: date)
+                    let month = Calendar.current.component(.month, from: date)
+                    homeViewModel.fetchHomeCalendar(
+                        year: year,
+                        month: month,
+                        calendarViewModel: calendarViewModel
+                    )
                 }
             )
 

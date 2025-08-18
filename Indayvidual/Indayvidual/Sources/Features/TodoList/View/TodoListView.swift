@@ -25,15 +25,6 @@ struct TodoListView: View {
                             onDateSelected: { selectedDate in
                                 homeViewModel.fetchSchedules(for: selectedDate)
                                 
-                                // 서버에서 해당 월 마커 정보 불러오기
-                                let year = Calendar.current.component(.year, from: selectedDate)
-                                let month = Calendar.current.component(.month, from: selectedDate)
-                                homeViewModel.fetchHomeCalendar(
-                                    year: year,
-                                    month: month,
-                                    calendarViewModel: calendarViewModel
-                                )
-                                
                                 let formatter = DateFormatter()
                                 formatter.dateFormat = "yyyy-MM-dd"
                                 let dateString = formatter.string(from: selectedDate)

@@ -38,7 +38,6 @@ struct TimetableView: View {
             }
             .task {
                 timetableVm.loadSavedSchool()
-
                 if !timetableVm.isLoading {
                     await timetableVm.fetchTimetable()
                 }
@@ -96,7 +95,7 @@ private extension TimetableView {
                     // 학교 선택
                     SchoolSelectionBar(
                         schoolName: $timetableVm.selectedSchoolName,
-                        onTap: {}
+                        onTap: {timetableVm.showSchoolSemesterSetup  = true}
                     )
                     
                     // 학기 선택(드롭다운)

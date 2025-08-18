@@ -11,4 +11,5 @@ struct CheckEmailResponse: Decodable {
     let isSuccess: Bool
     let code: String
     let message: String
+    let data: Bool
 }

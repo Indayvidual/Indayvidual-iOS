@@ -27,6 +27,7 @@ struct SignupEmailCodeView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
+                    .foregroundStyle(.black)
                 }
                 Spacer()
             }
@@ -59,12 +60,16 @@ struct SignupEmailCodeView: View {
                             .font(.system(size: 16))
                             .focused($isCodeFocused)
                         
-                        if countdown > 0 {
-                            Text("\(countdown / 60):\(String(format: "%02d", countdown % 60))")
+                            .overlay(alignment: .trailing) {
+                                HStack(spacing: 6) {
+                                    Text("\(countdown / 60):\(String(format: "%02d", countdown % 60))")
+                                        .monospacedDigit()                   // 자리수 점프 방지
+                                }
                                 .font(.system(size: 14))
-                                .foregroundStyle(Color("secondary"))
+                                .foregroundStyle(Color("my-secondary"))
                                 .padding(.trailing, 12)
-                        }
+                                .allowsHitTesting(false)
+                            }
                     }
                     
                     Button {
@@ -80,7 +85,7 @@ struct SignupEmailCodeView: View {
                             .foregroundStyle(.black)
                             .cornerRadius(8)
                     }
-                    .disabled(countdown > 0)
+//                    .disabled(countdown < 0)
                 }
             }
             .padding(.horizontal, 20)
@@ -111,7 +116,6 @@ struct SignupEmailCodeView: View {
                 }
                 .disabled(code.count != 4 || isVerifying)
                 .padding(.horizontal, 20)
-                .padding(.top, 20)
                 
                 if let errorMessage = errorMessage {
                     Text(errorMessage)
@@ -120,9 +124,10 @@ struct SignupEmailCodeView: View {
                         .padding(.top, 8)
                 }
             }
+            .padding(.top, 24)
+            .padding(.bottom, 28)
             .background(Color.white)
             .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: -1)
-            
         }
         .navigationBarBackButtonHidden(true)
         .animation(.easeOut(duration: 0.25), value: isCodeFocused)

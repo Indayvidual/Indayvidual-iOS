@@ -56,6 +56,7 @@ struct LoginView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 40)
+            .navigationBarBackButtonHidden(true)
             .navigationDestination(isPresented: $goToHome) {
                 IndayvidualTabView()
             }

@@ -8,6 +8,12 @@
 import Foundation
 import Moya
 
+enum EmailCheckStatus {
+    case available
+    case duplicate
+    case failed(String)
+}
+
 class SignupViewModel: ObservableObject {
     @Published var email: String = ""
     @Published var code: String = ""
@@ -18,6 +24,8 @@ class SignupViewModel: ObservableObject {
     @Published var isCodeValid: Bool = false
     @Published var signupSuccess: Bool = false
     @Published var errorMessage: String?
+    
+    @Published var emailCheckStatus: EmailCheckStatus? = nil
 
     let provider = MoyaProvider<SignupAPITarget>()
 
@@ -25,29 +33,54 @@ class SignupViewModel: ObservableObject {
         provider.request(.checkEmail(email: email)) { result in
             switch result {
             case .success(let response):
-                print("✅ checkEmail 응답 코드: \(response.statusCode)")
-                print("📦 Raw 응답:", String(data: response.data, encoding: .utf8) ?? "없음")
-
                 do {
-                    let decoded = try JSONDecoder().decode(CheckEmailResponse.self, from: response.data)
+                    let dto = try JSONDecoder().decode(CheckEmailResponse.self, from: response.data)
 
-                    if decoded.isSuccess {
-                        print("✅ 이메일 사용 가능")
+                    // 상태코드 우선 판단(선택)
+                    if response.statusCode == 400 {
+                        DispatchQueue.main.async {
+                            self.emailCheckStatus = .failed("올바른 이메일 형식이 아닙니다.")
+                            self.errorMessage = "올바른 이메일 형식이 아닙니다."
+                        }
+                        completion(false)
+                        return
+                    }
+
+                    // ✅ 핵심: data == true 가 “사용 가능”, false 가 “중복”
+                    if dto.data == true {
+                        DispatchQueue.main.async {
+                            self.emailCheckStatus = .available
+                            self.errorMessage = nil
+                        }
                         completion(true)
+                    } else if dto.data == false {
+                        DispatchQueue.main.async {
+                            self.emailCheckStatus = .duplicate
+                            self.errorMessage = dto.message ?? "이미 가입된 이메일입니다."
+                        }
+                        completion(false)
                     } else {
-                        print("⚠️ 중복 이메일 또는 기타 오류:", decoded.message)
-                        self.errorMessage = decoded.message
+                        // data 가 nil 이거나 응답 형식 이상
+                        DispatchQueue.main.async {
+                            self.emailCheckStatus = .failed("응답 파싱 오류")
+                            self.errorMessage = "응답 파싱 오류"
+                        }
                         completion(false)
                     }
+
                 } catch {
-                    print("❌ 디코딩 실패:", error)
-                    self.errorMessage = "응답 파싱 오류"
+                    DispatchQueue.main.async {
+                        self.emailCheckStatus = .failed("응답 파싱 오류")
+                        self.errorMessage = "응답 파싱 오류"
+                    }
                     completion(false)
                 }
 
-            case .failure(let error):
-                print("❌ checkEmail 실패: \(error.localizedDescription)")
-                self.errorMessage = "이메일 확인 중 오류 발생"
+            case .failure:
+                DispatchQueue.main.async {
+                    self.emailCheckStatus = .failed("이메일 확인 중 오류 발생")
+                    self.errorMessage = "이메일 확인 중 오류 발생"
+                }
                 completion(false)
             }
         }
@@ -80,7 +113,7 @@ class SignupViewModel: ObservableObject {
             }
         }
     }
-
+    
     func signup(completion: @escaping (Bool) -> Void) {
         let dto = SignupRequestDTO(
             email: email,

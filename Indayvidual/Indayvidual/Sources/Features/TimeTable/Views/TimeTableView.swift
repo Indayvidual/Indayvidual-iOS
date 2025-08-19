@@ -26,11 +26,11 @@ struct TimetableView: View {
                         }) {
                             Text("삭제하기")
                                 .foregroundColor(.red)
-                                .font(.pretendSemiBold9)
-                                .frame(width: 65, height: 31)
+                                .font(.pretendRegular12)
+                                .frame(width: 70, height: 35)
                                 .background(Color.white)
                         }
-                        .padding(.top, 40)
+                        .padding(.top, 1)
                         .padding(.trailing, 13)
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .animation(.easeInOut, value: timetableVm.showDeleteButton)

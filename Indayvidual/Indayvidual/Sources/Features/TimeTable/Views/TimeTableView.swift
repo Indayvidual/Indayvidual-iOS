@@ -87,10 +87,6 @@ private extension TimetableView {
     var mainContent: some View {
         ZStack(alignment: .bottom) {
             VStack(alignment: .leading, spacing: 0) {
-                // 상단 바
-                Topbar(customAction: {
-                    timetableVm.showDeleteButton.toggle()
-                })
                 
                 Spacer().frame(height: 10)
                 
@@ -127,6 +123,22 @@ private extension TimetableView {
                     Spacer()
                 }
                 Spacer()
+            }
+        }
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Image(.indayvidual)
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: {
+                    timetableVm.showDeleteButton.toggle()
+                }) {
+                    Image(.gear)
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .scaledToFit()
+                }
+                .buttonStyle(PlainButtonStyle())
             }
         }
     }

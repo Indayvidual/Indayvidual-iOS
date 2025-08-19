@@ -22,87 +22,93 @@ struct HomeView: View {
     @EnvironmentObject var alertService: AlertService
     
     var body: some View {
-        VStack {
-            Topbar(showSettingsButton: false)
-            
-            Group{
-                CustomCalendarView(
-                    calendarViewModel: calendarVm,
-                    enableSwipe: true,
-                    onDateSelected: { selectedDate in
-                        // 날짜 선택 시 실행할 코드
-                        homeVm.fetchSchedules(for: selectedDate)
+            NavigationStack { // NavigationStack 안에서 toolbar가 작동함
+                VStack {
+                    Group{
+                        CustomCalendarView(
+                            calendarViewModel: calendarVm,
+                            enableSwipe: true,
+                            onDateSelected: { selectedDate in
+                                // 날짜 선택 시 실행할 코드
+                                homeVm.fetchSchedules(for: selectedDate)
+                                
+                                // 서버에서 해당 월 마커 정보 불러오기
+                                let year = Calendar.current.component(.year, from: selectedDate)
+                                let month = Calendar.current.component(.month, from: selectedDate)
+                                homeVm.fetchHomeCalendar(
+                                    year: year,
+                                    month: month,
+                                    calendarViewModel: calendarVm
+                                )
+                            }
+                        )
+                        .padding(.vertical, 18)
                         
-                        // 서버에서 해당 월 마커 정보 불러오기
-                        let year = Calendar.current.component(.year, from: selectedDate)
-                        let month = Calendar.current.component(.month, from: selectedDate)
-                        homeVm.fetchHomeCalendar(
-                            year: year,
-                            month: month,
-                            calendarViewModel: calendarVm
-                        )
+                        if(homeVm.filteredSchedules.isEmpty){
+                            EmptyScheduleView()
+                        }else{
+                            ScheduleListView(calendarVm: calendarVm, onEditSchedule: { schedule in
+                                homeVm.presentScheduleSheet(
+                                    for: schedule,
+                                    on: schedule.startTime ?? calendarVm.selectDate,
+                                    calendarViewModel: calendarVm
+                                )
+                            })
+                            .environmentObject(homeVm)
+                        }
                     }
-                )
-                .padding(.vertical, 18)
-                
-                if(homeVm.filteredSchedules.isEmpty){
-                    EmptyScheduleView()
-                }else{
-                    ScheduleListView(calendarVm: calendarVm, onEditSchedule: { schedule in
-                        homeVm.presentScheduleSheet(
-                            for: schedule,
-                            on: schedule.startTime ?? calendarVm.selectDate,
-                            calendarViewModel: calendarVm
-                        )
-                    })
-                    .environmentObject(homeVm)
+                    .padding(.horizontal, 28)
+                    
+                    Spacer()
                 }
+                .toolbar {
+                    ToolbarItem(placement: .topBarLeading) {
+                        Image(.indayvidual)
+                    }
+                }
+                .navigationBarTitleDisplayMode(.inline)
+                .onAppear {
+                    homeVm.setup(alertService: alertService)
+                    
+                    // 기존 필터 업데이트
+                    homeVm.fetchSchedules(for: calendarVm.selectDate)
+                    
+                    // 서버에서 해당 월의 마커 정보 불러오기
+                    let year = Calendar.current.component(.year, from: calendarVm.selectDate)
+                    let month = Calendar.current.component(.month, from: calendarVm.selectDate)
+                    
+                    homeVm.fetchHomeCalendar(
+                        year: year,
+                        month: month,
+                        calendarViewModel: calendarVm
+                    )
+                }
+                
+                .onDisappear {
+                    homeVm.filteredSchedules = []
+                }
+                .floatingBtn {
+                    homeVm.presentScheduleSheet(
+                        on: calendarVm.selectDate,
+                        calendarViewModel: calendarVm
+                    )
+                }
+                
+                /// 일정 등록 시트뷰
+                .sheet(isPresented: $homeVm.showCreateScheduleSheet) {
+                    if let sheetViewModel = homeVm.createScheduleSheetViewModel {
+                        CreateScheduleSheetView(viewModel: sheetViewModel)
+                            .presentationDragIndicator(.visible)
+                            .presentationDetents([.large])
+                            .environmentObject(homeVm)
+                            .environmentObject(alertService)
+                    }
+                }
+                
+                .background(Color(.gray50))
             }
-            .padding(.horizontal, 28)
-            
-            Spacer()
         }
-        .onAppear {
-            homeVm.setup(alertService: alertService)
-            
-            // 기존 필터 업데이트
-            homeVm.fetchSchedules(for: calendarVm.selectDate)
-            
-            // 서버에서 해당 월의 마커 정보 불러오기
-            let year = Calendar.current.component(.year, from: calendarVm.selectDate)
-            let month = Calendar.current.component(.month, from: calendarVm.selectDate)
-            
-            homeVm.fetchHomeCalendar(
-                year: year,
-                month: month,
-                calendarViewModel: calendarVm
-            )
-        }
-        
-        .onDisappear {
-            homeVm.filteredSchedules = []
-        }
-        .floatingBtn {
-            homeVm.presentScheduleSheet(
-                on: calendarVm.selectDate,
-                calendarViewModel: calendarVm
-            )
-        }
-        
-        /// 일정 등록 시트뷰
-        .sheet(isPresented: $homeVm.showCreateScheduleSheet) {
-            if let sheetViewModel = homeVm.createScheduleSheetViewModel {
-                CreateScheduleSheetView(viewModel: sheetViewModel)
-                    .presentationDragIndicator(.visible)
-                    .presentationDetents([.large])
-                    .environmentObject(homeVm)
-                    .environmentObject(alertService)
-            }
-        }
-        
-        .background(Color(.gray50))
     }
-}
 
 struct HomeView_Previews: PreviewProvider {
     static var previews: some View {

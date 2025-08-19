@@ -40,6 +40,9 @@ struct HabitFormView: View {
         .onDisappear {
             print("HabitFormView 닫힘")
         }
+        .onTapGesture {
+            self.hideKeyboard()
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {

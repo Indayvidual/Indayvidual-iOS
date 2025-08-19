@@ -35,12 +35,12 @@ struct TodoListView: View {
                                 }
                             }
                         )
-                        .padding(.vertical, 26)
+                        .padding(.vertical, 18)
                         .padding(.horizontal, 28)
                         
                         // task
                         if viewModel.categories.isEmpty {
-                            EmptyTodoView().padding(.top, 80)
+                            EmptyTodoView().padding(.top, 120)
                         } else {
                             LazyVStack(spacing: 0) {
                                 ForEach(Array(viewModel.categories.enumerated()), id: \.element.categoryId) { index, category in

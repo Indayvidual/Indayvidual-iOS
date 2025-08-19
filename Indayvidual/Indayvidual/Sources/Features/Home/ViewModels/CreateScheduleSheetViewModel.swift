@@ -15,7 +15,7 @@ class CreateScheduleSheetViewModel: ObservableObject {
     @Published var endTime: Date = Date()
     @Published var isAllDay: Bool = false
     @Published var showEndSection: Bool = false
-    @Published var selectedColor: Color = .blue
+    @Published var selectedColor: Color = .purple05
     @Published var showColorPickerSheet: Bool = false
     
     @Published var sheetCalendarVm = CustomCalendarViewModel()
@@ -43,6 +43,7 @@ class CreateScheduleSheetViewModel: ObservableObject {
         
         initializeState(with: selectedDate)
         observeSheetCalendarDate()
+        bindStartTimeAutoEnd() 
     }
     
     private func initializeState(with selectedDate: Date) {
@@ -66,7 +67,7 @@ class CreateScheduleSheetViewModel: ObservableObject {
             self.endTime = self.startTime.addingTimeInterval(3600)
             self.isAllDay = false
             self.showEndSection = false
-            self.selectedColor = .button // 기본 색상
+            self.selectedColor = .purple05 // 기본 색상
         }
         
         self.sheetCalendarVm.selectDate = self.startTime
@@ -80,6 +81,19 @@ class CreateScheduleSheetViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    /// startTime이 변경되었을 때 자동으로 endTime을 1시간 뒤로 설정하는 바인딩 함수
+    private func bindStartTimeAutoEnd() {
+        $startTime
+            .dropFirst()    // 초기화 시 전달되는 최초 값은 무시 (사용자가 직접 바꾼 경우만 반응)
+            .removeDuplicates()
+            .sink { [weak self] newStart in
+                guard let self = self else { return }
+                guard !self.isAllDay else { return }    // 종일 일정이면 endTime 자동 변경 X
+                self.endTime = Calendar.current.date(byAdding: .hour, value: 1, to: newStart) ?? newStart   // startTime+1시간으로 endTime 자동 설정
+            }
+            .store(in: &cancellables)
+    }
+
     // MARK: - 일정 등록/수정
     func saveSchedule() {
         guard isPrimaryButtonEnabled else { return }
@@ -214,11 +228,10 @@ class CreateScheduleSheetViewModel: ObservableObject {
         dateComponents.minute = timeComponents.minute
         
         if let updatedStartTime = calendar.date(from: dateComponents) {
-            self.startTime = updatedStartTime
-            if self.endTime < updatedStartTime {
+                self.startTime = updatedStartTime
+                // 시작 시간이 바뀔 때마다 종료 시간도 무조건 +1시간
                 self.endTime = calendar.date(byAdding: .hour, value: 1, to: updatedStartTime) ?? updatedStartTime
             }
-        }
     }
     
     /// 종료 시간 계산

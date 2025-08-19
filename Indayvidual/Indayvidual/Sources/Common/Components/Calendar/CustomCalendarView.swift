@@ -17,6 +17,7 @@ struct CustomCalendarView: View {
     var showMarkers: Bool = true             // 마커 표시 여부
     var initialMode: CalendarMode = .month   // 초기 모드 설정 (.month 또는 .week)
     var enableSwipe: Bool = false            // 좌우 스와이프 기능 여부
+    var contentPadding: CGFloat
     init(
         calendarViewModel: CustomCalendarViewModel,
         showToggleButton: Bool = true,
@@ -25,7 +26,8 @@ struct CustomCalendarView: View {
         showMarkers: Bool = true,
         initialMode: CalendarMode = .month,
         enableSwipe: Bool = false,
-        onDateSelected: ((Date) -> Void)? = nil
+        contentPadding: CGFloat = 20,
+        onDateSelected: ((Date) -> Void)? = nil,
     ) {
         self.calendarViewModel = calendarViewModel
         self.showToggleButton = showToggleButton
@@ -34,6 +36,7 @@ struct CustomCalendarView: View {
         self.showMarkers = showMarkers
         self.initialMode = initialMode
         self.enableSwipe = enableSwipe
+        self.contentPadding = contentPadding
         self.onDateSelected = onDateSelected
     }
     
@@ -49,7 +52,7 @@ struct CustomCalendarView: View {
                 WeekdayHeaderView()
                 calendarContentView
             }
-            .padding(20)
+            .padding(contentPadding)
             .gesture(
                 enableSwipe ?
                 DragGesture().onEnded { value in

@@ -27,6 +27,7 @@ struct CreateScheduleSheetView: View {
             secondaryAction: {
                 dismiss()
             },
+            showBottomDivider: true,
             primaryButtonColor: viewModel.isPrimaryButtonEnabled ? .gray900 : .gray100,
             primaryButtonTextColor: .white,
             secondaryButtonColor: .white,
@@ -40,7 +41,8 @@ struct CreateScheduleSheetView: View {
                         selectedColor: $viewModel.selectedColor
                     )
                 )
-            }
+            },
+            
         ) {
             ScrollView {
                 VStack(alignment: .center, spacing: 0) {
@@ -51,11 +53,11 @@ struct CreateScheduleSheetView: View {
                         showNavigationButtons: true,
                         showMarkers: false,
                         initialMode: .month,
-                        enableSwipe: true
+                        enableSwipe: true,
+                        contentPadding: 15
                     )
                     
                     Divider()
-                        .padding(.horizontal, 15.4)
                         .padding(.bottom, 20)
                     
                     HStack(spacing: 8) {
@@ -76,11 +78,15 @@ struct CreateScheduleSheetView: View {
                         showEndSection: $viewModel.showEndSection,
                         isAllDay: $viewModel.isAllDay
                     )
-                    .padding(.horizontal, 20)
                     .animation(.easeInOut, value: viewModel.isAllDay)
                     .animation(.easeInOut, value: viewModel.showEndSection)
+                    
+                    Spacer().frame(height: 20)
                 }
             }
+        }
+        .onTapGesture {
+            self.hideKeyboard()
         }
         .sheet(isPresented: $viewModel.showColorPickerSheet) {
             ColorPickerSheetView(

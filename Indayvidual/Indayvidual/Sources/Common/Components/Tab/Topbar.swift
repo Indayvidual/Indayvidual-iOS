@@ -10,9 +10,11 @@ import SwiftUI
 // MARK: 모든 탭 위에 들어갈 Topbar입니다.
 struct Topbar: View{
     let customAction: (() -> Void)?
+    let showSettingsButton: Bool
     
-    init(customAction: (() -> Void)? = nil) {
+    init(customAction: (() -> Void)? = nil, showSettingsButton: Bool = true) {
         self.customAction = customAction
+        self.showSettingsButton = showSettingsButton
     }
     
     var body : some View{
@@ -21,18 +23,19 @@ struct Topbar: View{
             
             Spacer()
             
-            Button(action: {
-                if let customAction = customAction {
-                    //todolistview에서는 설정버튼이 수정버튼이 되어서 추가했습니다. 
-                    customAction()
-                } else {
-                    navigateToSettings()
+            if showSettingsButton {   // true일 때만 버튼 노출
+                Button(action: {
+                    if let customAction = customAction {
+                        customAction()
+                    } else {
+                        navigateToSettings()
+                    }
+                }) {
+                    Image(.gear)
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                        .scaledToFit()
                 }
-            }){
-                Image(.gear)
-                    .resizable()
-                    .frame(width: 20, height: 20)
-                    .scaledToFit()
             }
         }
         .padding(.horizontal)

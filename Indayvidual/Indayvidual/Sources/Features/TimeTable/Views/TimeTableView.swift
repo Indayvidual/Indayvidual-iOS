@@ -173,4 +173,5 @@ private extension TimetableView {
 
 #Preview {
     TimetableView()
+        .environmentObject(AlertService())
 }

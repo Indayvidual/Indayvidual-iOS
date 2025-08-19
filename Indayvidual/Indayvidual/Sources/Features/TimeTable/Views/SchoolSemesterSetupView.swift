@@ -159,4 +159,5 @@ struct SemesterPickerView: View {
     let timetableVm = TimetableViewModel()
     
     SchoolSemesterSetupView(timetableVm: timetableVm)
+        .environmentObject(AlertService())
 }

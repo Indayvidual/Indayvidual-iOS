@@ -64,32 +64,6 @@ struct TodoCategoryEditView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Button(action: { dismiss() }) {
-                    Image("back")
-                }
-                .padding(.leading, 20)
-                Spacer()
-                Text("카테고리 수정")
-                    .font(.pretendSemiBold18)
-                    .foregroundStyle(.gray900)
-                Spacer()
-                Button("완료") {
-                    for deleteId in categoriesToDelete {
-                        if let deleteId,
-                           let category = viewModel.categories.first(where: { $0.categoryId == deleteId }) {
-                            viewModel.deleteCategory(category)
-                        }
-                    }
-                    dismiss()
-                }
-                .font(.pretendSemiBold16)
-                .foregroundColor(.gray900)
-                .padding(.trailing, 20)
-            }
-            .frame(height: 48)
-            .background(Color.gray50)
-
             ScrollView {
                 VStack(spacing: 16) {
                     ForEach(viewModel.categories, id: \.categoryId) { category in
@@ -112,6 +86,25 @@ struct TodoCategoryEditView: View {
         }
         .background(Color.gray50.ignoresSafeArea())
         .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button(action: { dismiss() }) {
+                    Image("back")
+                }
+            }
+            ToolbarItem(placement: .principal) {
+                Text("카테고리 수정")
+                    .font(.pretendSemiBold18)
+                    .foregroundStyle(.gray900)
+            }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button("완료") {
+                    handleDeleteCompletion()
+                }
+                .font(.pretendSemiBold16)
+                .foregroundColor(.gray900)
+            }
+        }
         .sheet(item: $editTarget) { editing in
             NavigationView {
                 TodoCategorySelectView(
@@ -140,6 +133,8 @@ struct TodoCategoryEditView: View {
             return viewModel.categories.first { $0.categoryId == deleteId }
         }
         
+        print("🗑️ 삭제 대상 카테고리: \(validCategoriesToDelete.map { $0.name })")
+        
         let group = DispatchGroup()
         var hasError = false
         
@@ -154,12 +149,30 @@ struct TodoCategoryEditView: View {
                     print("🟢 카테고리 \(category.name) 삭제 성공")
                 }
                 group.leave()
+            }
+        }
+        
+        group.notify(queue: .main) {
+            if hasError {
+                print("🔴 일부 카테고리 삭제 중 오류 발생")
+            } else {
+                print("🟢 모든 카테고리 삭제 완료")
+            }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                self.dismiss()
+            }
+        }
+    }
 }
+
 #Preview {
     let alertService = AlertService()
     let todoViewModel = TodoViewModel()
     todoViewModel.setup(with: alertService)
     
-    return TodoCategoryEditView(viewModel: todoViewModel)
-        .environmentObject(alertService)
+    return NavigationStack {
+        TodoCategoryEditView(viewModel: todoViewModel)
+            .environmentObject(alertService)
+    }
 }

@@ -14,7 +14,7 @@ struct ColorGridView: View {
 
     var body: some View {
         VStack{
-            LazyVGrid(columns: columns, spacing: 30) {
+            LazyVGrid(columns: columns, spacing: 24) {
                 ForEach(viewModel.colors) { colorItem in
                     Color(colorItem.name)
                         .frame(width: 42.39, height: 42.39)

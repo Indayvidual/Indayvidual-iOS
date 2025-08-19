@@ -128,6 +128,32 @@ struct TodoCategoryEditView: View {
             }
         }
     }
+    
+    private func handleDeleteCompletion() {
+        guard !categoriesToDelete.isEmpty else {
+            dismiss()
+            return
+        }
+        
+        let validCategoriesToDelete = categoriesToDelete.compactMap { deleteId -> Category? in
+            guard let deleteId = deleteId else { return nil }
+            return viewModel.categories.first { $0.categoryId == deleteId }
+        }
+        
+        let group = DispatchGroup()
+        var hasError = false
+        
+        for category in validCategoriesToDelete {
+            group.enter()
+            
+            viewModel.deleteCategory(category) { success in
+                if !success {
+                    hasError = true
+                    print("🔴 카테고리 \(category.name) 삭제 실패")
+                } else {
+                    print("🟢 카테고리 \(category.name) 삭제 성공")
+                }
+                group.leave()
 }
 #Preview {
     let alertService = AlertService()

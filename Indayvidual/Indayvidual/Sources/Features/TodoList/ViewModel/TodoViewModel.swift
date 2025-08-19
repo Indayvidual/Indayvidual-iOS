@@ -38,8 +38,15 @@ class TodoViewModel: ObservableObject {
     @Published var tasks: [String: [TodoTask]] = [:] // 날짜별로 관리
 
     // MARK: - handleError 함수
-    private func handleError(_ message: String, retry: (() -> Void)? = nil) {
-        print("🔴 [ERROR] \(message)")
+    func handleError(_ message: String, apiName: String = "", retry: (() -> Void)? = nil) {
+        let fullMessage = apiName.isEmpty ? message : "[\(apiName)] \(message)"
+        print("🔴 [ERROR] \(fullMessage)")
+        
+        if message.contains("HTTP 404") {
+            print("📝 404 에러")
+            return
+        }
+        
         DispatchQueue.main.async {
             self.errorMessage = message
             
@@ -64,10 +71,11 @@ class TodoViewModel: ObservableObject {
             }
         }
     }
-    // MARK: - 401 에러 처리
-    private func processResponseStatus(_ statusCode: Int) -> Bool {
+
+    // MARK: - 401 에러 처리 개선
+    func processResponseStatus(_ statusCode: Int, apiName: String = "") -> Bool {
         if statusCode == 401 {
-            print("‼️status code : 401")
+            print("‼️[\(apiName)] status code : 401")
             alertService?.showAlert(
                 title: "인증 오류",
                 message: "로그인을 해주세요.",
@@ -75,10 +83,13 @@ class TodoViewModel: ObservableObject {
                 secondaryButton: nil
             )
             return true
+        } else if statusCode == 404 {
+            print("‼️[\(apiName)] status code : 404 - 리소스를 찾을 수 없음")
+            return false
         }
         return false
     }
-
+    
     // MARK: - Task 조회
     func tasks(for date: String) -> [TodoTask] {
         return tasks[date] ?? []

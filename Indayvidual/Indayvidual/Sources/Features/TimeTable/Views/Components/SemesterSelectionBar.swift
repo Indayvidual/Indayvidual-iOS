@@ -10,7 +10,7 @@ import SwiftUI
 
 struct SemesterSelectionBar: View {
     @Binding var selection: String?
-    @State private var showOptions = false
+    @Binding var showOptions: Bool
     var options: [String] = Semester.allCases.map { $0.rawValue }
     
     var body: some View {
@@ -80,8 +80,4 @@ struct SemesterSelectionBar: View {
     }
 }
 
-#Preview {
-    SemesterSelectionBar(
-        selection: .constant(nil)
-    )
-}
+#Preview {}

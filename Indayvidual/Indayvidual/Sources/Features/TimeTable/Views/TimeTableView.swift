@@ -27,16 +27,24 @@ struct TimetableView: View {
                             Text("삭제하기")
                                 .foregroundColor(.red)
                                 .font(.pretendRegular12)
-                                .frame(width: 70, height: 28)
+                                .frame(width: 70, height: 30)
                                 .background(Color.white)
                                 .cornerRadius(4)
                         }
-                        .padding(.top, -5) 
+                        .padding(.top, -5)
                         .padding(.trailing, 13)
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .animation(.easeInOut, value: timetableVm.showDeleteButton)
                     }
                 }
+            }
+            .onAppear {
+                timetableVm.showDeleteButton = false
+                timetableVm.showSemesterDropdown = false
+            }
+            .onDisappear {
+                timetableVm.showDeleteButton = false
+                timetableVm.showSemesterDropdown = false
             }
             .task {
                 timetableVm.setup(alertService: alertService)
@@ -108,7 +116,8 @@ private extension TimetableView {
                                     timetableVm.selectSemester(semester)
                                 }
                             }
-                        )
+                        ),
+                        showOptions: $timetableVm.showSemesterDropdown
                     )
                     
                 }

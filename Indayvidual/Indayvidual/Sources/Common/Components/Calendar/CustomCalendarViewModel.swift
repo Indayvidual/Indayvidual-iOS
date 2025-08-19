@@ -167,29 +167,34 @@ final class CustomCalendarViewModel: ObservableObject {
         }
         
         // 3. 현재 달 날짜 추가
-        for day in 1...daysInMonth {
-            if let date = calendar.date(bySetting: .day, value: day, of: firstDay) {
-                days.append(DateValue(day: day, date: date, isCurrentMonth: true))
-            }
-        }
-        
-        // 4. 다음 달 날짜 추가 (뒤쪽 공백 채우기)
-        let totalDays = 42 // 6주 * 7일 = 42개의 셀을 기준으로 고정
-        let remainingDays = totalDays - days.count
-        
-        if remainingDays > 0 {
-            guard let firstDayOfNextMonth = calendar.date(byAdding: .month, value: 1, to: firstDay) else {
-                return []
-            }
-            
-            for day in 1...remainingDays {
-                if let date = calendar.date(byAdding: .day, value: day - 1, to: firstDayOfNextMonth) {
-                    days.append(DateValue(day: day, date: date, isCurrentMonth: false))
+            var lastDayOfMonth: Date?
+            for day in 1...daysInMonth {
+                if let date = calendar.date(bySetting: .day, value: day, of: firstDay) {
+                    days.append(DateValue(day: day, date: date, isCurrentMonth: true))
+                    lastDayOfMonth = date
                 }
             }
-        }
         
-        return days
+        // 4. 마지막 주 토요일까지 채우기 (필요한 만큼만)
+            if let lastDay = lastDayOfMonth {
+                let lastWeekday = calendar.component(.weekday, from: lastDay) // 1~7
+                let trailingDays = 7 - ((lastWeekday - calendar.firstWeekday + 7) % 7) - 1
+                
+                if trailingDays > 0 {
+                    guard let firstDayOfNextMonth = calendar.date(byAdding: .day, value: 1, to: lastDay) else {
+                        return days
+                    }
+                    
+                    for i in 0..<trailingDays {
+                        if let date = calendar.date(byAdding: .day, value: i, to: firstDayOfNextMonth) {
+                            let day = calendar.component(.day, from: date)
+                            days.append(DateValue(day: day, date: date, isCurrentMonth: false))
+                        }
+                    }
+                }
+            }
+            
+            return days
     }
     
     // 주 기준 날짜 배열 생성

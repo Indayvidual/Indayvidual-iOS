@@ -74,8 +74,8 @@ struct CustomCalendarView: View {
             
         )
         .task {
-                   calendarViewModel.calendarMode = initialMode
-               }
+            calendarViewModel.calendarMode = initialMode
+        }
     }
     
     @ViewBuilder
@@ -130,7 +130,7 @@ struct CalendarHeaderView: View {
             }
         }
         .padding(.horizontal, 10)
-        .padding(.bottom, 20)
+        .padding(.bottom, 15.97)
     }
     
     private var toggleButton: some View {
@@ -177,7 +177,7 @@ struct WeekdayHeaderView: View {
                     .multilineTextAlignment(.center)
             }
         }
-        .padding(.bottom, 30)
+        .padding(.bottom, 17.73)
     }
 }
 
@@ -188,9 +188,6 @@ struct MonthlyCalendarView: View {
     var onDateSelected: ((Date) -> Void)?
     
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
-    
-    private let rowCount: CGFloat = 6
-    private let itemHeight: CGFloat = 30
     
     var body: some View {
         
@@ -212,15 +209,10 @@ struct MonthlyCalendarView: View {
                     )
                 } else {
                     // isCurrentMonth가 false이면(이전/다음 달) 투명한 빈 공간
-                    Color.clear.frame(height: 28)
+                    Color.clear
                 }
             }
         }
-        .frame(height: calculateMaxHeight())
-    }
-    
-    private func calculateMaxHeight() -> CGFloat {
-        (itemHeight * rowCount) + (rowCount - 1)
     }
 }
 

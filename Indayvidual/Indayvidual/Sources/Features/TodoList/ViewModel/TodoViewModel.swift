@@ -64,7 +64,21 @@ class TodoViewModel: ObservableObject {
             }
         }
     }
-    
+    // MARK: - 401 에러 처리
+    private func processResponseStatus(_ statusCode: Int) -> Bool {
+        if statusCode == 401 {
+            print("‼️status code : 401")
+            alertService?.showAlert(
+                title: "인증 오류",
+                message: "로그인을 해주세요.",
+                primaryButton: .primary(title: "확인", action: {}),
+                secondaryButton: nil
+            )
+            return true
+        }
+        return false
+    }
+
     // MARK: - Task 조회
     func tasks(for date: String) -> [TodoTask] {
         return tasks[date] ?? []
@@ -138,6 +152,9 @@ class TodoViewModel: ObservableObject {
             switch result {
             case .success(let response):
                 guard 200...299 ~= response.statusCode else {
+                    if self.processResponseStatus(response.statusCode) == true {
+                        return
+                    }
                     self.handleError("서버 에러: HTTP \(response.statusCode)", retry: {
                         self.fetchTasks(for: categoryId, date: date, completion: completion)
                     })
@@ -198,6 +215,9 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
+                        if self?.processResponseStatus(response.statusCode) == true {
+                            return
+                        }
                         self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         completion?(false)
                         return
@@ -230,6 +250,9 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
+                        if self?.processResponseStatus(response.statusCode) == true {
+                            return
+                        }
                         self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         return
                     }
@@ -263,6 +286,9 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
+                        if self?.processResponseStatus(response.statusCode) == true {
+                            return
+                        }
                         self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         return
                     }
@@ -295,6 +321,9 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
+                        if self?.processResponseStatus(response.statusCode) == true {
+                            return
+                        }
                         if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
                             self?.tasks[task.date]![index].isCompleted.toggle()
                         }
@@ -322,6 +351,9 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
+                        if self?.processResponseStatus(response.statusCode) == true {
+                            return
+                        }
                         if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
                             self?.tasks[task.date]![index].title = oldTitle
                         }
@@ -365,6 +397,9 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
+                        if self?.processResponseStatus(response.statusCode) == true {
+                            return
+                        }
                         self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         return
                     }
@@ -411,6 +446,9 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
+                        if self?.processResponseStatus(response.statusCode) == true {
+                            return
+                        }
                         self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         return
                     }
@@ -483,6 +521,9 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     if 200...299 ~= response.statusCode {
+                        if self?.processResponseStatus(response.statusCode) == true {
+                            return
+                        }
                         print("🟢 \(date) 카테고리 \(categoryId) 순서 변경 성공")
                         self?.loadTasks(for: date, categoryId: categoryId)
                     } else {

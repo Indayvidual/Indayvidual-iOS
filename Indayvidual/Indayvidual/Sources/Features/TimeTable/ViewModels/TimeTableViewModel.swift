@@ -227,7 +227,7 @@ class TimetableViewModel: ObservableObject {
                     } else {
                         let responseBody = String(data: response.data, encoding: .utf8) ?? "No readable response body"
                         print("🟡 시간표 삭제 실패 [\(response.statusCode)]: \(responseBody)")
-                        self.alertService?.showAlert(message: "시간표 삭제 실패를 실패 했습니다. \n 다시 시도 해주세요. \(response.statusCode)", primaryButton: .primary(title: "확인", action: {}))
+                        self.alertService?.showAlert(message: "시간표 삭제 실패했습니다. \n 다시 시도 해주세요. \(response.statusCode)", primaryButton: .primary(title: "확인", action: {}))
                         completion?(false)
                     }
                 case .failure(let error):

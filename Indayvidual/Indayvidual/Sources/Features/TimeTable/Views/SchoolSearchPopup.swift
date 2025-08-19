@@ -65,9 +65,8 @@ struct SchoolSearchPopup: View {
 
                 .background(Color.white)
                 .cornerRadius(15)
-                .frame(height: 425)
                 .padding(.horizontal, 22)
-                
+                .frame(height: searchPerformed ? 425 : 205)
                 Spacer()
             }
         }

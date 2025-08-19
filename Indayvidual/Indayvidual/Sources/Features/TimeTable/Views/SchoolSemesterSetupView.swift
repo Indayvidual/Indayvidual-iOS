@@ -17,6 +17,7 @@ struct SchoolSemesterSetupView: View {
     @State private var showSchoolSearchPopup = false
     
     @ObservedObject var timetableVm: TimetableViewModel
+    @EnvironmentObject var alertService: AlertService
     
     var onCompletion: ((String, String) -> Void)? = nil
     var onSetupTapped: (() -> Void)? = nil
@@ -29,7 +30,8 @@ struct SchoolSemesterSetupView: View {
                 primaryAction: {
                     guard let schoolSeq = selectedSchoolSeq,
                           let schoolName = selectedSchoolName,
-                          let semester = selectedSemester else { return }
+                          let semester = selectedSemester,
+                          !timetableVm.hasRegisteredTimetable else { return }
                     
                     timetableVm.saveSchoolSemester(schoolSeq: schoolSeq, schoolName: schoolName, semester: semester)
                 },
@@ -37,7 +39,7 @@ struct SchoolSemesterSetupView: View {
                     timetableVm.showSchoolSemesterSetup = false
                     timetableVm.isSchoolRegistered = false
                 },
-                primaryButtonColor: (selectedSchoolName != nil && selectedSemester != nil) ? .gray900 : .gray100,
+                primaryButtonColor: (!timetableVm.hasRegisteredTimetable && selectedSchoolName != nil && selectedSemester != nil) ? .gray900 : .gray100,
                 headerLeftButton: {
                     AnyView(
                         Button(action: { dismiss() }) {
@@ -58,8 +60,20 @@ struct SchoolSemesterSetupView: View {
                             title: selectedSchoolName ?? "소속 대학명을 검색 하세요",
                             isSelected: selectedSchoolName != nil,
                             iconName: "Group",
-                            onTap: { showSchoolSearchPopup = true }
+                            onTap: {
+                                // ✅ 등록된 시간표가 있으면 변경 불가
+                                if timetableVm.hasRegisteredTimetable {
+                                    alertService.showAlert(
+                                        title: "학교 변경 불가",
+                                        message: "이미 등록된 시간표가 있어 학교를 변경할 수 없습니다. \n 등록된 시간표 삭제 후 이용해 주세요.",
+                                        primaryButton: .primary(title: "확인", action: {})
+                                    )
+                                } else {
+                                    showSchoolSearchPopup = true
+                                }
+                            }
                         )
+                        .foregroundColor(timetableVm.hasRegisteredTimetable ? .gray : .black)
                     }
                     
                     Spacer().frame(height: 50)
@@ -142,5 +156,8 @@ struct SemesterPickerView: View {
 
 
 #Preview {
-    SchoolSemesterSetupView(timetableVm: TimetableViewModel())
+    let timetableVm = TimetableViewModel()
+    
+    SchoolSemesterSetupView(timetableVm: timetableVm)
+        .environmentObject(AlertService())
 }

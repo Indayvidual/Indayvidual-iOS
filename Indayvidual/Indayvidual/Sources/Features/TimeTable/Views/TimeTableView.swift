@@ -10,6 +10,7 @@ import Kingfisher
 
 struct TimetableView: View {
     @StateObject private var timetableVm = TimetableViewModel()
+    @EnvironmentObject var alertService: AlertService
     
     var body: some View {
         NavigationStack {
@@ -37,8 +38,9 @@ struct TimetableView: View {
                 }
             }
             .task {
+                timetableVm.setup(alertService: alertService)
                 timetableVm.loadSavedSchool()
-
+                
                 if !timetableVm.isLoading {
                     await timetableVm.fetchTimetable()
                 }
@@ -96,7 +98,7 @@ private extension TimetableView {
                     // 학교 선택
                     SchoolSelectionBar(
                         schoolName: $timetableVm.selectedSchoolName,
-                        onTap: {}
+                        onTap: {timetableVm.showSchoolSemesterSetup  = true}
                     )
                     
                     // 학기 선택(드롭다운)
@@ -124,7 +126,6 @@ private extension TimetableView {
                     timetableContent()
                     Spacer()
                 }
-                
                 Spacer()
             }
         }
@@ -172,4 +173,5 @@ private extension TimetableView {
 
 #Preview {
     TimetableView()
+        .environmentObject(AlertService())
 }

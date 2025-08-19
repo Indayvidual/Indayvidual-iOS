@@ -16,7 +16,7 @@ struct CategoryRowView: View {
                 HStack {
                     NameField(
                         category: category,
-                        plusButtonAction: addChecklistItemIfAllowed
+                        plusButtonAction: { addChecklistItemIfAllowed(for: date, categoryId: category.categoryId ?? 0) }
                     )
                     .padding(.leading, 10)
                     Spacer()
@@ -114,8 +114,8 @@ struct CategoryRowView: View {
         }
     }
 
-    private func addChecklistItemIfAllowed() {
-        viewModel.addTempTask(for: date, categoryId: category.categoryId ?? 0)
+    private func addChecklistItemIfAllowed(for date: String, categoryId: Int) {
+        viewModel.addTempTask(for: date, categoryId: categoryId)
     }
 }
 
@@ -144,7 +144,8 @@ struct ChecklistRowWrapper: View {
                 }
             ),
             task: task,
-            actionViewModel: actionViewModel
+            actionViewModel: actionViewModel,
+            isNew: task.taskId == nil
         )
     }
 }

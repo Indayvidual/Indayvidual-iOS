@@ -12,11 +12,11 @@ struct IndayvidualTabView: View{
     //기본 선택된 탭
     @State var tabcase: TabCase = .home
     @StateObject private var calendarVm = CustomCalendarViewModel()
-    @StateObject private var todoViewModel: TodoViewModel
+    @StateObject private var todoViewModel = TodoViewModel()
     @StateObject private var homveVm = HomeViewModel()
+    @State private var hasSetupTodoViewModel = false 
 
     init() {
-        _todoViewModel = StateObject(wrappedValue: TodoViewModel(alertService: AlertService()))
         if let customFont = UIFont(name: "Pretendard-Regular", size: 12) {
             UITabBarItem.appearance().setTitleTextAttributes([.font: customFont], for: .normal)
             UITabBarItem.appearance().setTitleTextAttributes([.font: customFont], for: .selected)
@@ -32,8 +32,6 @@ struct IndayvidualTabView: View{
     
     // MARK: - Body
     var body: some View{
-        let _ = { self._todoViewModel.wrappedValue.alertService = alertService }()
-                
         TabView(selection: $tabcase, content: {
             ForEach(TabCase.allCases, id: \.rawValue){ tab in
                 Tab(
@@ -48,6 +46,12 @@ struct IndayvidualTabView: View{
             }
         })
         .tint(.black)
+        .onAppear {
+            if !hasSetupTodoViewModel {
+                todoViewModel.setup(with: alertService)
+                hasSetupTodoViewModel = true
+            }
+        }
     }
     
     private func tabLabel(_ tab: TabCase) -> some View{

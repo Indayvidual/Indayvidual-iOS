@@ -14,11 +14,13 @@ class TodoViewModel: ObservableObject {
     let categoryProvider = MoyaProvider<TodoCategoryAPITarget>()
     let taskProvider = MoyaProvider<TodoChecklistAPITarget>()
     
-    var alertService: AlertService
-    init(alertService: AlertService) {
-        self.alertService = alertService
+    var alertService: AlertService!
+    func setup(with alertService: AlertService) {
+        if self.alertService == nil { 
+            self.alertService = alertService
+        }
     }
-    
+        
     @Published var selectedDate: String = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -41,15 +43,20 @@ class TodoViewModel: ObservableObject {
         DispatchQueue.main.async {
             self.errorMessage = message
             
+            guard let alertService = self.alertService else {
+                print("⚠️ AlertService가 설정되지 않았습니다.")
+                return
+            }
+            
             if let retryAction = retry {
-                self.alertService.showAlert(
+                alertService.showAlert(
                     title: "오류 발생",
                     message: message,
                     primaryButton: .primary(title: "재시도", action: retryAction),
                     secondaryButton: .secondary(title: "확인", action: { }),
                 )
             } else {
-                self.alertService.showAlert(
+                alertService.showAlert(
                     title: "오류 발생",
                     message: message,
                     primaryButton: .primary(title: "확인", action: { })

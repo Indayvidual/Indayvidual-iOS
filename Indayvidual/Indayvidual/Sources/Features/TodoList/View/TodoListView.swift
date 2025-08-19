@@ -10,6 +10,7 @@ struct TodoListView: View {
     @ObservedObject var calendarViewModel: CustomCalendarViewModel
     @ObservedObject var homeViewModel: HomeViewModel
     @State private var path = NavigationPath()
+    @State private var hasLoadedInitialData = false
     
     var body: some View {
         NavigationStack(path: $path) {
@@ -86,7 +87,10 @@ struct TodoListView: View {
                 .scrollContentBackground(.hidden)
             }
             .onAppear {
-                refreshData()
+                if !hasLoadedInitialData {
+                    refreshData()
+                    hasLoadedInitialData = true
+                }
             }
             .background(.gray50)
             .navigationDestination(for: Route1.self) { route in
@@ -125,7 +129,8 @@ struct TodoListView: View {
     let schedule3 = ScheduleItem(id: 3, startTime: nil, endTime: nil, title: "휴가", color: .green, isAllDay: true)
     homeViewModel.filteredSchedules = [schedule1, schedule2, schedule3]
     
-    let todoViewModel = TodoViewModel(alertService: alertService)
+    let todoViewModel = TodoViewModel()
+    todoViewModel.setup(with: alertService)
     
     return TodoListView(
         viewModel: todoViewModel,

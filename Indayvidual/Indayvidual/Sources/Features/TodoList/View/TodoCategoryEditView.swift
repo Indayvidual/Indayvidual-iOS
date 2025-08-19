@@ -131,6 +131,9 @@ struct TodoCategoryEditView: View {
 }
 #Preview {
     let alertService = AlertService()
-    let todoViewModel = TodoViewModel(alertService: alertService)
+    let todoViewModel = TodoViewModel()
+    todoViewModel.setup(with: alertService)
+    
     return TodoCategoryEditView(viewModel: todoViewModel)
+        .environmentObject(alertService)
 }

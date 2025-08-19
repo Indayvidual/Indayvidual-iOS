@@ -242,7 +242,8 @@ struct TodoActionOptionRow: View {
 
 #Preview {
     let alertService = AlertService()
-    let todoViewModel = TodoViewModel(alertService: alertService)
+    let todoViewModel = TodoViewModel()
+    todoViewModel.setup(with: alertService)
     let actionViewModel = TodoActionViewModel(todoManager: todoViewModel)
     let dummyTask = TodoTask(
         taskId: 1,

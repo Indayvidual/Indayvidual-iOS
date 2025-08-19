@@ -278,7 +278,8 @@ struct SelectColorField: View {
 
 #Preview("TodoCategorySelectView - 등록") {
     let alertService = AlertService()
-    let todoViewModel = TodoViewModel(alertService: alertService)
+    let todoViewModel = TodoViewModel()
+    todoViewModel.setup(with: alertService)
 
     return NavigationView {
         TodoCategorySelectView(
@@ -288,11 +289,13 @@ struct SelectColorField: View {
             }
         )
     }
+    .environmentObject(alertService)
 }
 
 #Preview("TodoCategorySelectView - 수정") {
     let alertService = AlertService()
-    let todoViewModel = TodoViewModel(alertService: alertService)
+    let todoViewModel = TodoViewModel()
+    todoViewModel.setup(with: alertService)
 
     return TodoCategorySelectView(
         todoViewModel: todoViewModel,
@@ -303,4 +306,5 @@ struct SelectColorField: View {
             print("Preview - 카테고리 수정됨: \(name), 색상: \(color)")
         }
     )
+    .environmentObject(alertService)
 }

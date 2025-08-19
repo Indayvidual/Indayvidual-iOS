@@ -57,6 +57,9 @@ struct AddMemoView: View {
                 .disabled(vm.content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
             })
         }
+        .onTapGesture {
+            self.hideKeyboard()
+        }
     }
 }
 

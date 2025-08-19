@@ -26,7 +26,7 @@ final class EditProfileViewModel: ObservableObject {
     @Published var deleteErrorMessage: String?
 
     // MARK: - 닉네임 중복 확인
-    func checkUsername(_ username: String, currentNickname: String) {
+    func checkNickname(_ username: String, currentNickname: String) {
         guard !username.isEmpty else {
             isUsernameAvailable = nil
             usernameCheckMessage = nil
@@ -88,26 +88,26 @@ final class EditProfileViewModel: ObservableObject {
     }
 
     // MARK: - 비밀번호 변경
-    func changePassword(current: String, new: String, onDone: (() -> Void)? = nil) {
-        isUpdatingPassword = true
-        provider.request(.updatePassword(currentPassword: current, newPassword: new)) { [weak self] result in
-            guard let self = self else { return }
-            self.isUpdatingPassword = false
+    func changePassword(current: String, new: String, completion: ((Bool) -> Void)? = nil) {
+        provider.request(.updatePassword(currentPassword: current, newPassword: new)) { result in
             switch result {
-            case .success(let res):
-                switch res.statusCode {
-                case 200: self.toastMessage = "비밀번호가 변경되었습니다."; onDone?()
-                case 400: self.toastMessage = "새 비밀번호가 현재 비밀번호와 동일합니다."
-                case 401: self.toastMessage = "재인증 필요 또는 현재 비밀번호가 일치하지 않습니다."
-                case 404: self.toastMessage = "사용자를 찾을 수 없습니다."
-                case 409: self.toastMessage = "소셜-only 계정은 비밀번호 변경이 불가합니다."
-                default:  self.toastMessage = "비밀번호 변경에 실패했습니다."
+            case .success(let response):
+                do {
+                    let dto = try JSONDecoder().decode(CommonResponseDTO.self, from: response.data)
+                    if dto.isSuccess {
+                        completion?(true)
+                    } else {
+                        completion?(false)
+                    }
+                } catch {
+                    completion?(false)
                 }
             case .failure:
-                self.toastMessage = "네트워크 오류로 비밀번호 변경에 실패했습니다."
+                completion?(false)
             }
         }
     }
+
 
     // MARK: - 내 프로필 조회 (ProfileResponseDTO 사용)
     func fetchMyProfile(completion: @escaping (Profile?) -> Void) {

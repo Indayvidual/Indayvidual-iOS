@@ -35,27 +35,12 @@ struct TodoListView: View {
                                 }
                             }
                         )
-                        .padding(.vertical, 26)
+                        .padding(.vertical, 18)
                         .padding(.horizontal, 28)
                         
                         // task
                         if viewModel.categories.isEmpty {
-                            VStack {
-                                Image("todo_checkbox")
-                                    .resizable()
-                                    .frame(width: 45, height: 45)
-                                Spacer().frame(height: 16)
-                                Text("등록된 할 일이 없습니다.")
-                                    .font(.pretendMedium14)
-                                    .foregroundStyle(.gray500)
-                                Spacer().frame(height: 6)
-                                Text("하단 + 버튼을 눌러서 카테고리를 생성해보세요.")
-                                    .font(.pretendMedium12)
-                                    .foregroundStyle(.gray500)
-                            }
-                            .padding(.horizontal, 10)
-                            .padding(.top, 80)
-                            
+                            EmptyTodoView().padding(.top, 120)
                         } else {
                             LazyVStack(spacing: 0) {
                                 ForEach(Array(viewModel.categories.enumerated()), id: \.element.categoryId) { index, category in
@@ -132,10 +117,10 @@ struct TodoListView: View {
 #Preview {
     let alertService = AlertService()
     let homeViewModel = HomeViewModel()
-    let schedule1 = ScheduleItem(id: 1, startTime: Date(), endTime: Date().addingTimeInterval(3600), title: "회의", color: .blue, isAllDay: false)
-    let schedule2 = ScheduleItem(id: 2, startTime: Date().addingTimeInterval(7200), endTime: Date().addingTimeInterval(10800), title: "점심 약속", color: .orange, isAllDay: false)
-    let schedule3 = ScheduleItem(id: 3, startTime: nil, endTime: nil, title: "휴가", color: .green, isAllDay: true)
-    homeViewModel.filteredSchedules = [schedule1, schedule2, schedule3]
+//    let schedule1 = ScheduleItem(id: 1, startTime: Date(), endTime: Date().addingTimeInterval(3600), title: "회의", color: .blue, isAllDay: false)
+//    let schedule2 = ScheduleItem(id: 2, startTime: Date().addingTimeInterval(7200), endTime: Date().addingTimeInterval(10800), title: "점심 약속", color: .orange, isAllDay: false)
+//    let schedule3 = ScheduleItem(id: 3, startTime: nil, endTime: nil, title: "휴가", color: .green, isAllDay: true)
+//    homeViewModel.filteredSchedules = [schedule1, schedule2, schedule3]
     
     let todoViewModel = TodoViewModel()
     todoViewModel.setup(with: alertService)

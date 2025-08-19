@@ -345,7 +345,7 @@ class TodoViewModel: ObservableObject {
                         if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
                             self?.tasks[task.date]![index].title = oldTitle
                         }
-                        self?.handleError("파싱 에러: \(error.localizedDescription)")
+                        //self?.handleError("파싱 에러: \(error.localizedDescription)")
                     }
                 case .failure(let error):
                     if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {

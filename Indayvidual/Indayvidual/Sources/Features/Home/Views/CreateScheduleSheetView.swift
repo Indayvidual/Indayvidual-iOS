@@ -70,7 +70,7 @@ struct CreateScheduleSheetView: View {
                     }
                     .padding(.horizontal, 15.4)
                     .padding(.bottom, 15)
-                        
+                    
                     ScheduleInput(
                         title: $viewModel.title,
                         selectedStartTime: $viewModel.startTime,
@@ -84,6 +84,9 @@ struct CreateScheduleSheetView: View {
                     Spacer().frame(height: 20)
                 }
             }
+        }
+        .onTapGesture {
+            self.hideKeyboard()
         }
         .sheet(isPresented: $viewModel.showColorPickerSheet) {
             ColorPickerSheetView(

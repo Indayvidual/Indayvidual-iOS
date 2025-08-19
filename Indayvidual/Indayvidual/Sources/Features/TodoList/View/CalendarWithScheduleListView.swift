@@ -33,8 +33,6 @@ struct CalendarWithScheduleListView: View {
                 }
             )
 
-
-
             if !homeViewModel.filteredSchedules.isEmpty {
                 Divider()
                     .padding(.horizontal, 33)
@@ -70,6 +68,10 @@ struct ScheduleCard: View {
 
     var body: some View {
         HStack(spacing: 10) {
+            Circle()
+                .fill(schedule.color)
+                .frame(width: 6, height: 6)
+            
             if schedule.isAllDay {
                 Text("하루종일")
                     .font(.pretendRegular14)

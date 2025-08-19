@@ -26,32 +26,36 @@ struct ScheduleInput: View {
     var body: some View {
         VStack(spacing: 20) {
             TextFieldView(searchText: $title)
-
+                .padding(.horizontal, 15)
+            
             Divider()
                 .padding(.bottom, 10)
-
-            if !isAllDay {  // 하루 종일이 아닐 경우에만 표시
-                TimePickerSectionView(
-                    title: "시작",
-                    selectedTime: $selectedStartTime,
-                    isTimePickerVisible: $showStartTimePicker,
-                    togglePicker: { scheduleInputVm.toggleStartTimePicker(showStart: $showStartTimePicker, showEnd: $showEndTimePicker) }
-                )
-
-                if showEndSection {   // 종료시간 토글이 ON일 경우에만 표시
+            
+            Group{
+                if !isAllDay {  // 하루 종일이 아닐 경우에만 표시
                     TimePickerSectionView(
-                        title: "종료",
-                        selectedTime: $selectedEndTime,
-                        isTimePickerVisible: $showEndTimePicker,
-                        togglePicker: { scheduleInputVm.toggleEndTimePicker(showStart: $showStartTimePicker, showEnd: $showEndTimePicker) }
+                        title: "시작",
+                        selectedTime: $selectedStartTime,
+                        isTimePickerVisible: $showStartTimePicker,
+                        togglePicker: { scheduleInputVm.toggleStartTimePicker(showStart: $showStartTimePicker, showEnd: $showEndTimePicker) }
                     )
-                }
-            }
 
-            TimeToggle(
-                showEndSection: $showEndSection,
-                isAllDay: $isAllDay
-            )
+                    if showEndSection {   // 종료시간 토글이 ON일 경우에만 표시
+                        TimePickerSectionView(
+                            title: "종료",
+                            selectedTime: $selectedEndTime,
+                            isTimePickerVisible: $showEndTimePicker,
+                            togglePicker: { scheduleInputVm.toggleEndTimePicker(showStart: $showStartTimePicker, showEnd: $showEndTimePicker) }
+                        )
+                    }
+                }
+
+                TimeToggle(
+                    showEndSection: $showEndSection,
+                    isAllDay: $isAllDay
+                )
+            }
+            .padding(.horizontal, 20)
 
         }
         .onChange(of: isAllDay, initial: false) { oldValue, newValue in
@@ -72,7 +76,8 @@ struct ScheduleInput: View {
                 .disableAutocorrection(true)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 15)
-                .frame(width: 335, height: 48)
+                .frame(height: 48)
+                .frame(maxWidth: .infinity)
                 .background(Color.white)
                 .cornerRadius(8)
                 .overlay(
@@ -107,7 +112,6 @@ struct ScheduleInput: View {
                                 .font(.pretendRegular15)
                                 .foregroundColor(.gray900)
                         }
-                        .padding(.horizontal, 15)
                         .frame(width: 100, height: 33)
                         .background(Color.gray.opacity(0.1))
                         .cornerRadius(8)

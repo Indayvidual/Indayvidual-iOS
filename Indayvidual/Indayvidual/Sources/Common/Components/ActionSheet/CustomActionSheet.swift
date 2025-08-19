@@ -89,19 +89,19 @@ struct CustomActionSheet<Content: View>: View {
             }
             .padding(.top, 30.58)
             .padding(.bottom, 17.69)
-            .padding(.horizontal, 15.4)
-            if showBottomDivider {
+            .padding(.horizontal, 30.4)
+            if showTopDivider {
                 Divider()
-                    .padding(.horizontal, 15.4)
+                    .padding(.horizontal, 20.4)
                     .padding(.bottom, 20)
             }
 
-            content.padding(.horizontal, 15)
+            content.padding(.horizontal, 17)
             Spacer()
             
-            if showTopDivider {
+            if showBottomDivider {
                 Divider()
-                    .padding(.horizontal, 15.4)
+                    .padding(.horizontal, 20.4)
                     .padding(.bottom, 20)
             }
             

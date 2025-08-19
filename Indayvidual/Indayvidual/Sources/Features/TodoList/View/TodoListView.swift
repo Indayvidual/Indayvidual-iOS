@@ -10,6 +10,7 @@ struct TodoListView: View {
     @ObservedObject var calendarViewModel: CustomCalendarViewModel
     @ObservedObject var homeViewModel: HomeViewModel
     @State private var path = NavigationPath()
+    @State private var hasLoadedInitialData = false
     
     var body: some View {
         NavigationStack(path: $path) {
@@ -86,7 +87,10 @@ struct TodoListView: View {
                 .scrollContentBackground(.hidden)
             }
             .onAppear {
-                refreshData()
+                if !hasLoadedInitialData {
+                    refreshData()
+                    hasLoadedInitialData = true
+                }
             }
             .background(.gray50)
             .navigationDestination(for: Route1.self) { route in
@@ -118,41 +122,20 @@ struct TodoListView: View {
 }
 
 #Preview {
-    // 테스트용 일정
+    let alertService = AlertService()
     let homeViewModel = HomeViewModel()
-
-    let schedule1 = ScheduleItem(
-        id: 1,
-        startTime: Date(),
-        endTime: Date().addingTimeInterval(3600),
-        title: "회의",
-        color: .blue,
-        isAllDay: false
-    )
-
-    let schedule2 = ScheduleItem(
-        id: 2,
-        startTime: Date().addingTimeInterval(7200),
-        endTime: Date().addingTimeInterval(10800),
-        title: "점심 약속",
-        color: .orange,
-        isAllDay: false
-    )
-
-    let schedule3 = ScheduleItem(
-        id: 3,
-        startTime: nil,
-        endTime: nil,
-        title: "휴가",
-        color: .green,
-        isAllDay: true
-    )
-
+    let schedule1 = ScheduleItem(id: 1, startTime: Date(), endTime: Date().addingTimeInterval(3600), title: "회의", color: .blue, isAllDay: false)
+    let schedule2 = ScheduleItem(id: 2, startTime: Date().addingTimeInterval(7200), endTime: Date().addingTimeInterval(10800), title: "점심 약속", color: .orange, isAllDay: false)
+    let schedule3 = ScheduleItem(id: 3, startTime: nil, endTime: nil, title: "휴가", color: .green, isAllDay: true)
     homeViewModel.filteredSchedules = [schedule1, schedule2, schedule3]
-
+    
+    let todoViewModel = TodoViewModel()
+    todoViewModel.setup(with: alertService)
+    
     return TodoListView(
-        viewModel: TodoViewModel(),
+        viewModel: todoViewModel,
         calendarViewModel: CustomCalendarViewModel(),
         homeViewModel: homeViewModel
     )
+    .environmentObject(alertService)
 }

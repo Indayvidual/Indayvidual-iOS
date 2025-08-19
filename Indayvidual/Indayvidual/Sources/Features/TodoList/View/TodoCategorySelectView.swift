@@ -59,7 +59,7 @@ struct TodoCategorySelectView: View {
                 Spacer().frame(height: 32)
                 CustomPlaceholderTextField(text: $categoryName)
                 SelectColorField(selectedColor: $selectedColor, showColorPicker: $showColorPicker)
-                statusView
+                //statusView
                 Spacer().frame(height: 20)
                 
                 Button {
@@ -94,7 +94,7 @@ struct TodoCategorySelectView: View {
             Spacer().frame(height: 8)
             CustomPlaceholderTextField(text: $categoryName)
             SelectColorField(selectedColor: $selectedColor, showColorPicker: $showColorPicker)
-            statusView
+            //statusView
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -277,19 +277,28 @@ struct SelectColorField: View {
 }
 
 #Preview("TodoCategorySelectView - 등록") {
-    NavigationView {
+    let alertService = AlertService()
+    let todoViewModel = TodoViewModel()
+    todoViewModel.setup(with: alertService)
+
+    return NavigationView {
         TodoCategorySelectView(
-            todoViewModel: TodoViewModel(),
+            todoViewModel: todoViewModel,
             onCategoryAdded: { name, color in
                 print("Preview - 카테고리 추가됨: \(name), 색상: \(color)")
             }
         )
     }
+    .environmentObject(alertService)
 }
 
 #Preview("TodoCategorySelectView - 수정") {
-    TodoCategorySelectView(
-        todoViewModel: TodoViewModel(),
+    let alertService = AlertService()
+    let todoViewModel = TodoViewModel()
+    todoViewModel.setup(with: alertService)
+
+    return TodoCategorySelectView(
+        todoViewModel: todoViewModel,
         initialName: "기존 카테고리",
         initialColor: .blue,
         isEditMode: true,
@@ -297,4 +306,5 @@ struct SelectColorField: View {
             print("Preview - 카테고리 수정됨: \(name), 색상: \(color)")
         }
     )
+    .environmentObject(alertService)
 }

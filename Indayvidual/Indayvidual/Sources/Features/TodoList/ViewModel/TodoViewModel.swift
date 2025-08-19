@@ -13,7 +13,14 @@ import Moya
 class TodoViewModel: ObservableObject {
     let categoryProvider = MoyaProvider<TodoCategoryAPITarget>()
     let taskProvider = MoyaProvider<TodoChecklistAPITarget>()
-
+    
+    var alertService: AlertService!
+    func setup(with alertService: AlertService) {
+        if self.alertService == nil { 
+            self.alertService = alertService
+        }
+    }
+        
     @Published var selectedDate: String = {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
@@ -30,6 +37,34 @@ class TodoViewModel: ObservableObject {
 
     @Published var tasks: [String: [TodoTask]] = [:] // 날짜별로 관리
 
+    // MARK: - handleError 함수
+    private func handleError(_ message: String, retry: (() -> Void)? = nil) {
+        print("🔴 [ERROR] \(message)")
+        DispatchQueue.main.async {
+            self.errorMessage = message
+            
+            guard let alertService = self.alertService else {
+                print("⚠️ AlertService가 설정되지 않았습니다.")
+                return
+            }
+            
+            if let retryAction = retry {
+                alertService.showAlert(
+                    title: "오류 발생",
+                    message: message,
+                    primaryButton: .primary(title: "재시도", action: retryAction),
+                    secondaryButton: .secondary(title: "확인", action: { }),
+                )
+            } else {
+                alertService.showAlert(
+                    title: "오류 발생",
+                    message: message,
+                    primaryButton: .primary(title: "확인", action: { })
+                )
+            }
+        }
+    }
+    
     // MARK: - Task 조회
     func tasks(for date: String) -> [TodoTask] {
         return tasks[date] ?? []
@@ -96,15 +131,16 @@ class TodoViewModel: ObservableObject {
             }
         }
     }
-
+    
     // 단일 카테고리 할 일 - 서버에서 데이터 로드
     func fetchTasks(for categoryId: Int, date: String, completion: @escaping ([TodoTask], Bool) -> Void) {
-        errorMessage = nil
         taskProvider.request(.getTasks(categoryId: categoryId, date: date)) { result in
             switch result {
             case .success(let response):
                 guard 200...299 ~= response.statusCode else {
-                    self.errorMessage = "서버 에러: HTTP \(response.statusCode)"
+                    self.handleError("서버 에러: HTTP \(response.statusCode)", retry: {
+                        self.fetchTasks(for: categoryId, date: date, completion: completion)
+                    })
                     completion([], false)
                     return
                 }
@@ -129,20 +165,22 @@ class TodoViewModel: ObservableObject {
                         
                         completion(fetchedTasks, true)
                     } else {
-                        self.errorMessage = apiResponse.message
+                        self.handleError(apiResponse.message )
                         completion([], false)
                     }
                 } catch {
-                    self.errorMessage = "파싱 에러: \(error.localizedDescription)"
+                    self.handleError("파싱 에러: \(error.localizedDescription)")
                     completion([], false)
                 }
             case .failure(let error):
-                self.errorMessage = "조회 실패: \(error.localizedDescription)"
+                self.handleError("네트워크 오류: \(error.localizedDescription)", retry: {
+                    self.fetchTasks(for: categoryId, date: date, completion: completion)
+                })
                 completion([], false)
             }
         }
     }
-
+    
     // 모든 카테고리 단일 fetch
     func fetchAllTasks(for date: String) {
         for category in categories {
@@ -153,16 +191,14 @@ class TodoViewModel: ObservableObject {
 
     // MARK: - 카테고리 추가/조회
     func addCategory(name: String, color: Color, completion: ((Bool) -> Void)? = nil) {
-        errorMessage = nil
-
         let colorHex = color.toHex()
-
+        
         categoryProvider.request(TodoCategoryAPITarget.postCategories(name: name, color: colorHex)) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        self?.errorMessage = "서버 에러: HTTP \(response.statusCode)"
+                        self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         completion?(false)
                         return
                     }
@@ -173,15 +209,15 @@ class TodoViewModel: ObservableObject {
                             self?.fetchCategories()
                             completion?(true)
                         } else {
-                            self?.errorMessage = apiResponse.message
+                            self?.handleError(apiResponse.message)
                             completion?(false)
                         }
                     } catch {
-                        self?.errorMessage = "디코딩 실패: \(error.localizedDescription)"
+                        self?.handleError("디코딩 실패: \(error.localizedDescription)")
                         completion?(false)
                     }
                 case .failure(let error):
-                    self?.errorMessage = "등록 실패: \(error.localizedDescription)"
+                    self?.handleError("등록 실패: \(error.localizedDescription)")
                     completion?(false)
                 }
             }
@@ -189,13 +225,12 @@ class TodoViewModel: ObservableObject {
     }
 
     func fetchCategories() {
-        errorMessage = nil
         categoryProvider.request(.getCategories) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        self?.errorMessage = "서버 에러: HTTP \(response.statusCode)"
+                        self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         return
                     }
                     do {
@@ -209,13 +244,13 @@ class TodoViewModel: ObservableObject {
                                 )
                             }
                         } else {
-                            self?.errorMessage = apiResponse.message
+                            self?.handleError(apiResponse.message )
                         }
                     } catch {
-                        self?.errorMessage = "파싱 에러: \(error.localizedDescription)"
+                        self?.handleError("파싱 에러: \(error.localizedDescription)")
                     }
                 case .failure(let error):
-                    self?.errorMessage = "조회 실패: \(error.localizedDescription)"
+                    self?.handleError("조회 실패: \(error.localizedDescription)")
                 }
             }
         }
@@ -223,13 +258,12 @@ class TodoViewModel: ObservableObject {
 
     // MARK: - Task 추가/변경/삭제/이동
     func addTask(title: String, categoryId: Int, date: String) {
-        errorMessage = nil
         taskProvider.request(.postTasks(categoryId: categoryId, title: title, date: date)) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        self?.errorMessage = "서버 에러: HTTP \(response.statusCode)"
+                        self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         return
                     }
                     do {
@@ -237,13 +271,13 @@ class TodoViewModel: ObservableObject {
                         if apiResponse.isSuccess {
                             self?.loadTasks(for: date)
                         } else {
-                            self?.errorMessage = apiResponse.message
+                            self?.handleError(apiResponse.message)
                         }
                     } catch {
-                        self?.errorMessage = "파싱 에러: \(error.localizedDescription)"
+                        self?.handleError("파싱 에러: \(error.localizedDescription)")
                     }
                 case .failure(let error):
-                    self?.errorMessage = "추가 실패: \(error.localizedDescription)"
+                    self?.handleError("추가 실패: \(error.localizedDescription)")
                 }
             }
         }
@@ -255,7 +289,6 @@ class TodoViewModel: ObservableObject {
         var updatedTask = tasks[task.date]![index]
         updatedTask.isCompleted.toggle()
         tasks[task.date]![index] = updatedTask
-        errorMessage = nil
 
         taskProvider.request(.patchCheck(taskId: taskId, isCompleted: updatedTask.isCompleted)) { [weak self] result in
             DispatchQueue.main.async {
@@ -265,14 +298,14 @@ class TodoViewModel: ObservableObject {
                         if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
                             self?.tasks[task.date]![index].isCompleted.toggle()
                         }
-                        self?.errorMessage = "서버 에러: HTTP \(response.statusCode)"
+                        self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         return
                     }
                 case .failure(let error):
                     if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
                         self?.tasks[task.date]![index].isCompleted.toggle()
                     }
-                    self?.errorMessage = "체크 실패: \(error.localizedDescription)"
+                    self?.handleError("체크 실패: \(error.localizedDescription)")
                 }
             }
         }
@@ -283,7 +316,6 @@ class TodoViewModel: ObservableObject {
         guard let index = tasks[task.date]?.firstIndex(where: { $0.id == task.id }) else { return }
         let oldTitle = tasks[task.date]![index].title
         tasks[task.date]![index].title = newTitle
-        errorMessage = nil
 
         taskProvider.request(.patchTitle(taskId: taskId, title: newTitle)) { [weak self] result in
             DispatchQueue.main.async {
@@ -293,7 +325,7 @@ class TodoViewModel: ObservableObject {
                         if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
                             self?.tasks[task.date]![index].title = oldTitle
                         }
-                        self?.errorMessage = "서버 에러: HTTP \(response.statusCode)"
+                        self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         return
                     }
                     do {
@@ -307,19 +339,19 @@ class TodoViewModel: ObservableObject {
                             if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
                                 self?.tasks[task.date]![index].title = oldTitle
                             }
-                            self?.errorMessage = apiResponse.message
+                            self?.handleError(apiResponse.message)
                         }
                     } catch {
                         if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
                             self?.tasks[task.date]![index].title = oldTitle
                         }
-                        self?.errorMessage = "파싱 에러: \(error.localizedDescription)"
+                        self?.handleError("파싱 에러: \(error.localizedDescription)")
                     }
                 case .failure(let error):
                     if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
                         self?.tasks[task.date]![index].title = oldTitle
                     }
-                    self?.errorMessage = "제목 수정 실패: \(error.localizedDescription)"
+                    self?.handleError("제목 수정 실패: \(error.localizedDescription)")
                 }
             }
         }
@@ -327,13 +359,13 @@ class TodoViewModel: ObservableObject {
 
     func moveTask(_ task: TodoTask, to newDate: String) {
         guard let taskId = task.taskId else { return }
-        errorMessage = nil
+
         taskProvider.request(.patchDueDate(taskId: taskId, date: newDate)) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        self?.errorMessage = "서버 에러: HTTP \(response.statusCode)"
+                        self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         return
                     }
                     do {
@@ -355,13 +387,13 @@ class TodoViewModel: ObservableObject {
                                 self?.tasks[newDate]?.append(updatedTask)
                             }
                         } else {
-                            self?.errorMessage = apiResponse.message
+                            self?.handleError(apiResponse.message)
                         }
                     } catch {
-                        self?.errorMessage = "파싱 에러: \(error.localizedDescription)"
+                        self?.handleError("파싱 에러: \(error.localizedDescription)")
                     }
                 case .failure(let error):
-                    self?.errorMessage = "날짜 이동 실패: \(error.localizedDescription)"
+                    self?.handleError("날짜 이동 실패: \(error.localizedDescription)")
                 }
             }
         }
@@ -373,14 +405,13 @@ class TodoViewModel: ObservableObject {
     
     func deleteTask(_ task: TodoTask) {
         guard let taskId = task.taskId else { return }
-        errorMessage = nil
 
         taskProvider.request(.deleteTasks(taskId: taskId)) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        self?.errorMessage = "서버 에러: HTTP \(response.statusCode)"
+                        self?.handleError("서버 에러: HTTP \(response.statusCode)")
                         return
                     }
                     do {
@@ -396,7 +427,7 @@ class TodoViewModel: ObservableObject {
                             // 2) 서버 최신 데이터로 다시 동기화
                             self?.loadTasks(for: task.date)
                         } else {
-                            self?.errorMessage = apiResponse.message
+                            self?.handleError(apiResponse.message)
                         }
                     } catch {
                         // 응답/파싱 오류 시에도 즉시 로컬 삭제 시도, 이후 서버 fetch로 보정
@@ -410,7 +441,7 @@ class TodoViewModel: ObservableObject {
                     }
 
                 case .failure(let error):
-                    self?.errorMessage = "삭제 실패: \(error.localizedDescription)"
+                    self?.handleError("삭제 실패: \(error.localizedDescription)")
                 }
             }
         }
@@ -428,8 +459,8 @@ class TodoViewModel: ObservableObject {
         let newCategoryTasks = taskOrderInfos.map { info in
             // 기존 task 객체에 새로운 order 값만 반영
             var task = self.tasks(for: date, categoryId: categoryId).first { $0.taskId == info.taskId } ??
-                       // 기존 task를 찾지 못할 경우를 대비하여 더미 생성
-                       TodoTask(taskId: info.taskId, categoryId: info.categoryId, title: "", isCompleted: false, order: info.order, date: date)
+                        // 기존 task를 찾지 못할 경우를 대비하여 더미 생성
+                        TodoTask(taskId: info.taskId, categoryId: info.categoryId, title: "", isCompleted: false, order: info.order, date: date)
             task.order = info.order
             return task
         }
@@ -456,10 +487,16 @@ class TodoViewModel: ObservableObject {
                         self?.loadTasks(for: date, categoryId: categoryId)
                     } else {
                         print("🔴 \(date) 카테고리 \(categoryId) 순서 변경 실패: HTTP \(response.statusCode)")
+                        self?.handleError("순서 변경 실패: HTTP \(response.statusCode)", retry: {
+                            self?.updateTaskOrderForCategory(date: date, taskOrderInfos: taskOrderInfos)
+                        })
                         self?.loadTasks(for: date, categoryId: categoryId)
                     }
                 case .failure(let error):
                     print("🔴 \(date) 카테고리 \(categoryId) 순서 변경 실패: \(error)")
+                    self?.handleError("순서 변경 실패: \(error.localizedDescription)", retry: {
+                        self?.updateTaskOrderForCategory(date: date, taskOrderInfos: taskOrderInfos)
+                    })
                     self?.loadTasks(for: date, categoryId: categoryId)
                 }
             }

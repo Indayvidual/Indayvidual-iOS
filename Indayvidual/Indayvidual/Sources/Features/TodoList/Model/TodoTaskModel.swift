@@ -15,7 +15,7 @@ struct TodoTask: Identifiable, Hashable {
     var isCompleted: Bool
     var order: Int
     let date: String // "yyyy-MM-dd"
-    
+    var isNew: Bool = false //키보드 활성화 목적 
     // 날짜 비교 목적
     var taskDate: Date {
         let formatter = DateFormatter()

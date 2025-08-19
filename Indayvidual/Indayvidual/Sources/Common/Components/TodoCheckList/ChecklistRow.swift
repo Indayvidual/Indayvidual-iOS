@@ -11,6 +11,8 @@ struct ChecklistRow: View {
     @FocusState private var isFocused: Bool
     @State private var didCommit = false
     
+    let isNew: Bool
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center) {
@@ -40,6 +42,11 @@ struct ChecklistRow: View {
         }
         .onAppear {
             localText = text
+            if isNew {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    isFocused = true
+                }
+            }
         }
     }
     
@@ -273,7 +280,8 @@ private struct PreviewWrapper: View {
             isChecked: $isChecked,
             text: $todoText,
             task: task,
-            actionViewModel: actionViewModel
+            actionViewModel: actionViewModel,
+            isNew: true
         )
         .padding()
     }

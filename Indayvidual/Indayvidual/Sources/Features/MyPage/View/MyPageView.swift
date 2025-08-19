@@ -5,6 +5,13 @@
 //  Created by Jung Hyun Han on 7/27/25.
 //
 
+//
+//  MyPageView.swift
+//  Indayvidual
+//
+//  Created by Jung Hyun Han on 7/27/25.
+//
+
 import SwiftUI
 
 private enum SettingsRoute: Hashable {
@@ -16,77 +23,68 @@ struct MyPageView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var userSession: UserSession
     @StateObject private var viewModel = MyPageViewModel()
+
     @State private var path: [SettingsRoute] = []
 
-    // 탈퇴 관련 상태
-    @State private var showDeleteConfirm = false
-    @State private var showDeleteResult = false
-    @State private var deleteResultMessage: String = ""
+    // 편집 완료 토스트
+    var showEditToast: Bool = false
+    @State private var showToast = false
 
     var body: some View {
-        NavigationStack(path: $path) {
-            VStack(spacing: 0) {
-                header
-                profileCard
-                Spacer().frame(height: 10)
-                menuCards
-//                deleteCard
-            }
-            .background(Color("gray-50"))
-            .navigationDestination(for: SettingsRoute.self) { route in
-                switch route {
-                case .passwordConfirm:
-                    PasswordConfirmView { profile in
-                        path.append(.profileEdit(profile))
-                    } onKakaoVerified: { profile in
-                        path.append(.profileEdit(profile))
-                    }
+        ZStack {
+            NavigationStack(path: $path) {
+                VStack(spacing: 0) {
+                    header
+                    profileCard
+                    Spacer().frame(height: 10)
+                    menuCards
+                    Spacer()
+                }
+                .background(Color("gray-50"))
+                .navigationDestination(for: SettingsRoute.self) { route in
+                    switch route {
+                    case .passwordConfirm:
+                        PasswordConfirmView { profile in
+                            path.append(.profileEdit(profile))
+                        } onKakaoVerified: { profile in
+                            path.append(.profileEdit(profile))
+                        }
 
-                case .profileEdit(let profile):
-                    EditProfileView(profile: profile) {
-                        viewModel.refreshIfReauthValid(session: userSession)
+                    case .profileEdit(let profile):
+                        // 저장하면 마이페이지로 복귀 + 토스트 3초 노출
+                        EditProfileView(profile: profile) {
+                            viewModel.refreshIfReauthValid(session: userSession)
+                            path.removeAll() // 루트(MyPage)로 복귀
+                            withAnimation { showToast = true }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                withAnimation { showToast = false }
+                            }
+                        }
                     }
                 }
+            }
+            .overlay(loadingOverlay)
+
+            // 편집 완료 토스트
+            if showToast {
+                EditDoneToast()
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(1)
             }
         }
         .onAppear {
             viewModel.preload(from: userSession)
             viewModel.refreshIfReauthValid(session: userSession)
-        }
-        .task { viewModel.refreshIfReauthValid(session: userSession) }
-        .overlay(loadingOverlay)
-        // 삭제 진행 로딩
-        .overlay {
-            if viewModel.isDeleting {
-                ZStack {
-                    Color.black.opacity(0.05).ignoresSafeArea()
-                    ProgressView("탈퇴 진행 중…")
-                        .padding(16)
-                        .background(Color("gray-white"))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+
+            // 외부에서 true로 주입되면 자동 표시
+            if showEditToast {
+                withAnimation { showToast = true }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                    withAnimation { showToast = false }
                 }
             }
         }
-        // 결과 알림
-        .alert("알림", isPresented: $showDeleteResult) {
-            Button("확인") { }
-        } message: {
-            Text(deleteResultMessage)
-        }
-        // 확인 알럿
-        .alert("정말 탈퇴하시겠어요?", isPresented: $showDeleteConfirm) {
-            Button("취소", role: .cancel) { }
-//            Button("탈퇴", role: .destructive) { performDelete(hard: false) }
-        } message: {
-            Text("기본은 소프트 삭제입니다. 필요 시 하드 삭제로 변경할 수 있어요.")
-        }
-        // 프로필 로드 실패 알럿
-        .alert("프로필 로드 실패",
-               isPresented: .constant(viewModel.loadErrorMessage != nil)) {
-            Button("확인") { viewModel.loadErrorMessage = nil }
-        } message: {
-            Text(viewModel.loadErrorMessage ?? "")
-        }
+        .task { viewModel.refreshIfReauthValid(session: userSession) }
     }
 
     // MARK: - Views
@@ -121,7 +119,6 @@ struct MyPageView: View {
                 }
             }
             Spacer()
-//            Button("로그아웃") { userSession.clear() }
         }
         .padding(20)
         .background(Color("gray-white"))
@@ -161,46 +158,9 @@ struct MyPageView: View {
             }
             .background(Color("gray-white"))
             .clipShape(RoundedRectangle(cornerRadius: 12))
-
-            Spacer()
-            Button("로그아웃") {
-                        
-                        userSession.clear()
-                       
-                    }
         }
         .padding(.horizontal, 20)
     }
-
-//    private var deleteCard: some View {
-//        VStack(spacing: 0) {
-//            Button {
-//                // 재인증 토큰 없거나 만료 → 재인증 화면으로
-//                if userSession.reauthToken.isEmpty || Date() >= userSession.reauthExpiry {
-//                    path.append(.passwordConfirm)
-//                } else {
-//                    // 바로 알럿 띄워서 진행
-//                    showDeleteConfirm = true
-//                }
-//            } label: {
-//                HStack {
-//                    Image(systemName: "trash")
-//                        .foregroundStyle(.red)
-//                    Text("회원 탈퇴")
-//                        .font(.pretendSemiBold16)
-//                        .foregroundStyle(.red)
-//                    Spacer()
-//                    Image(systemName: "chevron.right")
-//                        .foregroundStyle(.red.opacity(0.7))
-//                }
-//                .padding(20)
-//                .background(Color("gray-white"))
-//            }
-//        }
-//        .clipShape(RoundedRectangle(cornerRadius: 12))
-//        .padding(.horizontal, 20)
-//        .padding(.top, 10)
-//    }
 
     private var loadingOverlay: some View {
         Group {
@@ -215,28 +175,26 @@ struct MyPageView: View {
             }
         }
     }
+}
 
-    // MARK: - Actions
-
-//    private func performDelete(hard: Bool) {
-//        let token = userSession.reauthToken
-//        guard !token.isEmpty, Date() < userSession.reauthExpiry else {
-//            // 토큰 없거나 만료 → 재인증 화면으로 유도
-//            deleteResultMessage = "재인증이 필요합니다. 비밀번호 또는 카카오로 재인증을 진행해 주세요."
-//            showDeleteResult = true
-//            path.append(.passwordConfirm)
-//            return
-//        }
-//        viewModel.deleteAccount(hard: hard) { ok in
-//            if ok {
-//                userSession.clear()
-//                deleteResultMessage = "탈퇴가 완료되었습니다."
-//            } else {
-//                deleteResultMessage = viewModel.deleteErrorMessage ?? "탈퇴 실패"
-//            }
-//            showDeleteResult = true
-//        }
-//    }
+// MARK: - 편집 완료 토스트 뷰 (디자인 유사)
+private struct EditDoneToast: View {
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.circle.fill")
+                .imageScale(.large)
+                .foregroundStyle(Color("primary-light")) // 필요 시 시스템 그린으로: .green
+            Text("회원정보가 수정되었습니다.")
+                .font(.pretendMedium14)
+                .foregroundStyle(Color.white)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(Color.black.opacity(0.9))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .padding(.bottom, 24)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)
+    }
 }
 
 #Preview { MyPageView() }

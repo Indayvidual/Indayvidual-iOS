@@ -27,10 +27,11 @@ struct TimetableView: View {
                             Text("삭제하기")
                                 .foregroundColor(.red)
                                 .font(.pretendRegular12)
-                                .frame(width: 70, height: 35)
+                                .frame(width: 70, height: 28)
                                 .background(Color.white)
+                                .cornerRadius(4)
                         }
-                        .padding(.top, 1)
+                        .padding(.top, -5) 
                         .padding(.trailing, 13)
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .animation(.easeInOut, value: timetableVm.showDeleteButton)
@@ -51,10 +52,10 @@ struct TimetableView: View {
                 selection: $timetableVm.selectedPhotoItem,
                 matching: .images
             )
-            .background(Color(.gray50))
             .navigationDestination(isPresented: $timetableVm.showSchoolSemesterSetup) {
                 SchoolSemesterSetupView(timetableVm: timetableVm)
             }
+            .background(Color(.gray50))
         }
         .overlay {
             // 학교 미등록 시 안내 팝업
@@ -184,6 +185,10 @@ private extension TimetableView {
 }
 
 #Preview {
-    TimetableView()
+    let vm = TimetableViewModel()
+    vm.showDeleteButton = true   // 항상 삭제 버튼 표시
+    
+    return TimetableView()
         .environmentObject(AlertService())
+        .environmentObject(vm)  // 프리뷰에 뷰모델 주입
 }

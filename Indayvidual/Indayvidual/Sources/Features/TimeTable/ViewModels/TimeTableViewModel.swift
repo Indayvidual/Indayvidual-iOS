@@ -25,7 +25,7 @@ class TimetableViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var isSchoolRegistered: Bool
     
-    @Published var selectedImageURL: URL?   
+    @Published var selectedImageURL: URL?
     
     // MARK: - 뷰 상태
     @Published var showSchoolSearchPopup = false
@@ -49,7 +49,7 @@ class TimetableViewModel: ObservableObject {
     init(alertService: AlertService? = nil) {
         self.isSchoolRegistered = false
         self.alertService = alertService
-        loadSavedSchool() // 앱 시작 시 UserDefaults에서 불러오기
+        loadSavedSchool()
     }
     
     func setup(alertService: AlertService) {
@@ -96,8 +96,8 @@ class TimetableViewModel: ObservableObject {
             } catch {
                 print("이미지 로딩 실패: \(error)")
                 alertService?.showAlert(
-                    message: "이미지 로딩 실패: \(error.localizedDescription)",
-                    primaryButton: .primary(title: "확인")
+                    message: "이미지 로딩 실패 \n 잠시 후 다시 시도해 주세요",
+                    primaryButton: .primary(title: "확인", action: {})
                 )
             }
         }
@@ -123,17 +123,26 @@ class TimetableViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     if (200...299).contains(response.statusCode) {
-                        self?.alertService?.showAlert(message: "시간표 등록 성공했습니다.", primaryButton: .primary(title: "확인"))
+                        print("👍🏻 시간표 등록 성공")
                         completion?(true)
+                    } else if response.statusCode == 409 {
+                        // 409 에러 처리
+                        print("🟡 409 에러 발생: 시간표 이미 존재")
+                        self?.alertService?.showAlert(
+                            message: "이미 해당 학기의 시간표가 존재합니다. \n 삭제 후 다시 등록해주세요.",
+                            primaryButton: .primary(title: "확인", action: {})
+                        )
+                        completion?(false)
                     } else {
-                        let responseBody = String(data: response.data, encoding: .utf8) ?? "No readable response body"
-                        print("🟡 Server Error Response [\(response.statusCode)]: \(responseBody)")
-                        self?.alertService?.showAlert(message: "시간표 등록 실패 (서버 에러): 코드 \(response.statusCode)", primaryButton: .primary(title: "확인"))
+                        // 그 외 서버 에러 처리
+                        print("🔴 서버 에러 발생: 상태 코드 \(response.statusCode)")
                         completion?(false)
                     }
+                    
                 case .failure(let error):
-                    print("🔴 Moya Failure: \(error.localizedDescription)")
-                    self?.alertService?.showAlert(message: "네트워크 에러: \(error.localizedDescription)", primaryButton: .primary(title: "확인"))
+                    // 네트워크 에러 처리
+                    print("🔴 네트워크 에러: \(error.localizedDescription)")
+                    self?.alertService?.showAlert(message: "네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", primaryButton: .primary(title: "확인", action: {}))
                     completion?(false)
                 }
             }
@@ -161,7 +170,6 @@ class TimetableViewModel: ObservableObject {
                     } else {
                         let responseBody = String(data: response.data, encoding: .utf8) ?? "No readable response body"
                         print("🟡 시간표 조회 실패 [\(response.statusCode)]: \(responseBody)")
-                        self.alertService?.showAlert(message: "시간표를 불러오는데 실패했습니다.", primaryButton: .primary(title: "확인"))
                     }
                     return
                 }
@@ -182,14 +190,13 @@ class TimetableViewModel: ObservableObject {
                     print("✅ 시간표 조회 성공: \(apiResponse.data)")
                 } catch {
                     print("🔴 JSON 디코딩 실패: \(error.localizedDescription)")
-                    self.alertService?.showAlert(message: "데이터 처리 중 오류가 발생했습니다.", primaryButton: .primary(title: "확인"))
                 }
             }
         } catch {
             DispatchQueue.main.async {
                 self.isLoading = false
                 print("🔴 네트워크 에러: \(error.localizedDescription)")
-                self.alertService?.showAlert(message: "네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", primaryButton: .primary(title: "확인"))
+                self.alertService?.showAlert(message: "네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.", primaryButton: .primary(title: "확인", action: {}))
             }
         }
     }
@@ -211,8 +218,8 @@ class TimetableViewModel: ObservableObject {
                     if (200...299).contains(response.statusCode) {
                         print("✅ 시간표 삭제 성공 (ID: \(timetableId))")
                         if let index = self.timeTable?.firstIndex(where: { $0.timetableId == timetableId }) {
-                                                self.timeTable?.remove(at: index)
-                                            }
+                            self.timeTable?.remove(at: index)
+                        }
                         
                         self.selectedImageURL = nil
                         self.currentTimetable = nil
@@ -220,12 +227,12 @@ class TimetableViewModel: ObservableObject {
                     } else {
                         let responseBody = String(data: response.data, encoding: .utf8) ?? "No readable response body"
                         print("🟡 시간표 삭제 실패 [\(response.statusCode)]: \(responseBody)")
-                        self.alertService?.showAlert(message: "시간표 삭제 실패 (서버 에러): 코드 \(response.statusCode)", primaryButton: .primary(title: "확인"))
+                        self.alertService?.showAlert(message: "시간표 삭제 실패했습니다. \n 다시 시도 해주세요. \(response.statusCode)", primaryButton: .primary(title: "확인", action: {}))
                         completion?(false)
                     }
                 case .failure(let error):
                     print("🔴 시간표 삭제 요청 실패 (네트워크 에러): \(error.localizedDescription)")
-                    self.alertService?.showAlert(message: "네트워크 에러: \(error.localizedDescription)", primaryButton: .primary(title: "확인"))
+                    self.alertService?.showAlert(message: "네트워크 에러: \(error.localizedDescription)", primaryButton: .primary(title: "확인", action: {}))
                     completion?(false)
                 }
             }
@@ -292,5 +299,9 @@ class TimetableViewModel: ObservableObject {
             self.selectedImageURL = nil
         }
     }
-
+    
+    /// 시간표 등록 여부 확인
+    var hasRegisteredTimetable: Bool {
+        return !(timeTable?.isEmpty ?? true)
+    }
 }

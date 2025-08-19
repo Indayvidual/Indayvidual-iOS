@@ -59,6 +59,7 @@ struct SignupCompleteView: View {
             .background(.white)
             .ignoresSafeArea()
             .navigationBarBackButtonHidden(true)
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(isPresented: $goToLogin) {
                 LoginView()
             }

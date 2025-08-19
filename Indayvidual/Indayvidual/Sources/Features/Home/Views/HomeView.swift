@@ -23,7 +23,7 @@ struct HomeView: View {
     
     var body: some View {
         VStack {
-            Topbar()
+            Topbar(showSettingsButton: false)
             
             Group{
                 CustomCalendarView(

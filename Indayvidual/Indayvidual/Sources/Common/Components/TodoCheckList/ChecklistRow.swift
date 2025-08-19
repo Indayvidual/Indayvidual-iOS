@@ -241,8 +241,10 @@ struct TodoActionOptionRow: View {
 // MARK: - 사용 예시
 
 #Preview {
-    let dummyTodoManager = TodoViewModel()
-    let dummyActionViewModel = TodoActionViewModel(todoManager: dummyTodoManager)
+    let alertService = AlertService()
+    let todoViewModel = TodoViewModel()
+    todoViewModel.setup(with: alertService)
+    let actionViewModel = TodoActionViewModel(todoManager: todoViewModel)
     let dummyTask = TodoTask(
         taskId: 1,
         categoryId: 1,
@@ -254,8 +256,9 @@ struct TodoActionOptionRow: View {
     
     return PreviewWrapper(
         task: dummyTask,
-        actionViewModel: dummyActionViewModel
+        actionViewModel: actionViewModel
     )
+    .environmentObject(alertService)
 }
 
 private struct PreviewWrapper: View {

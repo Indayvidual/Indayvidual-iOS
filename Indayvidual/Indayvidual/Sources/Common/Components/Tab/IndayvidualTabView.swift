@@ -8,11 +8,13 @@
 import SwiftUI
 
 struct IndayvidualTabView: View{
+    @EnvironmentObject var alertService: AlertService
     //기본 선택된 탭
     @State var tabcase: TabCase = .home
     @StateObject private var calendarVm = CustomCalendarViewModel()
     @StateObject private var todoViewModel = TodoViewModel()
     @StateObject private var homveVm = HomeViewModel()
+    @State private var hasSetupTodoViewModel = false 
 
     init() {
         if let customFont = UIFont(name: "Pretendard-Regular", size: 12) {
@@ -44,6 +46,12 @@ struct IndayvidualTabView: View{
             }
         })
         .tint(.black)
+        .onAppear {
+            if !hasSetupTodoViewModel {
+                todoViewModel.setup(with: alertService)
+                hasSetupTodoViewModel = true
+            }
+        }
     }
     
     private func tabLabel(_ tab: TabCase) -> some View{

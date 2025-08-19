@@ -36,21 +36,30 @@ extension AuthAPITarget: TargetType {
     }
     
     var method: Moya.Method {
-        return .post
+        switch self {
+        case .login, .kakaoLogin, .refresh, .logout:
+            return .post
+        case .deleteAccount:
+            return .delete
+        }
     }
     
     var headers: [String: String]? {
-        switch self {
-        case let .refresh(refreshToken):
-            return [
-                "Content-Type": "application/json",
-                "Refresh-Token": refreshToken
-            ]
-            
-        default:
-            return ["Content-Type": "application/json"]
+            switch self {
+            case .refresh(let refreshToken):
+                // 스펙: 헤더 Refresh-Token
+                return [
+                    "Accept": "*/*",
+                    "Content-Type": "application/json",
+                    "Refresh-Token": refreshToken
+                ]
+            default:
+                return [
+                    "Accept": "*/*",
+                    "Content-Type": "application/json"
+                ]
+            }
         }
-    }
     
     var task: Task {
         switch self {
@@ -58,8 +67,8 @@ extension AuthAPITarget: TargetType {
             return .requestJSONEncodable(LoginRequestDTO(email: email, password: password))
         case let .kakaoLogin(accessToken):
             return .requestJSONEncodable(["accessToken": accessToken])
-        case let .refresh(refreshToken):
-            return .requestJSONEncodable(["refreshToken": refreshToken])
+        case .refresh:
+            return .requestPlain
         case .logout:
             return .requestPlain
         case let .deleteAccount(hard):

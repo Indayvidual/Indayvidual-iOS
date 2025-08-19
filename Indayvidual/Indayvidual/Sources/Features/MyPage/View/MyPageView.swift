@@ -5,12 +5,6 @@
 //  Created by Jung Hyun Han on 7/27/25.
 //
 
-//
-//  MyPageView.swift
-//  Indayvidual
-//
-//  Created by Jung Hyun Han on 7/27/25.
-//
 
 import SwiftUI
 

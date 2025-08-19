@@ -5,16 +5,6 @@
 //  Created by Jung Hyun Han on 7/27/25.
 //
 
-//
-//  EditProfileView.swift
-//  Indayvidual
-//
-//  요구사항 반영:
-//  1) 이메일 비편집(읽기전용)
-//  2) 로그아웃/탈퇴 모달 확인 후 실행 → LoginView 이동
-//  3) 저장 시 MypageView 이동 + 토스트 3초
-//
-
 import SwiftUI
 
 struct EditProfileView: View {

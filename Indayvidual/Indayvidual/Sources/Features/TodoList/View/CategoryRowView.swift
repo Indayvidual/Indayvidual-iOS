@@ -185,9 +185,14 @@ struct NameField: View {
 }
 
 #Preview {
-    CategoryRowView(
+    let alertService = AlertService()
+    let todoViewModel = TodoViewModel()
+    todoViewModel.setup(with: alertService)
+    
+    return CategoryRowView(
         category: Category(categoryId: 1, name: "샘플 카테고리", color: .yellow01),
-        viewModel: TodoViewModel(),
+        viewModel: todoViewModel,
         date: "2024-06-01"
     )
+    .environmentObject(alertService)
 }

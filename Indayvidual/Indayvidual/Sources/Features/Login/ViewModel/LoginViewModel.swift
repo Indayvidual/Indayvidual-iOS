@@ -36,6 +36,7 @@ class LoginViewModel: ObservableObject {
         guard !password.isEmpty else { return true }
         return password.count >= 6
     }
+    
 
     // 로그인
     func login(userSession: UserSession) {
@@ -140,6 +141,7 @@ class LoginViewModel: ObservableObject {
     func loginWithKakao(userSession: UserSession) async {
             await loginWithKakaoToken(userSession: userSession)
         }
+    
 
     // 로그아웃
     func logout(userSession: UserSession) {

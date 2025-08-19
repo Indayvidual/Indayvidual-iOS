@@ -23,20 +23,21 @@ struct LoginView: View {
     @State private var isPasswordVisible = false
     @State private var goToHome = false
     @State private var goToSignupEmail = false
+    @State private var showLogin = false
     @EnvironmentObject var userSession: UserSession
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
+        Spacer()
+        
         NavigationStack {
             VStack(spacing: 28) {
-                HStack {
-                }
                 Text(selectedTab == .login
                      ? "인데이비주얼과 함께\n나만의 하루를 설계하기"
                      : "회원가입하고\n나만의 하루를 설계해 보세요!")
-                .font(.pretendBold24)
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
+                    .font(.pretendBold24)
+                    .multilineTextAlignment(.leading)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 HStack(spacing: 0) {
                     tabButton(title: "로그인", tab: .login)
@@ -44,10 +45,10 @@ struct LoginView: View {
                 }
 
                 if selectedTab == .login {
-                    loginForm
+                    loginForm()
                         .padding(.top, 20)
                 } else {
-                    signupIntro
+                    signupIntro()
                         .padding(.top, 30)
                 }
 
@@ -55,17 +56,23 @@ struct LoginView: View {
             }
             .padding(.horizontal, 20)
             .padding(.top, 40)
+            .navigationBarBackButtonHidden(true)
             .navigationDestination(isPresented: $goToHome) {
-                           IndayvidualTabView()
-                       }
+                IndayvidualTabView()
+            }
             .navigationDestination(isPresented: $goToSignupEmail) {
-                           SignupEmailInputView()
-                               .environmentObject(signupViewModel)
-                       }
+                SignupEmailInputView()
+                    .environmentObject(signupViewModel)
+            }
+            .onAppear {
+                if viewModel.loginSuccess == false {
+                    showLoginScreen()
+                }
+            }
         }
     }
 
-    var loginForm: some View {
+    func loginForm() -> some View {
         VStack(spacing: 20) {
             CustomTextField(
                 placeholder: "이메일",
@@ -95,72 +102,70 @@ struct LoginView: View {
                 Spacer()
             }
 
-            NavigationStack {
-                VStack(spacing: 40) {
-                    Button {
-                        viewModel.login(userSession: userSession)
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            if viewModel.loginSuccess {
-                                goToHome = true
-                            }
-                        }
-                    } label: {
-                        Text("로그인")
-                            .font(.pretendSemiBold15)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(.black)
-                            .foregroundStyle(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    }
-                    
-                    if let error = viewModel.errorMessage {
-                        Text(error)
-                            .multilineTextAlignment(.leading)
-                            .fixedSize(horizontal: false, vertical: true)
-                    }
-                    
-                    HStack {
-                        Rectangle()
-                            .frame(height: 1)
-                            .foregroundStyle(Color("gray-200"))
-                        Text("또는")
-                            .foregroundStyle(Color("gray-500"))
-                            .padding(.horizontal, 8)
-                        Rectangle()
-                            .frame(height: 1)
-                            .foregroundStyle(Color("gray-200"))
-                    }
-                    
-                    Button {
-                        Task {
-                            guard !viewModel.isLoggingIn else { return }
-                            await viewModel.loginWithKakaoToken(userSession: userSession)
-                            if viewModel.loginSuccess { goToHome = true }
+            VStack(spacing: 40) {
+                Button {
+                    viewModel.login(userSession: userSession)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                        if viewModel.loginSuccess {
                             goToHome = true
                         }
-                    } label: {
-                        HStack {
-                            Image(systemName: "message.fill")
-                            Text("카카오로 시작하기")
-                                .font(.pretendSemiBold15)
-                        }
+                    }
+                } label: {
+                    Text("로그인")
+                        .font(.pretendSemiBold15)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color("yellow-04"))
-                        .foregroundStyle(.black)
+                        .background(.black)
+                        .foregroundStyle(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+                
+                if let error = viewModel.errorMessage {
+                    Text(error)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                
+                HStack {
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundStyle(Color("gray-200"))
+                    Text("또는")
+                        .foregroundStyle(Color("gray-500"))
+                        .padding(.horizontal, 8)
+                    Rectangle()
+                        .frame(height: 1)
+                        .foregroundStyle(Color("gray-200"))
+                }
+                
+                Button {
+                    Task {
+                        guard !viewModel.isLoggingIn else { return }
+                        await viewModel.loginWithKakaoToken(userSession: userSession)
+                        if viewModel.loginSuccess { goToHome = true }
+                        goToHome = true
                     }
+                } label: {
+                    HStack {
+                        Image(systemName: "message.fill")
+                        Text("카카오로 시작하기")
+                            .font(.pretendSemiBold15)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color("yellow-04"))
+                    .foregroundStyle(.black)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .padding(.top, 10)
         }
     }
 
-    var signupIntro: some View {
+    func signupIntro() -> some View {
         VStack(spacing: 50) {
             Button {
-                 goToSignupEmail = true
+                goToSignupEmail = true
             } label: {
                 Text("이메일로 시작하기")
                     .font(.system(size: 15, weight: .semibold))
@@ -202,7 +207,7 @@ struct LoginView: View {
                 .foregroundStyle(.black)
                 .cornerRadius(12)
             }
-
+            
             Spacer()
             Text("개인정보 처리방침")
                 .font(.pretendMedium13)
@@ -210,6 +215,11 @@ struct LoginView: View {
                 .underline()
                 .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+    
+    func showLoginScreen() {
+        userSession.clear()
+        showLogin = true
     }
 
     private func tabButton(title: String, tab: AuthTab) -> some View {

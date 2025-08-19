@@ -22,7 +22,7 @@ struct HomeView: View {
     @EnvironmentObject var alertService: AlertService
     
     var body: some View {
-            NavigationStack { // NavigationStack 안에서 toolbar가 작동함
+            NavigationStack {
                 VStack {
                     Group{
                         CustomCalendarView(

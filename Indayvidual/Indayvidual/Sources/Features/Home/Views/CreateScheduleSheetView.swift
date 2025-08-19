@@ -79,11 +79,6 @@ struct CreateScheduleSheetView: View {
                     .padding(.horizontal, 20)
                     .animation(.easeInOut, value: viewModel.isAllDay)
                     .animation(.easeInOut, value: viewModel.showEndSection)
-                    
-                    Divider()
-                        .padding(.top, 20)
-                        .padding(.bottom, 20)
-                        .padding(.horizontal, 15.4)
                 }
             }
         }

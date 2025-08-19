@@ -96,8 +96,8 @@ class TimetableViewModel: ObservableObject {
             } catch {
                 print("이미지 로딩 실패: \(error)")
                 alertService?.showAlert(
-                    message: "이미지 로딩 실패: \(error.localizedDescription)",
-                    primaryButton: .primary(title: "확인")
+                    message: "이미지 로딩 실패 \n 잠시 후 다시 시도해 주세요",
+                    primaryButton: .primary(title: "확인", action: {})
                 )
             }
         }
@@ -232,7 +232,7 @@ class TimetableViewModel: ObservableObject {
                     }
                 case .failure(let error):
                     print("🔴 시간표 삭제 요청 실패 (네트워크 에러): \(error.localizedDescription)")
-                    self.alertService?.showAlert(message: "네트워크 에러: \(error.localizedDescription)", primaryButton: .primary(title: "확인"))
+                    self.alertService?.showAlert(message: "네트워크 에러: \(error.localizedDescription)", primaryButton: .primary(title: "확인", action: {}))
                     completion?(false)
                 }
             }

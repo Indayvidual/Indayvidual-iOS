@@ -26,7 +26,7 @@ struct SemesterSelectionBar: View {
                 .rotationEffect(.degrees(showOptions ? -180 : 0))
         }
             .padding(.horizontal, 5)
-            .frame(width: 108, height: 28)
+            .frame(width: 104, height: 28)
             .background(Color.white)
             .cornerRadius(4)
             .contentShape(Rectangle()) // 전체 영역이 탭 되도록 설정
@@ -42,7 +42,7 @@ struct SemesterSelectionBar: View {
                 if showOptions {
                     dropdownList
                     // 버튼 높이(28) + 4 만큼 y축으로 이동
-                        .offset(y: 28 + 4)
+                        .offset(y: 28 + 6)
                 }
             }
             .zIndex(100)
@@ -55,7 +55,7 @@ struct SemesterSelectionBar: View {
                 ForEach(options.indices, id: \.self) { index in
                     if index != 0 {
                         Divider()
-                            .padding(.trailing, 13)
+                           
                     }
                     
                     Text(options[index])
@@ -74,7 +74,7 @@ struct SemesterSelectionBar: View {
             }
             .padding(.horizontal, 18)
         }
-        .frame(width: 108, height: 95)
+        .frame(width: 104, height: 95)
         .background(Color.white)
         .cornerRadius(4)
     }

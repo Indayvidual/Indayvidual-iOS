@@ -24,7 +24,7 @@ struct SchoolSearchPopup: View {
             Color.black.opacity(0.4)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    isPresented = false
+                    self.hideKeyboard()
                 }
             
             VStack(spacing: 0) {
@@ -62,7 +62,7 @@ struct SchoolSearchPopup: View {
                     }
                     .background(Color.white)
                 }
-
+                
                 .background(Color.white)
                 .cornerRadius(15)
                 .padding(.horizontal, 22)

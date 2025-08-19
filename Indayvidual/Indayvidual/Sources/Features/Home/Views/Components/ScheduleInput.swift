@@ -58,11 +58,22 @@ struct ScheduleInput: View {
             .padding(.horizontal, 20)
 
         }
-        .onChange(of: isAllDay, initial: false) { oldValue, newValue in
+        // 하루 종일 토글 변경 시
+        .onChange(of: isAllDay) { oldValue, newValue in
             if newValue {
                 showEndSection = false
+                showStartTimePicker = false
+                showEndTimePicker = false
             }
         }
+
+        // 종료 시간 토글 변경 시
+        .onChange(of: showEndSection) { oldValue, newValue in
+            if !newValue {
+                showEndTimePicker = false
+            }
+        }
+
     }
 
     /// 일정 입력 텍스트 뷰

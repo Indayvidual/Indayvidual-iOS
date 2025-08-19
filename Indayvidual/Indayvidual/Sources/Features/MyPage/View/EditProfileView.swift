@@ -6,11 +6,16 @@
 //
 
 import SwiftUI
+import PhotosUI
+import UIKit
 
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var userSession: UserSession
     @StateObject private var viewModel = EditProfileViewModel()
+    
+    @State private var selectedItem: PhotosPickerItem? = nil
+    @State private var localPreview: UIImage? = nil
 
     // 전달받은 Profile로 초기화
     @State private var nickname: String
@@ -27,6 +32,7 @@ struct EditProfileView: View {
     @State private var isEditingPassword: Bool = false
     @FocusState private var focusedField: Field?
     @State private var isPasswordEdited = false
+    @State private var currentPassword: String = ""
     enum Field { case password, confirmPassword }
 
     // 모달 & 네비게이션 상태
@@ -55,263 +61,324 @@ struct EditProfileView: View {
     }
 
     var body: some View {
+        content
+            .navigationBarBackButtonHidden(true)
+            .fullScreenCover(isPresented: $goLogin) {
+                NavigationStack { LoginView().navigationBarBackButtonHidden(true) }
+            }
+            .fullScreenCover(isPresented: $goMypage) {
+                NavigationStack { MyPageView(showEditToast: true).navigationBarBackButtonHidden(true) }
+            }
+            // 모달 오버레이 분리
+            .overlay(logoutOverlay)
+            .overlay(withdrawOverlay)
+    }
+}
+
+// MARK: - Content split (타입체커 부담 ↓)
+extension EditProfileView {
+    private var content: some View {
         ZStack(alignment: .top) {
             Color("gray-50").ignoresSafeArea()
-
-            // 네비게이션 (Login / Mypage)
-            NavigationLink("", destination: LoginView().navigationBarBackButtonHidden(true),
-                           isActive: $goLogin).hidden()
-            NavigationLink("", destination: MyPageView(showEditToast: true).navigationBarBackButtonHidden(true),
-                           isActive: $goMypage).hidden()
-
             VStack(spacing: 0) {
-                // 헤더
-                HStack(spacing: 10) {
-                    Button { dismiss() } label: {
-                        Image(systemName: "chevron.left")
-                    }
-                    Text("내 정보 수정")
-                        .font(.pretendSemiBold18)
-                        .foregroundStyle(Color("gray-900"))
-                    Spacer()
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 13)
-                .background(Color("gray-white"))
-
-                // 본문
-                ScrollView {
-                    VStack(spacing: 10) {
-                        // 기본 정보 카드
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("기본 정보")
-                                .font(.pretendSemiBold18)
-
-                            Spacer().frame(height: 16)
-
-                            Text("프로필 사진")
-                                .font(.pretendRegular13)
-
-                            VStack(spacing: 20) {
-                                if let urlStr = imageUrl, let url = URL(string: urlStr) {
-                                    AsyncImage(url: url) { phase in
-                                        switch phase {
-                                        case .empty:
-                                            ProgressView().frame(width: 80, height: 80)
-                                        case .success(let img):
-                                            img
-                                                .resizable()
-                                                .frame(width: 80, height: 80)
-                                                .clipShape(Circle())
-                                        default:
-                                            Image("profile")
-                                                .resizable()
-                                                .frame(width: 80, height: 80)
-                                                .clipShape(Circle())
-                                        }
-                                    }
-                                } else {
-                                    Image("profile")
-                                        .resizable()
-                                        .frame(width: 80, height: 80)
-                                        .clipShape(Circle())
-                                }
-
-                                Text("인데이비주얼에서 사용할 프로필 사진을 등록해주세요.")
-                                    .font(.pretendSemiBold13)
-                                    .foregroundStyle(Color("gray-900"))
-
-                                HStack(spacing: 8) {
-                                    Button("기본 이미지로 변경") {
-                                        imageUrl = "https://indayvidual.s3.ap-northeast-2.amazonaws.com/base_image.png"
-                                    }
-                                    .font(.pretendMedium14)
-                                    .frame(maxWidth: .infinity)            // ✅ frame 분리
-                                    .frame(height: 40)
-                                    .foregroundStyle(Color("gray-900"))
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(Color("gray-200"), lineWidth: 1)
-                                    }
-
-                                    Button("이미지 변경") {
-                                        // TODO: 이미지 피커 → 업로드 API
-                                    }
-                                    .font(.pretendMedium14)
-                                    .frame(maxWidth: .infinity)            // ✅ frame 분리
-                                    .frame(height: 40)
-                                    .foregroundStyle(Color("gray-900"))
-                                    .background {
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .stroke(Color("gray-200"), lineWidth: 1)
-                                    }
-                                }
-                            }
-                            .buttonStyle(.plain)
-
-                            Spacer().frame(height: 10)
-
-                            // 닉네임
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("닉네임")
-                                    .font(.pretendMedium14)
-                                    .foregroundStyle(Color("gray-900"))
-
-                                HStack {
-                                    TextField("", text: $nickname)
-                                        .padding(.horizontal, 16)
-                                        .frame(height: 48)
-                                        .background(Color("gray-50"))
-                                        .cornerRadius(8)
-                                        .onChange(of: nickname) { _, _ in
-                                            isNicknameChanged = true
-                                            isNicknameButtonEnabled = true
-                                        }
-
-                                    Button("변경하기") {
-                                        viewModel.updateNickname(nickname: nickname)
-                                    }
-                                    .font(.pretendMedium14)
-                                    .padding(.horizontal, 24)
-                                    .frame(height: 48)
-                                    .background(Color("primary-light"))
-                                    .foregroundStyle(.black)
-                                    .cornerRadius(8)
-                                    .disabled(!isNicknameButtonEnabled)
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                        .padding(20)
-                        .background(Color("gray-white"))
-                        .clipShape(RoundedRectangle(cornerRadius: 16))
-
-                        // 회원 정보 카드
-                        VStack(alignment: .leading, spacing: 24) {
-                            Text("회원 정보")
-                                .font(.pretendSemiBold16)
-
-                            // 이메일(읽기 전용)
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("이메일")
-                                    .font(.pretendMedium14)
-                                    .foregroundStyle(Color("gray-900"))
-
-                                Text(email)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(.horizontal, 16)
-                                    .frame(height: 48)
-                                    .background(Color("gray-50"))
-                                    .cornerRadius(8)
-                            }
-
-                            // 비밀번호
-                            VStack(alignment: .leading, spacing: 8) {
-                                Text("비밀번호")
-                                    .font(.pretendMedium14)
-                                    .foregroundStyle(Color("gray-900"))
-
-                                if isEditingPassword {
-                                    VStack(spacing: 12) {
-                                        CustomTextField(
-                                            placeholder: "영문, 숫자, 특수기호 모두 포함 (8글자 이상)",
-                                            text: $password,
-                                            isSecure: true,
-                                            isError: isPasswordEdited && !isPasswordValid,
-                                            errorMessage: "영문, 숫자, 특수기호를 모두 포함하여 입력해주세요.  (8글자 이상)",
-                                            showToggleSecure: true
-                                        )
-                                        .focused($focusedField, equals: .password)
-                                        .onTapGesture { isPasswordEdited = true }
-
-                                        CustomTextField(
-                                            placeholder: "새 비밀번호 확인",
-                                            text: $confirmPassword,
-                                            isSecure: true,
-                                            isError: isPasswordEdited && !isConfirmMatched,
-                                            errorMessage: "비밀번호가 일치하지 않습니다.",
-                                            showToggleSecure: true
-                                        )
-                                        .focused($focusedField, equals: .confirmPassword)
-                                        .onTapGesture { isPasswordEdited = true }
-                                    }
-
-                                    Button("비밀번호 변경 취소") {
-                                        isEditingPassword = false
-                                        password = ""
-                                        confirmPassword = ""
-                                    }
-                                    .font(.pretendMedium14)
-                                    .frame(maxWidth: .infinity)            // ✅ frame 분리
-                                    .frame(height: 48)
-                                    .background(Color("primary-light"))
-                                    .foregroundStyle(.black)
-                                    .cornerRadius(10)
-
-                                } else {
-                                    Button("비밀번호 변경하기") {
-                                        isEditingPassword = true
-                                    }
-                                    .font(.pretendMedium14)
-                                    .frame(maxWidth: .infinity)            // ✅ frame 분리
-                                    .frame(height: 48)
-                                    .background(Color("primary-light"))
-                                    .foregroundStyle(.black)
-                                    .cornerRadius(10)
-                                }
-                            }
-                        }
-                        .padding(20)
-                        .background(Color("gray-white"))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-
-                        // 하단 로그아웃 / 회원탈퇴 (모달 확인)
-                        HStack(spacing: 120 ) {
-                            Button("로그아웃") { showLogoutConfirm = true }
-                                .foregroundStyle(Color("gray-500"))
-
-                            Button("탈퇴", role: .destructive) { showWithdrawConfirm = true }
-                                .foregroundStyle(Color("gray-900"))
-                        }
-                        .font(.pretendMedium14)
-                        .padding(.horizontal, 50)
-                        .padding(.vertical, 15)
-
-                        Spacer().frame(height: 10)
-                    }
-                }
-
-                // 하단 버튼
-                HStack(spacing: 12) {
-                    Button("취소") { goMypage = true }
-                        .frame(maxWidth: .infinity)                // ✅ frame 분리
-                        .frame(height: 48)
-                        .background(Color("gray-white"))
-                        .foregroundStyle(.black)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color("gray-200"), lineWidth: 1)
-                        )
-
-                    Button("저장") {
-                        onSaved?()
-                        goMypage = true   // 저장 후 MypageView로 이동
-                    }
-                    .frame(maxWidth: .infinity)                    // ✅ frame 분리
-                    .frame(height: 48)
-                    .background(Color.black)
-                    .foregroundStyle(.white)
-                    .cornerRadius(12)
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 12)
-                .background(Color("gray-white"))
+                headerView
+                ScrollView { scrollContent }
+                footerButtons
             }
         }
-        .navigationBarBackButtonHidden(true)
+    }
 
-        // 로그아웃 확인 모달
-        .overlay {
+    private var headerView: some View {
+        HStack(spacing: 10) {
+            Button { dismiss() } label: { Image(systemName: "chevron.left") }
+            Text("내 정보 수정")
+                .font(.pretendSemiBold18)
+                .foregroundStyle(Color("gray-900"))
+            Spacer()
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 13)
+        .background(Color("gray-white"))
+    }
+
+    private var scrollContent: some View {
+        VStack(spacing: 10) {
+            basicInfoCard
+            memberInfoCard
+            actionRow
+            Spacer().frame(height: 10)
+        }
+    }
+
+    private var basicInfoCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("기본 정보").font(.pretendSemiBold18)
+            Spacer().frame(height: 16)
+            Text("프로필 사진").font(.pretendRegular13)
+
+            VStack(spacing: 20) {
+                profileImage
+                Text("인데이비주얼에서 사용할 프로필 사진을 등록해주세요.")
+                    .font(.pretendSemiBold13)
+                    .foregroundStyle(Color("gray-900"))
+                HStack(spacing: 8) {
+                    borderedButton(title: "기본 이미지로 변경") {
+                        imageUrl = "https://indayvidual.s3.ap-northeast-2.amazonaws.com/base_image.png"
+                    }
+
+                    // ✅ PhotosPicker 버튼 (bordered 스타일 그대로)
+                    PhotosPicker(selection: $selectedItem, matching: .images) {
+                        Text("이미지 변경")
+                            .font(.pretendMedium14)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 40)
+                            .foregroundStyle(Color("gray-900"))
+                            .background {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color("gray-200"), lineWidth: 1)
+                            }
+                    }
+                }
+                .onChange(of: selectedItem) { _, item in
+                    guard let item = item else { return }
+                    Task {
+                        // 1) Data 로드
+                        guard let data = try? await item.loadTransferable(type: Data.self) else {
+                            viewModel.toastMessage = "이미지를 불러오지 못했습니다."
+                            return
+                        }
+                        // 2) 즉시 미리보기
+                        if let ui = UIImage(data: data) {
+                            await MainActor.run { self.localPreview = ui }
+                        }
+                        // 3) 파일명 추정 (확장자 모르면 jpg)
+                        let filename = (item.itemIdentifier ?? "profile") + ".jpg"
+
+                        // 4) 업로드 API 호출
+                        viewModel.uploadProfileImage(data, filename: filename) {
+                            // (선택) 서버 반영 후 미리보기 클리어
+                            self.localPreview = nil
+                            // 필요 시 여기서 프로필 재조회 후 imageUrl 갱신:
+                            // viewModel.fetchMyProfile { p in self.imageUrl = p?.imageUrl }
+                        }
+                    }
+                }
+            }
+            .buttonStyle(.plain)
+
+            Spacer().frame(height: 10)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("닉네임")
+                    .font(.pretendMedium14)
+                    .foregroundStyle(Color("gray-900"))
+
+                HStack {
+                    TextField("", text: $nickname)
+                        .padding(.horizontal, 16)
+                        .frame(height: 48)
+                        .background(Color("gray-50"))
+                        .cornerRadius(8)
+                        .onChange(of: nickname) { _, _ in
+                            isNicknameChanged = true
+                            isNicknameButtonEnabled = true
+                        }
+
+                    Button("변경하기") { viewModel.updateUsername(nickname) }
+                        .font(.pretendMedium14)
+                        .padding(.horizontal, 24)
+                        .frame(height: 48)
+                        .background(Color("primary-light"))
+                        .foregroundStyle(.black)
+                        .cornerRadius(8)
+                        .disabled(!isNicknameButtonEnabled)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(20)
+        .background(Color("gray-white"))
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+    }
+
+    private var profileImage: some View {
+        Group {
+            if let preview = localPreview {
+                Image(uiImage: preview)
+                    .resizable()
+                    .frame(width: 80, height: 80)
+                    .clipShape(Circle())
+            } else if let urlStr = imageUrl, let url = URL(string: urlStr) {
+                RemoteAvatar(url: url)
+            } else {
+                Image("profile")
+                    .resizable()
+                    .frame(width: 80, height: 80)
+                    .clipShape(Circle())
+            }
+        }
+    }
+
+
+    private var memberInfoCard: some View {
+        VStack(alignment: .leading, spacing: 24) {
+            Text("회원 정보").font(.pretendSemiBold16)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("이메일")
+                    .font(.pretendMedium14)
+                    .foregroundStyle(Color("gray-900"))
+                Text(email)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .frame(height: 48)
+                    .background(Color("gray-50"))
+                    .cornerRadius(8)
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("비밀번호")
+                    .font(.pretendMedium14)
+                    .foregroundStyle(Color("gray-900"))
+
+                if isEditingPassword { passwordEditingBlock } else { passwordEditButton }
+            }
+        }
+        .padding(20)
+        .background(Color("gray-white"))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private var passwordEditingBlock: some View {
+        VStack(spacing: 12) {
+            CustomTextField(
+                placeholder: "영문, 숫자, 특수기호 모두 포함 (8글자 이상)",
+                text: $currentPassword,
+                isSecure: true,
+                isError: isPasswordEdited && currentPassword.isEmpty,
+                errorMessage: "영문, 숫자, 특수기호를 모두 포함하여 입력해주세요.  (8글자 이상)",
+                showToggleSecure: true
+            )
+            .focused($focusedField, equals: .password)
+            .onTapGesture { isPasswordEdited = true }
+
+            CustomTextField(
+                placeholder: "새 비밀번호 확인",
+                text: $password,
+                isSecure: true,
+                isError: isPasswordEdited && !isConfirmMatched,
+                errorMessage: "비밀번호가 일치하지 않습니다.",
+                showToggleSecure: true
+            )
+            
+            CustomTextField(
+                        placeholder: "새 비밀번호 확인",
+                        text: $confirmPassword,
+                        isSecure: true,
+                        isError: isPasswordEdited && !isConfirmMatched,
+                        errorMessage: "비밀번호가 일치하지 않습니다.",
+                        showToggleSecure: true
+                    )
+            
+            primaryBlockButton("비밀번호 변경 완료") {
+                isPasswordEdited = true
+                guard !currentPassword.isEmpty else { return }
+                guard isPasswordValid && isConfirmMatched else { return }
+                
+                viewModel.changePassword(current: currentPassword, new: password) { ok in
+                    if ok {
+                        isEditingPassword = false
+                        currentPassword = ""
+                        password = ""
+                        confirmPassword = ""
+                    }
+                }
+            }
+                    .disabled(currentPassword.isEmpty || !isPasswordValid || !isConfirmMatched)
+
+            primaryBlockButton("비밀번호 변경 취소") {
+                isEditingPassword = false
+                password = ""
+                confirmPassword = ""
+            }
+        }
+    }
+
+    private var passwordEditButton: some View {
+        primaryBlockButton("비밀번호 변경하기") { isEditingPassword = true }
+    }
+
+    private var actionRow: some View {
+        HStack(spacing: 120) {
+            Button("로그아웃") { showLogoutConfirm = true }
+                .foregroundStyle(Color("gray-500"))
+            Button("탈퇴", role: .destructive) { showWithdrawConfirm = true }
+                .foregroundStyle(Color("gray-900"))
+        }
+        .font(.pretendMedium14)
+        .padding(.horizontal, 50)
+        .padding(.vertical, 15)
+    }
+
+    private var footerButtons: some View {
+        HStack(spacing: 12) {
+            borderedBlockButton("취소") { goMypage = true }
+            solidBlockButton("저장") {
+                onSaved?()
+                goMypage = true
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(Color("gray-white"))
+    }
+}
+
+// MARK: - Reusable pieces
+extension EditProfileView {
+    private func borderedButton(title: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .font(.pretendMedium14)
+            .frame(maxWidth: .infinity)
+            .frame(height: 40)
+            .foregroundStyle(Color("gray-900"))
+            .background { RoundedRectangle(cornerRadius: 8).stroke(Color("gray-200"), lineWidth: 1) }
+    }
+
+    private func primaryBlockButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .font(.pretendMedium14)
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .background(Color("primary-light"))
+            .foregroundStyle(.black)
+            .cornerRadius(10)
+    }
+
+    private func borderedBlockButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .background(Color("gray-white"))
+            .foregroundStyle(.black)
+            .overlay(RoundedRectangle(cornerRadius: 12).stroke(Color("gray-200"), lineWidth: 1))
+            .cornerRadius(12)
+    }
+
+    private func solidBlockButton(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(title, action: action)
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .background(Color.black)
+            .foregroundStyle(.white)
+            .cornerRadius(12)
+    }
+}
+
+// MARK: - Overlays (분리)
+extension EditProfileView {
+    private var logoutOverlay: some View {
+        Group {
             if showLogoutConfirm {
                 ConfirmModal(
                     title: "로그아웃 하시겠습니까?",
@@ -327,8 +394,10 @@ struct EditProfileView: View {
                 )
             }
         }
-        // 회원탈퇴 확인 모달
-        .overlay {
+    }
+
+    private var withdrawOverlay: some View {
+        Group {
             if showWithdrawConfirm {
                 ConfirmModal(
                     title: "탈퇴 하시겠습니까?",
@@ -349,60 +418,24 @@ struct EditProfileView: View {
     }
 }
 
-// MARK: - 확인 모달
-struct ConfirmModal: View {
-    enum ConfirmStyle { case dark, destructive }
-    var title: String
-    var message: String?
-    var confirmText: String
-    var confirmStyle: ConfirmStyle = .dark
-    var onCancel: () -> Void
-    var onConfirm: () -> Void
-
+// MARK: - RemoteAvatar (AsyncImage 분리로 타입체커 부담 ↓)
+private struct RemoteAvatar: View {
+    let url: URL
     var body: some View {
-        ZStack {
-            Color.black.opacity(0.45).ignoresSafeArea()
-            VStack(spacing: 16) {
-                Text(title)
-                    .font(.pretendSemiBold16)
-                    .foregroundStyle(Color("gray-900"))
-                    .multilineTextAlignment(.center)
-
-                if let message {
-                    Text(message)
-                        .font(.pretendRegular13)
-                        .foregroundStyle(Color("gray-600"))
-                        .multilineTextAlignment(.center)
-                        .padding(.horizontal, 6)
-                }
-
-                HStack(spacing: 12) {
-                    Button("취소", action: onCancel)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .background(Color("gray-white"))
-                        .foregroundStyle(Color("gray-900"))
-                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color("gray-200"), lineWidth: 1))
-                        .cornerRadius(10)
-
-                    Button(confirmText, action: onConfirm)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 44)
-                        .background(confirmStyle == .destructive ? Color.red : Color.black)
-                        .foregroundStyle(.white)
-                        .cornerRadius(10)
-                }
+        AsyncImage(url: url) { phase in
+            switch phase {
+            case .empty:
+                ProgressView().frame(width: 80, height: 80)
+            case .success(let img):
+                img.resizable().frame(width: 80, height: 80).clipShape(Circle())
+            default:
+                Image("profile").resizable().frame(width: 80, height: 80).clipShape(Circle())
             }
-            .padding(20)
-            .frame(maxWidth: 300)
-            .background(Color.white)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
         }
-        .transition(.opacity)
     }
 }
 
-// MARK: - 미리보기
+// MARK: - Preview
 #Preview {
     NavigationStack {
         EditProfileView(

@@ -101,7 +101,7 @@ struct TodoCategorySelectView: View {
         .background(Color.gray50)
         .navigationBarBackButtonHidden(true)
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
+            ToolbarItem(placement: .topBarLeading) {
                 Button {
                     dismiss()
                 } label: {
@@ -115,7 +115,7 @@ struct TodoCategorySelectView: View {
                     .font(.pretendSemiBold18)
                     .foregroundStyle(.black)
             }
-            ToolbarItem(placement: .navigationBarTrailing) {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button("등록") {
                     handleCategorySubmission()
                 }

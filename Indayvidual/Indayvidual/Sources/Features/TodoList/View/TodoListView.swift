@@ -15,9 +15,6 @@ struct TodoListView: View {
     var body: some View {
         NavigationStack(path: $path) {
             VStack(spacing: 0) {
-                Topbar(customAction: {
-                    path.append(Route1.editCategory)
-                })
                 ScrollView {
                     VStack(spacing: 0) {
                         CalendarWithScheduleListView(
@@ -78,6 +75,17 @@ struct TodoListView: View {
                         }
                         
                         Spacer()
+                    }.toolbar {
+                        ToolbarItem(placement: .topBarLeading) {
+                            Image(.indayvidual)
+                        }
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button {
+                                path.append(Route1.editCategory)
+                            } label: {
+                                Image("gear")
+                            }
+                        }
                     }
                 }
                 .scrollBounceBehavior(.basedOnSize)

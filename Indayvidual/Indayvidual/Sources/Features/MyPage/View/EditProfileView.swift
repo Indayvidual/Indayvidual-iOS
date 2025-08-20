@@ -122,11 +122,27 @@ extension EditProfileView {
                     .font(.pretendSemiBold13)
                     .foregroundStyle(Color("gray-900"))
                 HStack(spacing: 8) {
-                    borderedButton(title: "기본 이미지로 변경") {
-                        imageUrl = "https://indayvidual.s3.ap-northeast-2.amazonaws.com/base_image.png"
-                    }
+                    borderedButton(
+                           title: userSession.provider == .kakao ? "카카오 프로필로 변경" : "기본 이미지로 변경"
+                       ) {
+                           if userSession.provider == .kakao, let kakaoURL = userSession.avatarURL {
+                               // 1) UI 즉시 반영
+                               imageUrl = kakaoURL
+                               // 2) (선택) 서버에도 반영: 원격 URL → Data → 업로드
+                               Task {
+                                   if let url = URL(string: kakaoURL),
+                                      let data = try? Data(contentsOf: url) {
+                                       await viewModel.uploadProfileImage(data, filename: "kakao_profile.jpg")
+                                       // 필요 시 서버 프로필 재조회하여 동기화:
+                                       // viewModel.fetchMyProfile { p in self.imageUrl = p?.imageUrl }
+                                   }
+                               }
+                           } else {
+                               imageUrl = "https://indayvidual.s3.ap-northeast-2.amazonaws.com/base_image.png"
+                           }
+                       }
 
-                    // ✅ PhotosPicker 버튼 (bordered 스타일 그대로)
+                    // PhotosPicker 버튼 (bordered 스타일 그대로)
                     PhotosPicker(selection: $selectedItem, matching: .images) {
                         Text("이미지 변경")
                             .font(.pretendMedium14)
@@ -156,10 +172,8 @@ extension EditProfileView {
 
                         // 4) 업로드 API 호출
                         viewModel.uploadProfileImage(data, filename: filename) {
-                            // (선택) 서버 반영 후 미리보기 클리어
                             self.localPreview = nil
-                            // 필요 시 여기서 프로필 재조회 후 imageUrl 갱신:
-                            // viewModel.fetchMyProfile { p in self.imageUrl = p?.imageUrl }
+                            viewModel.fetchMyProfile { p in self.imageUrl = p?.imageUrl }
                         }
                     }
                 }

@@ -14,9 +14,9 @@ class TodoViewModel: ObservableObject {
     let categoryProvider = MoyaProvider<TodoCategoryAPITarget>()
     let taskProvider = MoyaProvider<TodoChecklistAPITarget>()
     
-    var alertService: AlertService!
+    var alertService: AlertService?
     func setup(with alertService: AlertService) {
-        if self.alertService == nil { 
+        if self.alertService == nil {
             self.alertService = alertService
         }
     }
@@ -76,7 +76,12 @@ class TodoViewModel: ObservableObject {
     func processResponseStatus(_ statusCode: Int, apiName: String = "") -> Bool {
         if statusCode == 401 {
             print("‼️[\(apiName)] status code : 401")
-            alertService?.showAlert(
+            guard let alertService = self.alertService else {
+                print("⚠️ AlertService nil -> 로그아웃 상태 가능성 있음 ")
+                return true
+            }
+            
+            alertService.showAlert(
                 title: "인증 오류",
                 message: "로그인을 해주세요.",
                 primaryButton: .primary(title: "확인", action: {}),
@@ -107,6 +112,7 @@ class TodoViewModel: ObservableObject {
     func loadTasks(for date: String, completion: ((Bool) -> Void)? = nil) {
         guard !categories.isEmpty else {
             fetchCategories()
+            completion?(false) // fetchCategories 완료 후 다시 호출되어야 함
             return
         }
         
@@ -159,11 +165,19 @@ class TodoViewModel: ObservableObject {
     
     // 단일 카테고리 할 일 - 서버에서 데이터 로드
     func fetchTasks(for categoryId: Int, date: String, completion: @escaping ([TodoTask], Bool) -> Void) {
+        // alertService가 nil인 경우 (로그아웃 상태) 요청 중단
+        guard alertService != nil else {
+            print("⚠️ AlertService nil -> 로그아웃 상태 가능성 있음 ")
+            completion([], false)
+            return
+        }
+        
         taskProvider.request(.getTasks(categoryId: categoryId, date: date)) { result in
             switch result {
             case .success(let response):
                 guard 200...299 ~= response.statusCode else {
-                    if self.processResponseStatus(response.statusCode) == true {
+                    if self.processResponseStatus(response.statusCode, apiName: "fetchTasks") {
+                        completion([], false)
                         return
                     }
                     self.handleError("서버 에러: HTTP \(response.statusCode)", retry: {
@@ -219,6 +233,11 @@ class TodoViewModel: ObservableObject {
 
     // MARK: - 카테고리 추가/조회
     func addCategory(name: String, color: Color, completion: ((Bool) -> Void)? = nil) {
+        guard alertService != nil else {
+            completion?(false)
+            return
+        }
+        
         let colorHex = color.toHex()
         
         categoryProvider.request(TodoCategoryAPITarget.postCategories(name: name, color: colorHex)) { [weak self] result in
@@ -226,7 +245,8 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        if self?.processResponseStatus(response.statusCode) == true {
+                        if self?.processResponseStatus(response.statusCode, apiName: "addCategory") == true {
+                            completion?(false)
                             return
                         }
                         self?.handleError("서버 에러: HTTP \(response.statusCode)")
@@ -256,12 +276,17 @@ class TodoViewModel: ObservableObject {
     }
 
     func fetchCategories() {
+        guard alertService != nil else {
+            print("⚠️ AlertService = nil, 카테고리 요청 중단")
+            return
+        }
+        
         categoryProvider.request(.getCategories) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        if self?.processResponseStatus(response.statusCode) == true {
+                        if self?.processResponseStatus(response.statusCode, apiName: "fetchCategories") == true {
                             return
                         }
                         self?.handleError("서버 에러: HTTP \(response.statusCode)")
@@ -292,12 +317,14 @@ class TodoViewModel: ObservableObject {
 
     // MARK: - Task 추가/변경/삭제/이동
     func addTask(title: String, categoryId: Int, date: String) {
+        guard alertService != nil else { return }
+        
         taskProvider.request(.postTasks(categoryId: categoryId, title: title, date: date)) { [weak self] result in
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        if self?.processResponseStatus(response.statusCode) == true {
+                        if self?.processResponseStatus(response.statusCode, apiName: "addTask") == true {
                             return
                         }
                         self?.handleError("서버 에러: HTTP \(response.statusCode)")
@@ -321,6 +348,7 @@ class TodoViewModel: ObservableObject {
     }
 
     func toggleTask(_ task: TodoTask) {
+        guard alertService != nil else { return }
         guard let taskId = task.taskId else { return }
         guard let index = tasks[task.date]?.firstIndex(where: { $0.id == task.id }) else { return }
         var updatedTask = tasks[task.date]![index]
@@ -332,7 +360,10 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        if self?.processResponseStatus(response.statusCode) == true {
+                        if self?.processResponseStatus(response.statusCode, apiName: "toggleTask") == true {
+                            if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
+                                self?.tasks[task.date]![index].isCompleted.toggle()
+                            }
                             return
                         }
                         if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
@@ -352,6 +383,7 @@ class TodoViewModel: ObservableObject {
     }
 
     func updateTaskTitle(_ task: TodoTask, newTitle: String) {
+        guard alertService != nil else { return }
         guard let taskId = task.taskId else { return }
         guard let index = tasks[task.date]?.firstIndex(where: { $0.id == task.id }) else { return }
         let oldTitle = tasks[task.date]![index].title
@@ -362,7 +394,10 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        if self?.processResponseStatus(response.statusCode) == true {
+                        if self?.processResponseStatus(response.statusCode, apiName: "updateTaskTitle") == true {
+                            if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
+                                self?.tasks[task.date]![index].title = oldTitle
+                            }
                             return
                         }
                         if let index = self?.tasks[task.date]?.firstIndex(where: { $0.id == task.id }) {
@@ -401,6 +436,7 @@ class TodoViewModel: ObservableObject {
     }
 
     func moveTask(_ task: TodoTask, to newDate: String) {
+        guard alertService != nil else { return }
         guard let taskId = task.taskId else { return }
 
         taskProvider.request(.patchDueDate(taskId: taskId, date: newDate)) { [weak self] result in
@@ -408,7 +444,7 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        if self?.processResponseStatus(response.statusCode) == true {
+                        if self?.processResponseStatus(response.statusCode, apiName: "moveTask") == true {
                             return
                         }
                         self?.handleError("서버 에러: HTTP \(response.statusCode)")
@@ -450,6 +486,7 @@ class TodoViewModel: ObservableObject {
     }
     
     func deleteTask(_ task: TodoTask) {
+        guard alertService != nil else { return }
         guard let taskId = task.taskId else { return }
 
         taskProvider.request(.deleteTasks(taskId: taskId)) { [weak self] result in
@@ -457,7 +494,7 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     guard 200...299 ~= response.statusCode else {
-                        if self?.processResponseStatus(response.statusCode) == true {
+                        if self?.processResponseStatus(response.statusCode, apiName: "deleteTask") == true {
                             return
                         }
                         self?.handleError("서버 에러: HTTP \(response.statusCode)")
@@ -498,6 +535,7 @@ class TodoViewModel: ObservableObject {
     
     // MARK: - 카테고리별 순서 변경
     func updateTaskOrderForCategory(date: String, taskOrderInfos: [TaskOrderInfo]) {
+        guard alertService != nil else { return }
         guard !taskOrderInfos.isEmpty,
               let categoryId = taskOrderInfos.first?.categoryId else { return }
 
@@ -532,12 +570,13 @@ class TodoViewModel: ObservableObject {
                 switch result {
                 case .success(let response):
                     if 200...299 ~= response.statusCode {
-                        if self?.processResponseStatus(response.statusCode) == true {
-                            return
-                        }
                         print("🟢 \(date) 카테고리 \(categoryId) 순서 변경 성공")
                         self?.loadTasks(for: date, categoryId: categoryId)
                     } else {
+                        if self?.processResponseStatus(response.statusCode, apiName: "updateTaskOrder") == true {
+                            self?.loadTasks(for: date, categoryId: categoryId)
+                            return
+                        }
                         print("🔴 \(date) 카테고리 \(categoryId) 순서 변경 실패: HTTP \(response.statusCode)")
                         self?.handleError("순서 변경 실패: HTTP \(response.statusCode)", retry: {
                             self?.updateTaskOrderForCategory(date: date, taskOrderInfos: taskOrderInfos)
@@ -558,6 +597,13 @@ class TodoViewModel: ObservableObject {
     @MainActor
     func loadTasksAsync(for date: String, categoryId: Int) async {
         await withCheckedContinuation { continuation in
+            // alertService가 nil인 경우 즉시 continuation을 resume
+            guard alertService != nil else {
+                print("⚠️ AlertService = nil, loadTasksAsync 중단")
+                continuation.resume()
+                return
+            }
+            
             loadTasks(for: date, categoryId: categoryId) { _ in
                 continuation.resume()
             }
@@ -578,5 +624,12 @@ class TodoViewModel: ObservableObject {
             date: date
         )
         tasks[date, default: []].append(tempTask)
+    }
+    
+    // MARK: - 로그아웃 처리
+    func clearData() {
+        categories = []
+        tasks = [:]
+        alertService = nil
     }
 }

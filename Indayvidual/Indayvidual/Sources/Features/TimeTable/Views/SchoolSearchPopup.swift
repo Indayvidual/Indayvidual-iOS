@@ -24,7 +24,7 @@ struct SchoolSearchPopup: View {
             Color.black.opacity(0.4)
                 .ignoresSafeArea()
                 .onTapGesture {
-                    isPresented = false
+                    self.hideKeyboard()
                 }
             
             VStack(spacing: 0) {
@@ -60,9 +60,8 @@ struct SchoolSearchPopup: View {
                                 .frame(maxHeight: 210) // 검색창 등 제외한 나머지 높이
                         }
                     }
-                    .background(Color.white)
                 }
-
+                
                 .background(Color.white)
                 .cornerRadius(15)
                 .padding(.horizontal, 22)
@@ -100,13 +99,14 @@ struct SchoolSearchPopup: View {
                     .foregroundColor(viewModel.schoolNames.isEmpty ? .gray : .red)
                 Spacer()
             }
-            .frame(maxWidth: 210)
+            .frame(maxWidth: .infinity)
         } else {
             List(viewModel.schoolNames) { school in
                 SchoolRow(school: school, selectedSchool: $selectedSchool)
                     .listRowSeparator(.hidden)
             }
             .listStyle(.plain)
+            .scrollDismissesKeyboard(.interactively)
         }
         
         

@@ -26,16 +26,38 @@ struct TimetableView: View {
                         }) {
                             Text("삭제하기")
                                 .foregroundColor(.red)
-                                .font(.pretendSemiBold9)
-                                .frame(width: 65, height: 31)
+                                .font(.pretendRegular12)
+                                .frame(width: 70, height: 30)
                                 .background(Color.white)
+                                .cornerRadius(4)
                         }
-                        .padding(.top, 40)
+                        .padding(.top, -5)
                         .padding(.trailing, 13)
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .animation(.easeInOut, value: timetableVm.showDeleteButton)
+                        .zIndex(10)
                     }
                 }
+                
+                // 배경 터치시 드롭 다운 메뉴, 삭제 버튼 hidden
+                if timetableVm.showDeleteButton || timetableVm.showSemesterDropdown {
+                    Color.black.opacity(0.001)
+                        .ignoresSafeArea()
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            timetableVm.showDeleteButton = false
+                            timetableVm.showSemesterDropdown = false
+                        }
+                        .zIndex(-1)
+                }
+            }
+            .onAppear {
+                timetableVm.showDeleteButton = false
+                timetableVm.showSemesterDropdown = false
+            }
+            .onDisappear {
+                timetableVm.showDeleteButton = false
+                timetableVm.showSemesterDropdown = false
             }
             .task {
                 timetableVm.setup(alertService: alertService)
@@ -51,10 +73,10 @@ struct TimetableView: View {
                 selection: $timetableVm.selectedPhotoItem,
                 matching: .images
             )
-            .background(Color(.gray50))
             .navigationDestination(isPresented: $timetableVm.showSchoolSemesterSetup) {
                 SchoolSemesterSetupView(timetableVm: timetableVm)
             }
+            .background(Color(.gray50))
         }
         .overlay {
             // 학교 미등록 시 안내 팝업
@@ -107,9 +129,9 @@ private extension TimetableView {
                                     timetableVm.selectSemester(semester)
                                 }
                             }
-                        )
+                        ),
+                        showOptions: $timetableVm.showSemesterDropdown
                     )
-                    
                 }
                 .padding(.leading, 25)
                 .zIndex(10)
@@ -184,6 +206,10 @@ private extension TimetableView {
 }
 
 #Preview {
-    TimetableView()
+    let vm = TimetableViewModel()
+    vm.showDeleteButton = true   // 항상 삭제 버튼 표시
+    
+    return TimetableView()
         .environmentObject(AlertService())
+        .environmentObject(vm)  // 프리뷰에 뷰모델 주입
 }

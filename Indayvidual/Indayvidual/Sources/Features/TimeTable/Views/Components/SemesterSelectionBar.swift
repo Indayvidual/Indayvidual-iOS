@@ -44,9 +44,7 @@ struct SemesterSelectionBar: View {
                     // 버튼 높이(28) + 4 만큼 y축으로 이동
                         .offset(y: 28 + 6)
                 }
-            }
-            .zIndex(100)
-        
+            }        
     }
     
     private var dropdownList: some View {
@@ -55,7 +53,6 @@ struct SemesterSelectionBar: View {
                 ForEach(options.indices, id: \.self) { index in
                     if index != 0 {
                         Divider()
-                           
                     }
                     
                     Text(options[index])
@@ -74,7 +71,7 @@ struct SemesterSelectionBar: View {
             }
             .padding(.horizontal, 18)
         }
-        .frame(width: 104, height: 95)
+        .frame(width: 104, height: 102)
         .background(Color.white)
         .cornerRadius(4)
     }

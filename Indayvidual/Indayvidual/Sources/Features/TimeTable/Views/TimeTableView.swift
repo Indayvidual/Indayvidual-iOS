@@ -35,7 +35,20 @@ struct TimetableView: View {
                         .padding(.trailing, 13)
                         .transition(.move(edge: .top).combined(with: .opacity))
                         .animation(.easeInOut, value: timetableVm.showDeleteButton)
+                        .zIndex(10)
                     }
+                }
+                
+                // 배경 터치시 드롭 다운 메뉴, 삭제 버튼 hidden
+                if timetableVm.showDeleteButton || timetableVm.showSemesterDropdown {
+                    Color.black.opacity(0.001)
+                        .ignoresSafeArea()
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            timetableVm.showDeleteButton = false
+                            timetableVm.showSemesterDropdown = false
+                        }
+                        .zIndex(-1)
                 }
             }
             .onAppear {
@@ -119,7 +132,6 @@ private extension TimetableView {
                         ),
                         showOptions: $timetableVm.showSemesterDropdown
                     )
-                    
                 }
                 .padding(.leading, 25)
                 .zIndex(10)

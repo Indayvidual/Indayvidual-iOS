@@ -100,10 +100,7 @@ struct SchoolSemesterSetupView: View {
                             }
                         }
                         .frame(height: 56)
-                        
-                    }
-                    .zIndex(1)
-                    
+                    }                    
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 20)

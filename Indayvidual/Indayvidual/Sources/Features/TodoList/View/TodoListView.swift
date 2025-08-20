@@ -5,6 +5,8 @@ enum Route1: Hashable {
     case editCategory
 }
 
+// MARK: - Main View
+
 struct TodoListView: View {
     @ObservedObject var viewModel: TodoViewModel
     @ObservedObject var calendarViewModel: CustomCalendarViewModel
@@ -15,71 +17,15 @@ struct TodoListView: View {
     var body: some View {
         NavigationStack(path: $path) {
             VStack(spacing: 0) {
-                ScrollView {
-                    VStack(spacing: 0) {
-                        CalendarWithScheduleListView(
-                            calendarViewModel: calendarViewModel,
-                            homeViewModel: homeViewModel,
-                            onDateSelected: { selectedDate in
-                                homeViewModel.fetchSchedules(for: selectedDate)
-                                
-                                let formatter = DateFormatter()
-                                formatter.dateFormat = "yyyy-MM-dd"
-                                let dateString = formatter.string(from: selectedDate)
-                                viewModel.selectedDate = dateString
-                                
-                                viewModel.loadTasks(for: dateString) { success in
-                                    if !success {
-                                        print("날짜 \(dateString)의 할 일 로드에 실패했습니다.")
-                                    }
-                                }
-                            }
-                        )
-                        .padding(.vertical, 18)
-                        .padding(.horizontal, 28)
-                        
-                        // task
-                        if viewModel.categories.isEmpty {
-                            Spacer()
-                            EmptyTodoView()
-                        } else {
-                            LazyVStack(spacing: 0) {
-                                ForEach(Array(viewModel.categories.enumerated()), id: \.element.categoryId) { index, category in
-                                    CategoryRowView(
-                                        category: category,
-                                        viewModel: viewModel,
-                                        date: viewModel.selectedDate
-                                    )
-                                    if index < viewModel.categories.count - 1 {
-                                        Divider()
-                                            .background(.gray200)
-                                            .padding(.vertical, 16)
-                                    }
-                                }
-                            }
-                            .padding(.horizontal, 27)
-                            .padding(.bottom, 80)
-                        }
-                        
-                        Spacer()
-                    }.toolbar {
-                        ToolbarItem(placement: .topBarLeading) {
-                            Image(.indayvidual)
-                        }
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button {
-                                path.append(Route1.editCategory)
-                            } label: {
-                                Image("gear")
-                            }
-                        }
-                    }
-                }
-                .scrollBounceBehavior(.basedOnSize)
-                .refreshable {
-                    await refreshAllData()
-                }
-                .scrollContentBackground(.hidden)
+                TodoContentScrollView(
+                    viewModel: viewModel,
+                    calendarViewModel: calendarViewModel,
+                    homeViewModel: homeViewModel
+                )
+            }
+            .scrollBounceBehavior(.basedOnSize)
+            .refreshable {
+                await refreshAllData()
             }
             .onAppear {
                 if !hasLoadedInitialData {
@@ -100,12 +46,91 @@ struct TodoListView: View {
                     TodoCategoryEditView(viewModel: viewModel)
                 }
             }
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Image(.indayvidual)
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        path.append(Route1.editCategory)
+                    } label: {
+                        Image("gear")
+                    }
+                }
+            }
         }
         .floatingBtn {
             path.append(Route1.selectCategory)
         }
     }
     
+    // MARK: - Subviews
+
+    private struct TodoContentScrollView: View {
+        @ObservedObject var viewModel: TodoViewModel
+        @ObservedObject var calendarViewModel: CustomCalendarViewModel
+        @ObservedObject var homeViewModel: HomeViewModel
+        
+        var body: some View {
+            ScrollView {
+                VStack(spacing: 0) {
+                    CalendarWithScheduleListView(
+                        calendarViewModel: calendarViewModel,
+                        homeViewModel: homeViewModel,
+                        onDateSelected: { selectedDate in
+                            homeViewModel.fetchSchedules(for: selectedDate)
+                            
+                            let formatter = DateFormatter()
+                            formatter.dateFormat = "yyyy-MM-dd"
+                            let dateString = formatter.string(from: selectedDate)
+                            viewModel.selectedDate = dateString
+                            
+                            viewModel.loadTasks(for: dateString) { success in
+                                if !success {
+                                    print("날짜 \(dateString)의 할 일 로드에 실패했습니다.")
+                                }
+                            }
+                        }
+                    )
+                    .padding(.vertical, 18)
+                    .padding(.horizontal, 28)
+                    
+                    TodoTaskListView(viewModel: viewModel)
+                        .padding(.bottom, 80)
+                }
+                .scrollContentBackground(.hidden)
+            }
+        }
+    }
+
+    private struct TodoTaskListView: View {
+        @ObservedObject var viewModel: TodoViewModel
+        
+        var body: some View {
+            if viewModel.categories.isEmpty {
+                Spacer()
+                EmptyTodoView()
+            } else {
+                LazyVStack(spacing: 0) {
+                    ForEach(Array(viewModel.categories.enumerated()), id: \.element.categoryId) { index, category in
+                        CategoryRowView(
+                            category: category,
+                            viewModel: viewModel,
+                            date: viewModel.selectedDate
+                        )
+                        if index < viewModel.categories.count - 1 {
+                            Divider()
+                                .background(.gray200)
+                                .padding(.vertical, 16)
+                        }
+                    }
+                }
+                .padding(.horizontal, 27)
+            }
+        }
+    }
+    
+    // MARK: - Helper Functions
     private func refreshData() {
         viewModel.fetchCategories()
     }
@@ -116,13 +141,10 @@ struct TodoListView: View {
     }
 }
 
+
 #Preview {
     let alertService = AlertService()
     let homeViewModel = HomeViewModel()
-//    let schedule1 = ScheduleItem(id: 1, startTime: Date(), endTime: Date().addingTimeInterval(3600), title: "회의", color: .blue, isAllDay: false)
-//    let schedule2 = ScheduleItem(id: 2, startTime: Date().addingTimeInterval(7200), endTime: Date().addingTimeInterval(10800), title: "점심 약속", color: .orange, isAllDay: false)
-//    let schedule3 = ScheduleItem(id: 3, startTime: nil, endTime: nil, title: "휴가", color: .green, isAllDay: true)
-//    homeViewModel.filteredSchedules = [schedule1, schedule2, schedule3]
     
     let todoViewModel = TodoViewModel()
     todoViewModel.setup(with: alertService)

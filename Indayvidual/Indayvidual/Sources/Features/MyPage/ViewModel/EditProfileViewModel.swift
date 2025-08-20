@@ -11,7 +11,7 @@ import UIKit
 
 @MainActor
 final class EditProfileViewModel: ObservableObject {
-    private let provider = MoyaProvider<ProfileAPITarget>()
+    private var provider: MoyaProvider<ProfileAPITarget> { Network.provider() }
 
     // UI 상태
     @Published var isCheckingUsername = false

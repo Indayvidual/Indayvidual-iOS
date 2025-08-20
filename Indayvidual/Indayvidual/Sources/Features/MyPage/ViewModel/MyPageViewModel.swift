@@ -25,7 +25,7 @@ final class MyPageViewModel: ObservableObject {
     @Published var isDeleting = false
     @Published var deleteErrorMessage: String?
     
-    private let provider = MoyaProvider<ProfileAPITarget>()
+    private var provider: MoyaProvider<ProfileAPITarget> { Network.provider() }
     
     init() {}
 

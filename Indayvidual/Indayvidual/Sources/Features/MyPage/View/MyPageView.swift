@@ -34,6 +34,9 @@ struct MyPageView: View {
                     menuCards
                     Spacer()
                 }
+                .animation(nil, value: path)
+                .transaction { $0.animation = nil }
+                
                 .background(Color("gray-50"))
                 .navigationDestination(for: SettingsRoute.self) { route in
                     switch route {
@@ -177,14 +180,14 @@ private struct EditDoneToast: View {
         HStack(spacing: 8) {
             Image(systemName: "checkmark.circle.fill")
                 .imageScale(.large)
-                .foregroundStyle(Color("primary-light")) // 필요 시 시스템 그린으로: .green
+                .foregroundStyle(Color("my-secondary"))
             Text("회원정보가 수정되었습니다.")
                 .font(.pretendMedium14)
                 .foregroundStyle(Color.white)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 10)
-        .background(Color.black.opacity(0.9))
+        .background(Color.black.opacity(0.5))
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .padding(.bottom, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottom)

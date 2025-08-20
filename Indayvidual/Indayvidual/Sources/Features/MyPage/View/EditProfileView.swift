@@ -115,7 +115,7 @@ extension EditProfileView {
             Text("기본 정보").font(.pretendSemiBold18)
             Spacer().frame(height: 16)
             Text("프로필 사진").font(.pretendRegular13)
-
+            
             VStack(spacing: 20) {
                 profileImage
                 Text("인데이비주얼에서 사용할 프로필 사진을 등록해주세요.")
@@ -123,25 +123,25 @@ extension EditProfileView {
                     .foregroundStyle(Color("gray-900"))
                 HStack(spacing: 8) {
                     borderedButton(
-                           title: userSession.provider == .kakao ? "카카오 프로필로 변경" : "기본 이미지로 변경"
-                       ) {
-                           if userSession.provider == .kakao, let kakaoURL = userSession.avatarURL {
-                               // 1) UI 즉시 반영
-                               imageUrl = kakaoURL
-                               // 2) (선택) 서버에도 반영: 원격 URL → Data → 업로드
-                               Task {
-                                   if let url = URL(string: kakaoURL),
-                                      let data = try? Data(contentsOf: url) {
-                                       await viewModel.uploadProfileImage(data, filename: "kakao_profile.jpg")
-                                       // 필요 시 서버 프로필 재조회하여 동기화:
-                                       // viewModel.fetchMyProfile { p in self.imageUrl = p?.imageUrl }
-                                   }
-                               }
-                           } else {
-                               imageUrl = "https://indayvidual.s3.ap-northeast-2.amazonaws.com/base_image.png"
-                           }
-                       }
-
+                        title: userSession.provider == .kakao ? "카카오 프로필로 변경" : "기본 이미지로 변경"
+                    ) {
+                        if userSession.provider == .kakao, let kakaoURL = userSession.avatarURL {
+                            // 1) UI 즉시 반영
+                            imageUrl = kakaoURL
+                            // 2) (선택) 서버에도 반영: 원격 URL → Data → 업로드
+                            Task {
+                                if let url = URL(string: kakaoURL),
+                                   let data = try? Data(contentsOf: url) {
+                                    await viewModel.uploadProfileImage(data, filename: "kakao_profile.jpg")
+                                    // 필요 시 서버 프로필 재조회하여 동기화:
+                                    // viewModel.fetchMyProfile { p in self.imageUrl = p?.imageUrl }
+                                }
+                            }
+                        } else {
+                            imageUrl = "https://indayvidual.s3.ap-northeast-2.amazonaws.com/base_image.png"
+                        }
+                    }
+                    
                     // PhotosPicker 버튼 (bordered 스타일 그대로)
                     PhotosPicker(selection: $selectedItem, matching: .images) {
                         Text("이미지 변경")
@@ -169,7 +169,7 @@ extension EditProfileView {
                         }
                         // 3) 파일명 추정 (확장자 모르면 jpg)
                         let filename = (item.itemIdentifier ?? "profile") + ".jpg"
-
+                        
                         // 4) 업로드 API 호출
                         viewModel.uploadProfileImage(data, filename: filename) {
                             self.localPreview = nil
@@ -179,14 +179,14 @@ extension EditProfileView {
                 }
             }
             .buttonStyle(.plain)
-
+            
             Spacer().frame(height: 10)
-
+            
             VStack(alignment: .leading, spacing: 8) {
                 Text("닉네임")
                     .font(.pretendMedium14)
                     .foregroundStyle(Color("gray-900"))
-
+                
                 HStack {
                     TextField("", text: $nickname)
                         .padding(.horizontal, 16)
@@ -196,18 +196,44 @@ extension EditProfileView {
                         .onChange(of: nickname) { _, _ in
                             isNicknameChanged = true
                             isNicknameButtonEnabled = true
+                            viewModel.isUsernameAvailable = nil
+                            viewModel.usernameCheckMessage = nil
                         }
-
-                    Button("변경하기") { viewModel.updateUsername(nickname) }
-                        .font(.pretendMedium14)
-                        .padding(.horizontal, 24)
-                        .frame(height: 48)
-                        .background(Color("primary-light"))
-                        .foregroundStyle(.black)
-                        .cornerRadius(8)
-                        .disabled(!isNicknameButtonEnabled)
+                    
+                    Button(
+                        viewModel.isUsernameAvailable == true ? "변경하기" : "중복확인"
+                    ) {
+                        if viewModel.isUsernameAvailable == true {
+                            // 실제 변경 API
+                            viewModel.updateUsername(nickname) {
+                                // 변경 완료 후 처리
+                                isNicknameChanged = false
+                                isNicknameButtonEnabled = false
+                            }
+                        } else {
+                            // 중복확인 API
+                            viewModel.checkNickname(nickname, currentNickname: userSession.displayName)
+                        }
+                    }
+                    .font(.pretendMedium14)
+                    .padding(.horizontal, 24)
+                    .frame(height: 48)
+                    .background( Color("primary-light")
+                    )
+                    .foregroundStyle(.black)
+                    .cornerRadius(8)
+                    .disabled(!isNicknameButtonEnabled || nickname.isEmpty)
                 }
                 .buttonStyle(.plain)
+                
+                if let message = viewModel.usernameCheckMessage {
+                    Text(message)
+                        .font(.caption)
+                        .foregroundStyle(
+                            viewModel.isUsernameAvailable == true ? .green : .red
+                        )
+                        .padding(.leading, 4)
+                }
             }
         }
         .padding(20)
@@ -237,7 +263,7 @@ extension EditProfileView {
     private var memberInfoCard: some View {
         VStack(alignment: .leading, spacing: 24) {
             Text("회원 정보").font(.pretendSemiBold16)
-
+            
             VStack(alignment: .leading, spacing: 8) {
                 Text("이메일")
                     .font(.pretendMedium14)
@@ -249,13 +275,15 @@ extension EditProfileView {
                     .background(Color("gray-50"))
                     .cornerRadius(8)
             }
-
-            VStack(alignment: .leading, spacing: 8) {
-                Text("비밀번호")
-                    .font(.pretendMedium14)
-                    .foregroundStyle(Color("gray-900"))
-
-                if isEditingPassword { passwordEditingBlock } else { passwordEditButton }
+            
+            if userSession.provider != .kakao {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("비밀번호")
+                        .font(.pretendMedium14)
+                        .foregroundStyle(Color("gray-900"))
+                    
+                    if isEditingPassword { passwordEditingBlock } else { passwordEditButton }
+                }
             }
         }
         .padding(20)
@@ -277,11 +305,11 @@ extension EditProfileView {
             .onTapGesture { isPasswordEdited = true }
 
             CustomTextField(
-                placeholder: "새 비밀번호 확인",
+                placeholder: "새 비밀번호",
                 text: $password,
                 isSecure: true,
                 isError: isPasswordEdited && !isConfirmMatched,
-                errorMessage: "비밀번호가 일치하지 않습니다.",
+                errorMessage: "",
                 showToggleSecure: true
             )
             
@@ -326,7 +354,7 @@ extension EditProfileView {
         HStack(spacing: 120) {
             Button("로그아웃") { showLogoutConfirm = true }
                 .foregroundStyle(Color("gray-500"))
-            Button("탈퇴", role: .destructive) { showWithdrawConfirm = true }
+            Button("회원탈퇴", role: .destructive) { showWithdrawConfirm = true }
                 .foregroundStyle(Color("gray-900"))
         }
         .font(.pretendMedium14)
@@ -389,7 +417,7 @@ extension EditProfileView {
     }
 }
 
-// MARK: - Overlays (분리)
+// MARK: - Overlays
 extension EditProfileView {
     private var logoutOverlay: some View {
         Group {
@@ -432,7 +460,7 @@ extension EditProfileView {
     }
 }
 
-// MARK: - RemoteAvatar (AsyncImage 분리로 타입체커 부담 ↓)
+// MARK: - RemoteAvatar
 private struct RemoteAvatar: View {
     let url: URL
     var body: some View {

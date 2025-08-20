@@ -35,34 +35,36 @@ final class AuthInterceptor: RequestInterceptor {
                dueTo error: Error,
                completion: @escaping (RetryResult) -> Void) {
 
-        // 응답이 없으면(네트워크 에러 등) 여기서는 재시도하지 않음
         guard let statusCode = request.response?.statusCode else {
             completion(.doNotRetry)
             return
         }
 
-        // 인증 실패로 취급할 상태코드들
-        let isAuthFail = (statusCode == 401 || statusCode == 403 || statusCode == 419)
+        print("🔁 [AuthInterceptor] status:", statusCode, "autoLogin:", userSession.autoLogin)
 
-        // refresh 엔드포인트 자체거나, 인증실패가 아니면 재시도 안 함
+        let isAuthFail = (statusCode == 401 || statusCode == 403 || statusCode == 419)
         guard request.request?.url?.path != "/api/auth/refresh", isAuthFail else {
             completion(.doNotRetry)
             return
         }
 
-        // 자동로그인 OFF면: refresh 시도 안 함 → 즉시 세션 클리어(루트가 로그인으로 분기)
         if userSession.autoLogin == false {
+            print("🚫 [AuthInterceptor] autoLogin=false → clear()")
             DispatchQueue.main.async { self.userSession.clear() }
             completion(.doNotRetry)
             return
         }
 
-        // refresh 토큰 없으면 재시도 불가
         guard !userSession.refreshToken.isEmpty else {
+            print("🚫 [AuthInterceptor] refreshToken empty → clear()")
             DispatchQueue.main.async { self.userSession.clear() }
             completion(.doNotRetry)
             return
         }
+
+        print("🔄 [AuthInterceptor] refresh start…")
+        // 이하 refreshProvider.request 그대로
+
 
         // 동시 refresh 제어
         lock.lock()

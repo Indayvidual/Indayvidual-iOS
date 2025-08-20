@@ -33,5 +33,5 @@ struct IndayvidualApp: App {
                 }
         }
     }
-    
+
 }

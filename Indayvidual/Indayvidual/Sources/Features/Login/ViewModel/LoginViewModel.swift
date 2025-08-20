@@ -21,6 +21,7 @@ class LoginViewModel: ObservableObject {
     @Published var loginSuccess: Bool = false
     @Published var errorMessage: String?
 
+    // 기존 프로퍼티는 유지(안 써도 무방)
     let provider = MoyaProvider<AuthAPITarget>()
 
     // 이메일 유효성 검사 계산된 프로퍼티
@@ -37,7 +38,6 @@ class LoginViewModel: ObservableObject {
         return password.count >= 6
     }
     
-
     // 로그인
     func login(userSession: UserSession) {
         guard !email.isEmpty, !password.isEmpty else {
@@ -45,7 +45,9 @@ class LoginViewModel: ObservableObject {
             return
         }
 
-        provider.request(.login(email: email, password: password)) { [weak self] result in
+        Network.provider<AuthAPITarget>().request(
+            AuthAPITarget.login(email: email, password: password)
+        ) { [weak self] result in
             switch result {
             case .success(let response):
                 do {
@@ -66,10 +68,10 @@ class LoginViewModel: ObservableObject {
                     userSession.displayName = nameToShow ?? ""
                     UserDefaults.standard.set(nameToShow, forKey: "nickname")
                     userSession.avatarURL = nil
+                    userSession.autoLogin = self?.autoLogin ?? false
+                    UserDefaults.standard.set(userSession.autoLogin, forKey: "autoLogin")
                     
-                    DispatchQueue.main.async {
-                        self?.loginSuccess = true
-                    }
+                    self?.loginSuccess = true
                 } catch {
                     self?.errorMessage = "디코딩 실패: \(error.localizedDescription)"
                 }
@@ -86,9 +88,11 @@ class LoginViewModel: ObservableObject {
             // 1) 카카오 SDK 토큰
             let kakaoAT = try await KakaoAuthService.shared.getAccessToken()
 
-            // 2) /api/auth/kakao 호출을 async로 래핑
+            // 2) /api/auth/kakao 호출을 async로 래핑 (Network.provider 사용)
             let response: Response = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Response, Error>) in
-                provider.request(.kakaoLogin(accessToken: kakaoAT)) { result in
+                Network.provider<AuthAPITarget>().request(
+                    AuthAPITarget.kakaoLogin(accessToken: kakaoAT)
+                ) { result in
                     switch result {
                     case .success(let r): cont.resume(returning: r)
                     case .failure(let e): cont.resume(throwing: e)
@@ -99,10 +103,8 @@ class LoginViewModel: ObservableObject {
             // 3) 디코드
             let kakaoResp = try JSONDecoder().decode(KakaoLoginResponseDTO.self, from: response.data)
             guard kakaoResp.isSuccess, let data = kakaoResp.data else {
-                await MainActor.run {
-                    self.isLoggingIn = false
-                    self.errorMessage = kakaoResp.message
-                }
+                self.isLoggingIn = false
+                self.errorMessage = kakaoResp.message
                 return
             }
 
@@ -110,49 +112,49 @@ class LoginViewModel: ObservableObject {
             let profile = try await KakaoAuthService.shared.fetchKakaoProfile()
 
             // 5) 메인에서 세션/캐시 반영
-            await MainActor.run {
-                userSession.accessToken  = data.accessToken
-                userSession.refreshToken = data.refreshToken
-                userSession.userId       = data.userId
-                userSession.email        = data.email ?? ""
-                userSession.provider     = .kakao
-                userSession.displayName  = data.username ?? profile.nickname ?? ""
-                userSession.avatarURL    = profile.imageUrl
+            userSession.accessToken  = data.accessToken
+            userSession.refreshToken = data.refreshToken
+            userSession.userId       = data.userId
+            userSession.email        = data.email ?? ""
+            userSession.provider     = .kakao
+            userSession.displayName  = data.username ?? profile.nickname ?? ""
+            userSession.avatarURL    = profile.imageUrl
 
-                let nameToShow = data.username ?? profile.nickname ?? ""
-                UserDefaults.standard.set(nameToShow, forKey: "nickname")
-                UserDefaults.standard.set(profile.imageUrl, forKey: "avatarURL")
-                UserDefaults.standard.set(data.accessToken,  forKey: "accessToken")
-                UserDefaults.standard.set(data.refreshToken, forKey: "refreshToken")
-                
-                self.isLoggingIn = false
-                self.loginSuccess = true
-                onSuccess?()
-            }
+            // 카카오는 항상 자동로그인
+            userSession.autoLogin = true
+            UserDefaults.standard.set(true, forKey: "autoLogin")
+
+            let nameToShow = data.username ?? profile.nickname ?? ""
+            UserDefaults.standard.set(nameToShow, forKey: "nickname")
+            UserDefaults.standard.set(profile.imageUrl, forKey: "avatarURL")
+            UserDefaults.standard.set(data.accessToken,  forKey: "accessToken")
+            UserDefaults.standard.set(data.refreshToken, forKey: "refreshToken")
+            
+            self.isLoggingIn = false
+            self.loginSuccess = true
+            onSuccess?()
+
         } catch {
-            await MainActor.run {
-                self.isLoggingIn = false
-                self.errorMessage = "카카오 로그인 실패: \(error.localizedDescription)"
-            }
+            self.isLoggingIn = false
+            self.errorMessage = "카카오 로그인 실패: \(error.localizedDescription)"
         }
     }
 
-    
     func loginWithKakao(userSession: UserSession) async {
-            await loginWithKakaoToken(userSession: userSession)
-        }
+        await loginWithKakaoToken(userSession: userSession)
+    }
     
-
     // 로그아웃
     func logout(userSession: UserSession) {
-        provider.request(.logout) { result in
+        // Network.provider 사용으로 인터셉터 타게
+        Network.provider<AuthAPITarget>().request(AuthAPITarget.logout) { _ in
             UserApi.shared.logout { _ in }
             userSession.clear()
             UserDefaults.standard.removeObject(forKey: "refreshToken")
             print("🧹 로컬 토큰 삭제 완료")
 
             UserDefaults.standard.removeObject(forKey: "displayName")
-                    UserDefaults.standard.removeObject(forKey: "avatarURL")
+            UserDefaults.standard.removeObject(forKey: "avatarURL")
         }
     }
 }

@@ -105,6 +105,7 @@ struct LoginView: View {
             VStack(spacing: 40) {
                 Button {
                     viewModel.login(userSession: userSession)
+                    userSession.autoLogin = viewModel.autoLogin
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         if viewModel.loginSuccess {
                             goToHome = true

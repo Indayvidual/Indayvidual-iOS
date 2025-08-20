@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum LoginProvider: String, Codable { case email, kakao }
+enum LoginProvider: String, Codable { case none, email, kakao }
 
 class UserSession: ObservableObject {
     @Published var accessToken: String
@@ -18,6 +18,7 @@ class UserSession: ObservableObject {
     @Published var provider: LoginProvider = .email
     @Published var displayName: String = ""
     @Published var avatarURL: String? = nil
+    @Published var autoLogin: Bool = UserDefaults.standard.bool(forKey: "autoLogin")
     
     @Published var reauthToken: String = ""
     @Published var reauthExpiry: Date = .distantPast
@@ -39,6 +40,7 @@ class UserSession: ObservableObject {
         email = token.email
         nickname = token.nickname
 
+        UserDefaults.standard.set(self.autoLogin, forKey: "autoLogin")
         UserDefaults.standard.set(accessToken, forKey: "accessToken")
         UserDefaults.standard.set(refreshToken, forKey: "refreshToken")
         UserDefaults.standard.set(userId, forKey: "userId")
@@ -57,7 +59,7 @@ class UserSession: ObservableObject {
         userId = 0
         email = ""
         nickname = ""
-        provider = .email
+        provider = .none 
         displayName = ""
         avatarURL = nil
 
@@ -66,5 +68,6 @@ class UserSession: ObservableObject {
         UserDefaults.standard.removeObject(forKey: "userId")
         UserDefaults.standard.removeObject(forKey: "email")
         UserDefaults.standard.removeObject(forKey: "nickname")
+        UserDefaults.standard.set(self.autoLogin, forKey: "autoLogin")
     }
 }

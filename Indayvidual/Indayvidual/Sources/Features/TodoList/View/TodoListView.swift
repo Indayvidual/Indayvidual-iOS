@@ -40,7 +40,7 @@ struct TodoListView: View {
                         
                         // task
                         if viewModel.categories.isEmpty {
-                            Spacer().frame(height: 40)
+                            Spacer()
                             EmptyTodoView()
                         } else {
                             LazyVStack(spacing: 0) {

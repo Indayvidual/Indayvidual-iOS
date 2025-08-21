@@ -4,6 +4,8 @@
 <dict>
 	<key>BASE_URL</key>
 	<string>https://dev.indayvidual.shop</string>
+	<key>CFBundleIconName</key>
+	<string>AppIcon</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

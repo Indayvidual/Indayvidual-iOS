@@ -22,7 +22,7 @@ class LoginViewModel: ObservableObject {
     @Published var errorMessage: String?
 
     // 기존 프로퍼티는 유지(안 써도 무방)
-    let provider = MoyaProvider<AuthAPITarget>()
+    let authProvider: MoyaProvider<AuthAPITarget> = NetworkKit.publicAuthProvider()
 
     // 이메일 유효성 검사 계산된 프로퍼티
     var isValidEmail: Bool {
@@ -45,8 +45,7 @@ class LoginViewModel: ObservableObject {
             return
         }
 
-        Network.provider<AuthAPITarget>().request(
-            AuthAPITarget.login(email: email, password: password)
+        authProvider.request(.login(email: email, password: password)
         ) { [weak self] result in
             switch result {
             case .success(let response):
@@ -67,6 +66,7 @@ class LoginViewModel: ObservableObject {
                     userSession.provider = .email
                     userSession.displayName = nameToShow ?? ""
                     UserDefaults.standard.set(nameToShow, forKey: "nickname")
+                    UserDefaults.standard.set("email", forKey: "loginProvider")
                     userSession.avatarURL = nil
                     userSession.autoLogin = self?.autoLogin ?? false
                     UserDefaults.standard.set(userSession.autoLogin, forKey: "autoLogin")
@@ -90,7 +90,7 @@ class LoginViewModel: ObservableObject {
 
             // 2) /api/auth/kakao 호출을 async로 래핑 (Network.provider 사용)
             let response: Response = try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Response, Error>) in
-                Network.provider<AuthAPITarget>().request(
+                NetworkKit.provider<AuthAPITarget>().request(
                     AuthAPITarget.kakaoLogin(accessToken: kakaoAT)
                 ) { result in
                     switch result {
@@ -126,6 +126,7 @@ class LoginViewModel: ObservableObject {
 
             let nameToShow = data.username ?? profile.nickname ?? ""
             UserDefaults.standard.set(nameToShow, forKey: "nickname")
+            UserDefaults.standard.set("kakao", forKey: "loginProvider")
             UserDefaults.standard.set(profile.imageUrl, forKey: "avatarURL")
             UserDefaults.standard.set(data.accessToken,  forKey: "accessToken")
             UserDefaults.standard.set(data.refreshToken, forKey: "refreshToken")
@@ -147,7 +148,7 @@ class LoginViewModel: ObservableObject {
     // 로그아웃
     func logout(userSession: UserSession) {
         // Network.provider 사용으로 인터셉터 타게
-        Network.provider<AuthAPITarget>().request(AuthAPITarget.logout) { _ in
+        authProvider.request(.logout) { _ in
             UserApi.shared.logout { _ in }
             userSession.clear()
             UserDefaults.standard.removeObject(forKey: "refreshToken")

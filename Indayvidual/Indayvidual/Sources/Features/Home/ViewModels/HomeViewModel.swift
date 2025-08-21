@@ -18,8 +18,8 @@ class HomeViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()   // Combine 구독을 관리하기 위한 프로퍼티
     private var schedules: [ScheduleItem] = []  // 일정 저장 리스트
     
-    let calendarProvider = MoyaProvider<CalendarTarget>()
-    let evnetProvider = MoyaProvider<EventTarget>()
+    let calendarProvider: MoyaProvider<CalendarTarget> = NetworkKit.provider()
+    let evnetProvider: MoyaProvider<EventTarget> = NetworkKit.provider()
     private var alertService: AlertService?
     private var userSession: UserSession?
     
@@ -266,3 +266,4 @@ class HomeViewModel: ObservableObject {
         self.showCreateScheduleSheet = true
     }
 }
+

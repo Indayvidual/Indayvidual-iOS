@@ -13,7 +13,7 @@ final class PasswordConfirmViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var currentPassword: String = ""
 
-    private let profileProvider = MoyaProvider<ProfileAPITarget>()
+    private var profileProvider: MoyaProvider<ProfileAPITarget> { NetworkKit.provider() }
 
     // 이메일 비번으로 재인증 → 프로필 조회
     func verifyPasswordAndFetchProfile(_ password: String) async -> Profile? {

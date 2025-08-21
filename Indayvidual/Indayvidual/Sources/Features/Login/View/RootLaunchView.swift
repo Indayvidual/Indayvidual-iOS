@@ -30,7 +30,7 @@ struct RootLaunchView: View {
         }
         .onAppear {
             // 앱 cold start 시에도 대비
-            Network.configure(userSession: userSession)
+            NetworkKit.configure(userSession: userSession)
             if !showSplash { hydrateSessionIfNeeded() }
         }
         .onReceive(userSession.$accessToken.combineLatest(userSession.$refreshToken)) { at, rt in

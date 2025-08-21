@@ -7,7 +7,7 @@ class CreateScheduleSheetViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
     let completionPublisher = PassthroughSubject<(ScheduleItem, Bool), Never>()
     
-    private let eventProvider = MoyaProvider<EventTarget>()
+    private let eventProvider: MoyaProvider<EventTarget> = NetworkKit.provider()
     private var alertService: AlertService?
     
     @Published var title: String = ""

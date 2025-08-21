@@ -11,6 +11,7 @@ import Moya
 enum AuthAPITarget {
     case login(email: String, password: String)
     case kakaoLogin(accessToken: String)
+    case kakaoLoginIdToken(idToken: String)
     case refresh(refreshToken: String)
     case logout
     case deleteAccount(hard: Bool)
@@ -28,7 +29,7 @@ extension AuthAPITarget: TargetType {
     var path: String {
         switch self {
         case .login: return "/api/auth/login"
-        case .kakaoLogin: return "/api/auth/kakao"
+        case .kakaoLogin, .kakaoLoginIdToken: return "/api/auth/kakao"
         case .refresh: return "/api/auth/refresh"
         case .logout: return "/api/auth/logout"
         case .deleteAccount: return "/api/mypage/delete"
@@ -37,7 +38,7 @@ extension AuthAPITarget: TargetType {
     
     var method: Moya.Method {
         switch self {
-        case .login, .kakaoLogin, .refresh, .logout:
+        case .login, .kakaoLogin, .kakaoLoginIdToken, .refresh, .logout:
             return .post
         case .deleteAccount:
             return .delete
@@ -67,6 +68,8 @@ extension AuthAPITarget: TargetType {
             return .requestJSONEncodable(LoginRequestDTO(email: email, password: password))
         case let .kakaoLogin(accessToken):
             return .requestJSONEncodable(["accessToken": accessToken])
+        case let .kakaoLoginIdToken(idToken):
+                    return .requestJSONEncodable(["idToken": idToken])
         case .refresh:
             return .requestPlain
         case .logout:

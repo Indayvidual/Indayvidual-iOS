@@ -102,6 +102,12 @@ struct LoginView: View {
                 Spacer()
             }
 
+            if let error = viewModel.errorMessage {
+                Text(error)
+                    .font(.caption)
+                    .foregroundStyle(.red)
+            }
+            
             VStack(spacing: 40) {
                 Button {
                     viewModel.login(userSession: userSession)
@@ -121,12 +127,6 @@ struct LoginView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
                 
-                if let error = viewModel.errorMessage {
-                    Text(error)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                
                 HStack {
                     Rectangle()
                         .frame(height: 1)
@@ -143,8 +143,8 @@ struct LoginView: View {
                     Task {
                         guard !viewModel.isLoggingIn else { return }
                         await viewModel.loginWithKakaoToken(userSession: userSession)
+                        userSession.autoLogin = true
                         if viewModel.loginSuccess { goToHome = true }
-                        goToHome = true
                     }
                 } label: {
                     HStack {
@@ -193,8 +193,8 @@ struct LoginView: View {
                 Task {
                     guard !viewModel.isLoggingIn else { return }
                     await viewModel.loginWithKakaoToken(userSession: userSession)
+                    userSession.autoLogin = true
                     if viewModel.loginSuccess { goToHome = true }
-                    goToHome = true
                 }
             } label: {
                 HStack {

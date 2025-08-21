@@ -9,7 +9,7 @@ import Foundation
 import Moya
 
 class SchoolInfoService {
-    private let provider = MoyaProvider<SchoolInfoTarget>()
+    private let provider: MoyaProvider<SchoolInfoTarget> = NetworkKit.provider()
     
     func fetchSchoolNames(apiKey: String, searchTxt: String, completion: @escaping (Result<[SchoolInfo], Error>) -> Void) {
         provider.request(.getSchoolInfo(apiKey: apiKey, searchTxt: searchTxt)) { result in

@@ -27,7 +27,7 @@ class SignupViewModel: ObservableObject {
     
     @Published var emailCheckStatus: EmailCheckStatus? = nil
 
-    let provider = MoyaProvider<SignupAPITarget>()
+    let provider: MoyaProvider<SignupAPITarget> = NetworkKit.provider()
 
     func checkEmail(completion: @escaping (Bool) -> Void) {
         provider.request(.checkEmail(email: email)) { result in

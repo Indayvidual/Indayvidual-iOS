@@ -11,7 +11,7 @@ import UIKit
 
 @MainActor
 final class EditProfileViewModel: ObservableObject {
-    private let provider = MoyaProvider<ProfileAPITarget>()
+    private var provider: MoyaProvider<ProfileAPITarget> { NetworkKit.provider() }
 
     // UI 상태
     @Published var isCheckingUsername = false
@@ -96,6 +96,8 @@ final class EditProfileViewModel: ObservableObject {
                     let dto = try JSONDecoder().decode(CommonResponseDTO.self, from: response.data)
                     if dto.isSuccess {
                         completion?(true)
+                        UserDefaults.standard.removeObject(forKey: "reauthToken")
+                        UserDefaults.standard.removeObject(forKey: "reauthTokenExp")
                     } else {
                         completion?(false)
                     }

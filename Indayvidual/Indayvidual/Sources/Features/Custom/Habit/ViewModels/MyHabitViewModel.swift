@@ -17,7 +17,7 @@ class MyHabitViewModel {
     let editIndex: Int?
     
     private let sharedVM: CustomViewModel
-    private let provider = MoyaProvider<HabitAPITarget>()
+    private let provider: MoyaProvider<HabitAPITarget> = NetworkKit.provider()
     
     init(sharedVM: CustomViewModel, habit: MyHabitModel? = nil, index: Int? = nil) {
         self.sharedVM = sharedVM

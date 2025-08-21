@@ -14,18 +14,18 @@ private struct KakaoReauthBody: Encodable {
 
 enum ProfileAPITarget {
     // 마이페이지
-    case getMyProfile                                        // GET /api/mypage/profile
-    case checkUsername(username: String)                     // GET /api/mypage/username/check?username=
-    case updateUsername(username: String)                    // PATCH /api/mypage/update_username
-    case updatePassword(currentPassword: String, newPassword: String) // PATCH /api/mypage/update_password
-    case uploadProfileImage(data: Data, fileName: String, mimeType: String) // PATCH /api/mypage/profile-image (multipart name=image)
-
+    case getMyProfile
+    case checkUsername(username: String)
+    case updateUsername(username: String)
+    case updatePassword(currentPassword: String, newPassword: String)
+    case uploadProfileImage(data: Data, fileName: String, mimeType: String)
+    
     // 재인증
-    case reauthPassword(currentPassword: String)             // POST /api/auth/re-auth/password
-    case reauthKakao(kakaoAccessToken: String)               // POST /api/auth/re-auth/kakao
+    case reauthPassword(currentPassword: String)
+    case reauthKakao(kakaoAccessToken: String)
 
     // 탈퇴
-    case deleteAccount(hard: Bool)                           // DELETE /api/mypage/delete
+    case deleteAccount(hard: Bool)
 }
 
 extension ProfileAPITarget: TargetType {
@@ -96,13 +96,17 @@ extension ProfileAPITarget: TargetType {
     }
 
     var headers: [String : String]? {
-        var h: [String: String] = [:]
+        var h: [String: String] = ["Accept": "*/*"]
 
-        if let accessToken = UserDefaults.standard.string(forKey: "accessToken"), !accessToken.isEmpty {
-            h["Authorization"] = "Bearer \(accessToken)"
+        switch self {
+        case .uploadProfileImage:
+            // multipart는 Moya가 Content-Type을 자동으로 붙임
+            break
+        default:
+            h["Content-Type"] = "application/json"
         }
 
-        // 재인증 필요한 엔드포인트만 X-Reauth-Token
+        // 재인증 필요한 엔드포인트만 X-Reauth-Token 추가
         let needsReauth: Bool = {
             switch self {
             case .updateUsername, .updatePassword, .uploadProfileImage, .deleteAccount:
@@ -111,23 +115,8 @@ extension ProfileAPITarget: TargetType {
                 return false
             }
         }()
-
-        if needsReauth {
-            if let rt = UserDefaults.standard.string(forKey: "reauthToken"), !rt.isEmpty {
-                h["X-Reauth-Token"] = rt
-            } else {
-#if DEBUG
-                print("⚠️ Missing X-Reauth-Token for \(self)")
-#endif
-            }
-        }
-
-        switch self {
-        case .uploadProfileImage:
-            h["Accept"] = "*/*" // multipart는 Moya가 Content-Type 자동 지정
-        default:
-            h["Content-Type"] = "application/json"
-            h["Accept"] = "*/*"
+        if needsReauth, let rt = UserDefaults.standard.string(forKey: "reauthToken"), !rt.isEmpty {
+            h["X-Reauth-Token"] = rt
         }
 
         return h

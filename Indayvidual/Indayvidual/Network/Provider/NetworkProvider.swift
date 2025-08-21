@@ -9,7 +9,7 @@ import Moya
 
 final class NetworkProvider {
     static let shared = NetworkProvider()
-    let schoolInfoProvider = MoyaProvider<SchoolInfoTarget>()
+    let schoolInfoProvider: MoyaProvider<SchoolInfoTarget> = NetworkKit.provider()
     
     private init() {}
 }

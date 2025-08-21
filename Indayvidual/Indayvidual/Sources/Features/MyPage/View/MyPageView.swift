@@ -57,6 +57,7 @@ struct MyPageView: View {
                                 withAnimation { showToast = false }
                             }
                         }
+                        .environmentObject(userSession)
                     }
                 }
             }
@@ -65,7 +66,7 @@ struct MyPageView: View {
             // 편집 완료 토스트
             if showToast {
                 EditDoneToast()
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .transition(.opacity)
                     .zIndex(1)
             }
         }

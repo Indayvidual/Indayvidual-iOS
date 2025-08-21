@@ -143,6 +143,7 @@ struct LoginView: View {
                     Task {
                         guard !viewModel.isLoggingIn else { return }
                         await viewModel.loginWithKakaoToken(userSession: userSession)
+                        userSession.autoLogin = true
                         if viewModel.loginSuccess { goToHome = true }
                     }
                 } label: {
@@ -192,6 +193,7 @@ struct LoginView: View {
                 Task {
                     guard !viewModel.isLoggingIn else { return }
                     await viewModel.loginWithKakaoToken(userSession: userSession)
+                    userSession.autoLogin = true
                     if viewModel.loginSuccess { goToHome = true }
                 }
             } label: {

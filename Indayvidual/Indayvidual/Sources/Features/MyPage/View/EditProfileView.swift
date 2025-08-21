@@ -66,9 +66,6 @@ struct EditProfileView: View {
             .fullScreenCover(isPresented: $goLogin) {
                 NavigationStack { LoginView().navigationBarBackButtonHidden(true) }
             }
-            .fullScreenCover(isPresented: $goMypage) {
-                NavigationStack { MyPageView(showEditToast: true).navigationBarBackButtonHidden(true) }
-            }
             // 모달 오버레이 분리
             .overlay(logoutOverlay)
             .overlay(withdrawOverlay)
@@ -369,6 +366,7 @@ extension EditProfileView {
                 onSaved?()
                 goMypage = true
             }
+            .font(.pretendSemiBold15)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)

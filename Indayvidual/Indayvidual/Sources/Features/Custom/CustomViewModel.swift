@@ -33,8 +33,8 @@ class CustomViewModel {
         habits.filter { $0.isSelected }.count
     }
     
-    private let memoProvider = MoyaProvider<MemoAPITarget>()
-    private let habitProvider = MoyaProvider<HabitAPITarget>()
+    private let memoProvider: MoyaProvider<MemoAPITarget> = NetworkKit.provider()
+    private let habitProvider: MoyaProvider<HabitAPITarget> = NetworkKit.provider()
     
     init(userSession: UserSession) {
         self.userSession = userSession

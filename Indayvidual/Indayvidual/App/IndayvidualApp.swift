@@ -26,6 +26,9 @@ struct IndayvidualApp: App {
                 .rootAlert()
                 .environmentObject(userSession)
                 .environmentObject(alertService)
+                .task {
+                    NetworkKit.configure(userSession: userSession)
+                }
                 .onOpenURL { url in
                     if AuthApi.isKakaoTalkLoginUrl(url) {
                         _ = AuthController.handleOpenUrl(url: url)

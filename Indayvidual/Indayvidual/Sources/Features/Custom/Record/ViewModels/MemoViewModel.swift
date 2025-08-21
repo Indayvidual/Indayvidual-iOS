@@ -18,7 +18,7 @@ class MemoViewModel {
     let editIndex: Int?
 
     private let sharedVM: CustomViewModel
-    private let provider = MoyaProvider<MemoAPITarget>()
+    private let provider: MoyaProvider<MemoAPITarget> = NetworkKit.provider()
 
     init(sharedVM: CustomViewModel, memo: MemoModel? = nil, index: Int? = nil) {
         self.sharedVM = sharedVM

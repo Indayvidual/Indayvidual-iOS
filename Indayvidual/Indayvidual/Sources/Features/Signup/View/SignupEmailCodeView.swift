@@ -1,0 +1,174 @@
+//
+//  SignupEmailCodeView.swift
+//  Indayvidual
+//
+//  Created by Jung Hyun Han on 7/27/25.
+//
+
+import SwiftUI
+
+struct SignupEmailCodeView: View {
+    @State private var code: String = ""
+    @State private var isCodeValid: Bool = false
+    @State private var countdown: Int = 600
+    @State private var timer: Timer? = nil
+    @FocusState private var isCodeFocused: Bool
+    @Environment(\.dismiss) private var dismiss
+    @State private var goToNextStep = false
+    @State private var isVerifying = false
+    @State private var errorMessage: String?
+    @EnvironmentObject var viewModel: SignupViewModel
+
+    var body: some View {
+        VStack(spacing: 28) {
+            // 뒤로가기
+            HStack {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                    .foregroundStyle(.black)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+            
+            // 타이틀
+            Text("메일로 전송된\n인증번호를 입력해주세요")
+                .font(.pretendBold24)
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.top, 20)
+                .padding(.horizontal, 20)
+            
+            // 인증번호 입력
+            VStack(spacing: 8) {
+                Text("인증번호")
+                    .font(.pretendMedium13)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                HStack(spacing: 8) {
+                    ZStack(alignment: .trailing) {
+                        TextField("1234", text: $code)
+                            .keyboardType(.numberPad)
+                            .padding(.horizontal, 12)
+                            .frame(height: 48)
+                            .background(
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            )
+                            .font(.system(size: 16))
+                            .focused($isCodeFocused)
+                        
+                            .overlay(alignment: .trailing) {
+                                HStack(spacing: 6) {
+                                    Text("\(countdown / 60):\(String(format: "%02d", countdown % 60))")
+                                        .monospacedDigit()                   // 자리수 점프 방지
+                                }
+                                .font(.system(size: 14))
+                                .foregroundStyle(Color("my-secondary"))
+                                .padding(.trailing, 12)
+                                .allowsHitTesting(false)
+                            }
+                    }
+                    
+                    Button {
+                        timer?.invalidate()
+                        viewModel.sendVerificationCode()
+                        countdown = 600
+                        startTimer()
+                    } label: {
+                        Text("재전송")
+                            .font(.system(size: 14, weight: .semibold))
+                            .frame(width: 96, height: 48)
+                            .background(Color.gray.opacity(0.2))
+                            .foregroundStyle(.black)
+                            .cornerRadius(8)
+                    }
+//                    .disabled(countdown < 0)
+                }
+            }
+            .padding(.horizontal, 20)
+            
+            Spacer()
+            
+            // 하단 버튼
+            VStack {
+                Button {
+                    isVerifying = true
+                    viewModel.code = code
+                    viewModel.verifyCode { verified in
+                        isVerifying = false
+                        if verified {
+                            goToNextStep = true
+                        } else {
+                            errorMessage = "인증번호가 올바르지 않거나 만료되었습니다."
+                        }
+                    }
+                } label: {
+                    Text(isVerifying ? "확인 중..." : "다음")
+                        .font(.pretendSemiBold15)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(code.count == 4 ? Color.black : Color.gray.opacity(0.3))
+                        .foregroundStyle(.white)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+                .disabled(code.count != 4 || isVerifying)
+                .padding(.horizontal, 20)
+                
+                if let errorMessage = errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.system(size: 14))
+                        .padding(.top, 8)
+                }
+            }
+            .padding(.top, 24)
+            .padding(.bottom, 28)
+            .background(Color.white)
+            .shadow(color: .black.opacity(0.08), radius: 20, x: 0, y: -1)
+        }
+        .navigationBarBackButtonHidden(true)
+        .animation(.easeOut(duration: 0.25), value: isCodeFocused)
+        .onTapGesture {
+            hideKeyboard()
+        }
+        .onAppear {
+            startTimer()
+        }
+        .onDisappear {
+            timer?.invalidate()
+        }
+        
+        .navigationDestination(isPresented: $goToNextStep) {
+            SignupPasswordView()
+                .environmentObject(viewModel)
+        }
+    }
+
+    private func startTimer() {
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
+            if countdown > 0 {
+                countdown -= 1
+            }
+        }
+    }
+
+    private func validateCode() {
+        isCodeValid = code.count == 4
+    }
+
+    private func hideKeyboard() {
+        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    }
+}
+
+
+struct SignupEmailCodeView_Previews: PreviewProvider {
+    static var previews: some View {
+        SignupEmailCodeView()
+    }
+}
+

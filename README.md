@@ -1,4 +1,4 @@
-# 🚀 프로젝트 이름
+# 🚀 Indayvidual (인데이비주얼)
 
 ![배너 이미지 또는 로고](https://github.com/user-attachments/assets/36cbaf91-75c9-4712-bf7f-261676bdf43c)
 
@@ -14,7 +14,7 @@
 ## 👥 멤버
 | 장주리 | 김도연 | 김지민 | 한정현 |
 |:------:|:------:|:------:|:------:|
-| <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/78351a95-f120-4540-88aa-2827580fed45" />| <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/d375f81a-de7e-4851-8b0f-79e29cbf7fde" /> | <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/5332ba37-a6ae-4a03-beb7-ad586b69b172" /> | 사진4 |
+| <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/78351a95-f120-4540-88aa-2827580fed45" />| <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/d375f81a-de7e-4851-8b0f-79e29cbf7fde" /> | <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/5332ba37-a6ae-4a03-beb7-ad586b69b172" /> | <img width="200" height="200" alt="Image" src="https://github.com/user-attachments/assets/77d5eded-8365-45ac-bcf2-7bb49f62d22d" /> |
 | PL | FE | FE | FE |
 | [GitHub](https://github.com/Juri-Jang) | [GitHub](https://github.com/ddodle) | [GitHub](https://github.com/J1miin) | [GitHub](https://github.com/JungHyunHann) |
 
@@ -95,18 +95,63 @@ Swift 6.0
 <br>
 
 ## 📱 화면 구성
-- 디자인 확정이후 첨부 예정
+
 <table>
   <tr>
     <td>
-      사진
+      <div align="center">
+        <img width="230" height="450" alt="Splash" src="https://github.com/user-attachments/assets/d918b722-5f58-4a52-abca-406a07327bd0" />
+        <p>스플래쉬 화면</p>
+      </div>
     </td>
     <td>
-      사진
+      <div align="center">
+        <img width="230" height="450" alt="Login" src="https://github.com/user-attachments/assets/f68e95aa-0f91-40bc-bbf1-c607ec2ae4e9" />
+        <p>로그인 화면</p>
+      </div>
     </td>
-   
+    <td>
+      <div align="center">
+        <img width="230" height="450" alt="Signup" src="https://github.com/user-attachments/assets/838c906d-338d-4e52-9787-7beccb25268c" />
+        <p>회원가입 화면</p>
+      </div>
+    </td>
+    <td>
+      <div align="center">
+       <img width="230" height="450" alt="Image" src="https://github.com/user-attachments/assets/936d841c-fc91-428d-a885-68bdbc00fd13" />
+        <p>홈 화면</p>
+      </div>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <div align="center">
+        <img width="230" height="450" alt="Image" src="https://github.com/user-attachments/assets/abfb7fab-0c5d-4d65-acc7-bd6a761240e3" />
+        <p>투두 리스트 화면</p>
+      </div>
+    </td>
+    <td>
+      <div align="center">
+        <img width="230" height="450" alt="Image" src="https://github.com/user-attachments/assets/5ca7c6e4-73be-484f-aaba-fae8e087aa82" />
+        <p>시간표 화면</p>
+      </div>
+    </td>
+    <td>
+      <div align="center">
+       <img width="230" height="450" alt="Image" src="https://github.com/user-attachments/assets/e9df0837-170a-42d7-ac4b-8adf9a4e6ef8" />
+        <p>커스텀 화면</p>
+      </div>
+    </td>
+    <td>
+      <div align="center">
+        <img width="230" height="450" alt="Image" src="https://github.com/user-attachments/assets/75b8fdfe-1f1a-4525-b9db-930a0a7db78b" />
+        <p>설정 화면</p>
+      </div>
+    </td>
   </tr>
 </table>
+
+<br>
 
 ## 🔖 브랜치 컨벤션
 * `main` - 제품 출시 브랜치
@@ -220,12 +265,13 @@ if let user = self.veryLongFunctionNameWhichReturnsOptionalUser(),
 ## 🗂️ 폴더 구조
 ```
 📦Indayvidual
-┣ 📂Indayvidual
-┃ ┣ 📂Assets.xcassets         # 앱 리소스 (아이콘, 컬러 등)
-┃ ┣ 📂Models                  # 데이터 모델 정의
-┃ ┣ 📂ViewModels              # 비즈니스 로직 처리
-┃ ┣ 📂Views                   # UI 화면 구성
-┃ ┣ 📜ContentView.swift
-┃ ┗ 📜IndayvidualApp.swift
-┗ 📂Indayvidual.xcodeproj     # Xcode 프로젝트 파일
+ ┣ 📂Indayvidual
+ ┃ ┣ 📂App                     # Xcode 프로젝트 파일(.xcodeproj), 앱 실행 관련 설정
+ ┃ ┣ 📂Assets.xcassets         # 앱에서 사용하는 이미지, 아이콘, 컬러 등 리소스
+ ┃ ┣ 📂Network                 # API 통신, 네트워크 관련 코드
+ ┃ ┣ 📂Resouces                # 로컬 파일, JSON, 폰트 등 앱에서 참조하는 외부 리소스
+ ┃ ┣ 📂Sources                 # 앱의 주요 기능 코드 폴더
+ ┃ ┃ ┣ 📂Common                # 공통으로 사용하는 컴포넌트, 상수, 확장(extension) 등
+ ┃ ┃ ┣ 📂Features              # 기능 단위 코드(모듈별 기능, MVVM 패턴)
+ ┃ ┗ 📂Supporting Files        # 앱 전체 설정, Info.plist 등 지원 파일
 ```

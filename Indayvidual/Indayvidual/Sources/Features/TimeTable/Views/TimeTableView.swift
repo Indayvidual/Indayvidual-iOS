@@ -11,6 +11,7 @@ import Kingfisher
 struct TimetableView: View {
     @StateObject private var timetableVm = TimetableViewModel()
     @EnvironmentObject var alertService: AlertService
+    @EnvironmentObject var userSession: UserSession
     
     var body: some View {
         NavigationStack {
@@ -60,7 +61,7 @@ struct TimetableView: View {
                 timetableVm.showSemesterDropdown = false
             }
             .task {
-                timetableVm.setup(alertService: alertService)
+                timetableVm.setup(alertService: alertService, userSession: userSession)
                 timetableVm.loadSavedSchool()
                 
                 if !timetableVm.isLoading {

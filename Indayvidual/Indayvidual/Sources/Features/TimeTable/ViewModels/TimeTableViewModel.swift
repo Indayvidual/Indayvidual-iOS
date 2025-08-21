@@ -14,6 +14,7 @@ import Kingfisher
 class TimetableViewModel: ObservableObject {
     private let timetableProvider = MoyaProvider<TimetableTarget>()
     private var alertService: AlertService?
+    private var userSession: UserSession?
     
     // MARK: - 선택 상태
     @Published var selectedSemester: Semester? = nil
@@ -24,7 +25,6 @@ class TimetableViewModel: ObservableObject {
     @Published var isPosting: Bool = false
     @Published var isLoading: Bool = false
     @Published var isSchoolRegistered: Bool
-    
     @Published var selectedImageURL: URL?
     
     // MARK: - 뷰 상태
@@ -52,8 +52,9 @@ class TimetableViewModel: ObservableObject {
         loadSavedSchool()
     }
     
-    func setup(alertService: AlertService) {
+    func setup(alertService: AlertService, userSession: UserSession) {
         self.alertService = alertService
+        self.userSession = userSession
     }
     
     // MARK: - UserDefaults에서 저장된 학교/학기 불러오기
@@ -70,6 +71,19 @@ class TimetableViewModel: ObservableObject {
             self.showNoticePopup = false
             print("UserDefaults에서 불러온 학교: \(savedName) (\(savedSeq))")
         }
+    }
+    
+    // MARK: - 공통 401 처리 함수
+    private func handleUnauthorized() {
+        print("⚠️ 401 Unauthorized → 로그인 필요")
+        
+        alertService?.showAlert(
+            message: "세션이 만료되었습니다. 다시 로그인해주세요.",
+            primaryButton: .primary(title: "확인", action: {
+                self.userSession?.clear()   // 세션 삭제 → Root에서 로그인 뷰로 전환됨
+            }),
+            secondaryButton: .secondary(title: "취소", action: {})
+        )
     }
     
     // MARK: - 이미지 처리
@@ -122,6 +136,10 @@ class TimetableViewModel: ObservableObject {
                 self?.isPosting = false
                 switch result {
                 case .success(let response):
+                    if response.statusCode == 401 {
+                        self?.handleUnauthorized()
+                        return
+                    }
                     if (200...299).contains(response.statusCode) {
                         print("👍🏻 시간표 등록 성공")
                         completion?(true)
@@ -163,7 +181,11 @@ class TimetableViewModel: ObservableObject {
                 self.isLoading = false
                 
                 guard (200...299).contains(response.statusCode) else {
-                    if response.statusCode == 404 {
+                    if response.statusCode == 401 {
+                        self.handleUnauthorized()
+                        return
+                    }
+                    else if response.statusCode == 404 {
                         print("INFO: 등록된 시간표가 없습니다.")
                         self.currentTimetable = nil
                         self.isSchoolRegistered = false
@@ -215,7 +237,12 @@ class TimetableViewModel: ObservableObject {
                 self.isPosting = false
                 switch result {
                 case .success(let response):
-                    if (200...299).contains(response.statusCode) {
+                    if response.statusCode == 401 {
+                        self.handleUnauthorized()
+                        completion?(false)
+                        return
+                    }
+                    else if (200...299).contains(response.statusCode) {
                         print("✅ 시간표 삭제 성공 (ID: \(timetableId))")
                         if let index = self.timeTable?.firstIndex(where: { $0.timetableId == timetableId }) {
                             self.timeTable?.remove(at: index)

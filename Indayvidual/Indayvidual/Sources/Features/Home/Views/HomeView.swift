@@ -18,7 +18,7 @@ struct HomeView: View {
     @State private var showEndSection: Bool = false
     
     @Environment(\.dismiss) private var dismiss
-    
+    @EnvironmentObject var userSession: UserSession
     @EnvironmentObject var alertService: AlertService
     
     var body: some View {
@@ -68,7 +68,7 @@ struct HomeView: View {
                 }
                 .navigationBarTitleDisplayMode(.inline)
                 .onAppear {
-                    homeVm.setup(alertService: alertService)
+                    homeVm.setup(alertService: alertService, userSession: userSession)
                     
                     // 기존 필터 업데이트
                     homeVm.fetchSchedules(for: calendarVm.selectDate)

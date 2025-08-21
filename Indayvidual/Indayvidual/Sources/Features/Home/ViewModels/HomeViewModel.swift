@@ -21,9 +21,24 @@ class HomeViewModel: ObservableObject {
     let calendarProvider = MoyaProvider<CalendarTarget>()
     let evnetProvider = MoyaProvider<EventTarget>()
     private var alertService: AlertService?
+    private var userSession: UserSession?
     
-    func setup(alertService: AlertService) {
+    func setup(alertService: AlertService, userSession: UserSession) {
         self.alertService = alertService
+        self.userSession = userSession
+    }
+    
+    // MARK: - 공통 401 처리 함수
+    private func handleUnauthorized() {
+        print("⚠️ 401 Unauthorized → 로그인 필요")
+        
+        alertService?.showAlert(
+            message: "세션이 만료되었습니다. 다시 로그인해주세요.",
+            primaryButton: .primary(title: "확인", action: {
+                self.userSession?.clear()   // 세션 삭제 → Root에서 로그인 뷰로 전환됨
+            }),
+            secondaryButton: .secondary(title: "취소", action: {})
+        )
     }
     
     // MARK: - 월별 캘린더 색상 조회 API
@@ -34,6 +49,10 @@ class HomeViewModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
+                    if response.statusCode == 401 {
+                        self.handleUnauthorized()
+                        return
+                    }
                     do {
                         let decoded = try JSONDecoder().decode(CustomCalendarResponseDto.self, from: response.data)
                         if decoded.isSuccess {
@@ -86,6 +105,10 @@ class HomeViewModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
+                    if response.statusCode == 401 {
+                        self.handleUnauthorized()
+                        return
+                    }
                     do {
                         let apiResponse = try JSONDecoder().decode(APIResponseDto<[EventResponseDto]>.self, from: response.data)
                         if apiResponse.isSuccess {
@@ -139,7 +162,11 @@ class HomeViewModel: ObservableObject {
             DispatchQueue.main.async {
                 switch result {
                 case .success(let response):
-                    if (200...299).contains(response.statusCode) {
+                    if response.statusCode == 401 {
+                        self.handleUnauthorized()
+                        return
+                    }
+                    else if (200...299).contains(response.statusCode) {
                         print("✅ 일정 삭제 성공: \(schedule.id)")
                         self.handleScheduleDeletion(schedule, calendarViewModel: calendarViewModel)
                     } else {
